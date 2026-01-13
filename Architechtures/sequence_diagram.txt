@@ -1,0 +1,54 @@
+@startuml
+title User KYC & Bank Integration - Sequence Diagram
+
+autonumber
+
+actor User
+participant "Our System\n(KYC Platform)" as System
+participant "DigiLocker" as DigiLocker
+participant "Bank" as Bank
+participant "Another Bank" as Bank2
+
+== User Registration & KYC ==
+
+User -> System : Register (Basic Details)
+System -> User : Send OTP
+User -> System : Submit OTP
+System -> System : Verify OTP
+
+User -> System : Submit KYC Input Fields
+System -> DigiLocker : Fetch KYC Data (API Call)
+DigiLocker -> System : Verified KYC Data
+System -> System : Store KYC Data\n(Link to User ID)
+
+== User Opens Bank Account ==
+
+User -> Bank : Open Bank Account
+User -> Bank : Submit User ID
+
+== Bank Requests KYC ==
+
+Bank -> System : Request KYC (User ID)
+System -> User : Send Consent Request
+
+alt User Approves Consent
+    User -> System : Approve KYC Sharing
+    System -> Bank : Consent Approved
+    Bank -> System : Get KYC Data (GET API)
+    System -> Bank : KYC Information
+else User Rejects Consent
+    User -> System : Reject KYC Sharing
+    System -> Bank : Consent Rejected
+end
+
+== Multiple Banks (Reusable Flow) ==
+
+loop For Each Additional Bank
+    Bank2 -> System : Request KYC (User ID)
+    System -> User : Consent Request
+    User -> System : Approve Consent
+    System -> Bank2 : Consent Approved
+    Bank2 -> System : Get KYC Data
+    System -> Bank2 : KYC Information
+end
+@enduml
