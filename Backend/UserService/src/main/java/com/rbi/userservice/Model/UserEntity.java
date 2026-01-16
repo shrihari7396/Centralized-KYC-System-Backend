@@ -12,7 +12,11 @@ import java.time.LocalDateTime;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
+    @Column(nullable = false)
+    String firstName;
+    @Column(nullable = false)
+    String lastName;
 
     @Column(nullable = false, unique = true)
     private String email;

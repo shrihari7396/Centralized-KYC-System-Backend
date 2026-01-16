@@ -1,9 +1,8 @@
 package com.rbi.userservice.service;
 
-import com.rbi.userservice.DTO.UserDTO;
-import org.springframework.http.ResponseEntity;
+import com.rbi.userservice.DTO.RegisterDTO;
 
 public interface UserServiceInterface {
     Boolean userLogin(String email);
-    Boolean uegisterUser(UserDTO user);
+    Boolean uegisterUser(RegisterDTO user);
 }
