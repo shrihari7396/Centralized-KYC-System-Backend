@@ -1,13 +1,22 @@
 spring:
   application:
     name: UserService
-
   kafka:
     producer:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  datasource:
+    url: jdbc:mysql://localhost:3306/kyc_user_service
+    username: root
+    password: 899961
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
 
 server:
   servlet:
     context-path: /api/userService/
+  port: 8081
