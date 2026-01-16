@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserServiceInterface {
 
     @Override
     public Boolean verifyOtp(String otp,String email) {
-        return null;
+      String StoredOtp = redisTemplate.opsForValue().get(email);
     }
 
     @Override
@@ -36,8 +36,8 @@ public class UserServiceImpl implements UserServiceInterface {
     }
 
     @Override
-    public void deleteOtp(String otp) {
-
+    public void deleteOtp(String email) {
+        redisTemplate.delete(email);
     }
 
 
