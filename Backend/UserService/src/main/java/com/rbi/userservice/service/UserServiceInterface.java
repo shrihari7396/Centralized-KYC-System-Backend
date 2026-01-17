@@ -1,9 +1,10 @@
 package com.rbi.userservice.service;
 
+import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 
 public interface UserServiceInterface {
-    Boolean sendOtp(String email);
+    Boolean sendOtp(OtpRequestDto otpRequestDto);
     Boolean usergisterUser(RegisterDTO user);
     Boolean verifyOtp(String otp,String email);
     void saveOtp(String otp,String email);

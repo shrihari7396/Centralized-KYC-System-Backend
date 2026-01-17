@@ -1,12 +1,14 @@
 package com.rbi.userservice.service;
 
 
+import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
 import com.rbi.userservice.Repository.UserRepository;
 import com.rbi.userservice.config.KafkaTopicNameConstants;
 import com.rbi.userservice.exception.InValidOtpException;
+import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,19 +22,25 @@ import java.time.Duration;
 public class UserServiceImpl implements UserServiceInterface {
 
     private final RedisTemplate<String,String> redisTemplate;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
 
 
     @Autowired
     UserRepository userRepository;
     @Override
-    public Boolean sendOtp(String email) {
+    public Boolean sendOtp(OtpRequestDto otpRequestDto) {
           SecureRandom secureRandom = new SecureRandom();
             int otp = secureRandom.nextInt(1_000_000);
             String finalotp = String.format("%06d", otp);
 //          logic for kafka to send
-            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_EVENT, finalotp);
-            saveOtp(finalotp, email);
+        CreateOtpEvent event = CreateOtpEvent.builder()
+                .firstName(otpRequestDto.getFirstName())
+                .lastName(otpRequestDto.getLastName())
+                .email(otpRequestDto.getEmail())
+                .otp(finalotp)
+                .build();
+            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_EVENT, event);
+            saveOtp(finalotp, otpRequestDto.getEmail());
             return true;
     }
 

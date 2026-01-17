@@ -30,7 +30,7 @@ public class UserController {
 
     @PostMapping("/requestOtp")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
-        if (userService.sendOtp(otpRequestDtp.getEmail())) {
+        if (userService.sendOtp(otpRequestDtp)) {
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed ...");
