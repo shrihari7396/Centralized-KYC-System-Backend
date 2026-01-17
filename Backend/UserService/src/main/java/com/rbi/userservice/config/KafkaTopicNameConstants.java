@@ -1,6 +1,6 @@
 package com.rbi.userservice.config;
 
 public class KafkaTopicNameConstants {
-    public final static String OTP_CREATED_EVENT = "OTP_CREATED_TOPIC";
+    public final static String OTP_CREATED_TOPIC = "OTP_CREATED_TOPIC";
 
 }

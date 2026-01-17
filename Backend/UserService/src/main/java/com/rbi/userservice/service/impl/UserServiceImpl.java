@@ -8,7 +8,7 @@ import com.rbi.userservice.Repository.UserRepository;
 import com.rbi.userservice.config.KafkaTopicNameConstants;
 import com.rbi.userservice.exception.InValidOtpException;
 import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
-import com.rbi.userservice.service.UserServiceInterface;
+import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,7 +19,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 @RequiredArgsConstructor
 @Service
-public class UserServiceImpl implements UserServiceInterface {
+public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String,String> redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserServiceInterface {
                 .email(otpRequestDto.getEmail())
                 .otp(finalotp)
                 .build();
-            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_EVENT, event);
+            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
             saveOtp(finalotp, otpRequestDto.getEmail());
             return true;
     }

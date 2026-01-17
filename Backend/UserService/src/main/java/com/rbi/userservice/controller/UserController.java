@@ -3,7 +3,7 @@ package com.rbi.userservice.controller;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.service.UserServiceInterface;
+import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserServiceInterface userService;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
