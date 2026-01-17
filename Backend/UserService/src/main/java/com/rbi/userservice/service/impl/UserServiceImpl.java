@@ -1,4 +1,4 @@
-package com.rbi.userservice.service;
+package com.rbi.userservice.service.impl;
 
 
 import com.rbi.userservice.DTO.OtpRequestDto;
@@ -9,8 +9,8 @@ import com.rbi.userservice.Repository.UserRepository;
 import com.rbi.userservice.config.KafkaTopicNameConstants;
 import com.rbi.userservice.exception.InValidOtpException;
 import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
+import com.rbi.userservice.service.UserServiceInterface;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
