@@ -21,17 +21,19 @@ import java.time.Duration;
 @Service
 public class UserServiceImpl implements UserServiceInterface {
 
+    private final SecureRandom secureRandom;
+
     private final RedisTemplate<String,String> redisTemplate;
+
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
 
-
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository
+            ;
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
-          SecureRandom secureRandom = new SecureRandom();
-            int otp = secureRandom.nextInt(1_000_000);
-            String finalotp = String.format("%06d", otp);
+        int otp = secureRandom.nextInt(1_000_000);
+        String finalotp = String.format("%06d", otp);
+
 //          logic for kafka to send
         CreateOtpEvent event = CreateOtpEvent.builder()
                 .firstName(otpRequestDto.getFirstName())
@@ -40,12 +42,14 @@ public class UserServiceImpl implements UserServiceInterface {
                 .otp(finalotp)
                 .build();
             kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_EVENT, event);
+
+//            Redis Caching
             saveOtp(finalotp, otpRequestDto.getEmail());
             return true;
     }
 
     @Override
-    public Boolean usergisterUser(RegisterDTO user) {
+    public Boolean registerUser(RegisterDTO user) {
         UserEntity u = UserEntity.builder()
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
