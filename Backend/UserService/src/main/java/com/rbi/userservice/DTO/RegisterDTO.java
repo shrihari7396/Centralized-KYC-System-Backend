@@ -16,8 +16,6 @@ public class RegisterDTO {
     private String mobileNumber;
     private String passwordHash;
     private UserStatus status;
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
 }
 

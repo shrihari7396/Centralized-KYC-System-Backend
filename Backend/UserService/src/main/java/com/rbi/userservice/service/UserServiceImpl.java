@@ -1,6 +1,4 @@
 package com.rbi.userservice.service;
-
-
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.Model.UserEntity;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
 import java.security.SecureRandom;
 import java.time.Duration;
 @RequiredArgsConstructor
