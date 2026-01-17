@@ -9,7 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaConfig {
     @Bean
     public NewTopic newTopic() {
-        return TopicBuilder.name(KafkaTopicNameConstants.OTP_CREATED_EVENT)
+        return TopicBuilder.name(KafkaTopicNameConstants.OTP_CREATED_TOPIC)
 //                .partitions(3)
 //                .replicas(3)
                 .build();
