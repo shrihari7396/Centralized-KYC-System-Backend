@@ -39,8 +39,8 @@ public class UserServiceImpl implements UserService {
                 .email(otpRequestDto.getEmail())
                 .otp(finalotp)
                 .build();
-            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
             saveOtp(finalotp, otpRequestDto.getEmail());
+            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
             return true;
     }
 
