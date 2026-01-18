@@ -86,7 +86,7 @@ public class EmailSenderService {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false); // false -> No attachment
 
-        mimeMessageHelper.setFrom("");
+        mimeMessageHelper.setFrom(event.getEmail());
         mimeMessageHelper.setTo(event.getEmail());
         mimeMessageHelper.setSubject(subject);
         mimeMessageHelper.setText(body, true); // Set true if the body contains HTML

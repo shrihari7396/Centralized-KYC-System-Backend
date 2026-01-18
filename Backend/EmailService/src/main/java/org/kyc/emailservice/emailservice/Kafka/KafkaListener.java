@@ -1,5 +1,7 @@
 package org.kyc.emailservice.emailservice.Kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import org.kyc.emailservice.emailservice.Service.EmailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,9 @@ public class KafkaListener {
 
 
     @org.springframework.kafka.annotation.KafkaListener(topics = AppConstants.EMAIL_TOPIC_NAME, groupId = AppConstants.GROUP_ID)
-    public void toEmail(CreateOtpEvent event) throws MessagingException {
+    public void toEmail(String message) throws MessagingException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreateOtpEvent event = objectMapper.readValue(message, CreateOtpEvent.class);
         emailSenderService.sendEmail(event);
     }
 }
