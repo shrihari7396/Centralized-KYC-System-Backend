@@ -4,7 +4,7 @@ spring:
       server:
         webflux:
           routes:
-            - id: order-service
+            - id: email-service
               uri: lb://QUESTIONMANAGEMENT
               predicates:
                 - Path=/api/v1/questions/**
