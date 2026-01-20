@@ -5,35 +5,35 @@ spring:
         webflux:
           routes:
             - id: email-service
-              uri: lb://QUESTIONMANAGEMENT
+              uri: lb://EMAILSERVICE
               predicates:
-                - Path=/api/v1/questions/**
+#                - Path=/api/v1/questions/**
               filters:
                 - StripPrefix=2
-            #                - AddRequestHeader=X-Custom-Header, Anuj
+            #  - AddRequestHeader=X-Custom-Header, Anuj
 
-            - id: inventory-service
-              uri: lb://INVENTORY-SERVICE
+            - id: user-service
+              uri: lb://USERSERVICE
               predicates:
                 - Path=/api/v1/inventory/**
               filters:
                 - StripPrefix=2
 
-            - id: submission-service
-              uri: lb://SUBMISSIONSERVICE
-              predicates:
-                - Path=/api/v1/submission/**
-              filters:
-                - AddRequestHeader=X-Custom-Header, Anuj
-                - StripPrefix=2
-            #                - RedirectTo=302, https://codingshuttle.com
-
-            - id: auth-service
-              uri: lb://AUTHSERVICE   # 🔥 Use Eureka name (uppercase)
-              predicates:
-                - Path=/api/v1/auth/**
-              filters:
-                - StripPrefix=2
+#            - id: submission-service
+#              uri: lb://SUBMISSIONSERVICE
+#              predicates:
+#                - Path=/api/v1/submission/**
+#              filters:
+#                - AddRequestHeader=X-Custom-Header, Anuj
+#                - StripPrefix=2
+#            #                - RedirectTo=302, https://codingshuttle.com
+#
+#            - id: auth-service
+#              uri: lb://AUTHSERVICE   # 🔥 Use Eureka name (uppercase)
+#              predicates:
+#                - Path=/api/v1/auth/**
+#              filters:
+#                - StripPrefix=2
 
 #      res
 #      resourceserver:
