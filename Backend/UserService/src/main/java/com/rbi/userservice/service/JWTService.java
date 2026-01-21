@@ -8,11 +8,11 @@ import java.util.Date;
 public interface JWTService {
 
 
-    String generateToken(String username, String role);
+    String generateToken(String email, String role);
 
     String extractUserRole(String token);
 
-    String extractUsername(String token);
+    String extractEmail(String token);
 
     boolean isTokenExpired(String token);
 

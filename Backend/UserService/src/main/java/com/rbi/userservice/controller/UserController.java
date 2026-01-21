@@ -38,11 +38,7 @@ public class UserController {
 
     @PostMapping("/otpVerification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
-        if(userService.verifyOtp(otpVerificationDto.getOtp(), otpVerificationDto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("OTP Verification successfully ...");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Verification failed ...");
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));
     }
 
 }

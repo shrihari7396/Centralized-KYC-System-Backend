@@ -96,8 +96,6 @@ public class UserServiceImpl implements UserService {
                     .lastName(otpVerificationDto.getLastName())
                     .token(token)
                     .build();
-
-
         }
 
         if(response == null){

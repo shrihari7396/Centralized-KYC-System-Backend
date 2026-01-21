@@ -24,15 +24,15 @@ public class JWTServiceImpl implements JWTService {
     private long expirationInMillis;
 
     @Override
-    public String generateToken(String username, String role) {
+    public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        claims.put("username", username);
+        claims.put("email", email);
 
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationInMillis))
                 .and()
@@ -46,7 +46,7 @@ public class JWTServiceImpl implements JWTService {
     }
 
     @Override
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
