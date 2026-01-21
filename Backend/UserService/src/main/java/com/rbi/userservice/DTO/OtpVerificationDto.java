@@ -7,6 +7,10 @@ import lombok.Data;
 @Builder
 @Data
 public class OtpVerificationDto {
-    private String otp;
+    private String  username;
+    private String firstName;
+    private String lastName;
     private String email;
+    private Role role;
+    private String otp;
 }

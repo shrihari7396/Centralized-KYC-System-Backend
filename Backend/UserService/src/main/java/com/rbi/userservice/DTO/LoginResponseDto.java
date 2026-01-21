@@ -1,0 +1,16 @@
+package com.rbi.userservice.DTO;
+
+import com.rbi.userservice.Model.Role;
+import jakarta.persistence.Column;
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class LoginResponseDto {
+    private String firstName;
+    private String lastName;
+    private String email;
+    private Role role;
+    private String token;
+}
