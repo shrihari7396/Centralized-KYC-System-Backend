@@ -20,5 +20,5 @@ server:
   port: 8081
 
 jwt:
-  secret: jkjasldfhhkdslfhhhwfndshhfsdihiewfinsdnf
+  secret: jkjasldfhhkdslfhhhwfndshhfsdihiewfinsdnfasdfsadfhdskfkasdfjkhjdhfkjhsadkfjhksajdhfkjhsadkjfsdfbbvnmcbakjdfhwhfkjcxvnvdfdf#R$#$
   expiration: 3600
