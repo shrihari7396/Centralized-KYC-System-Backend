@@ -12,7 +12,6 @@ public class KafkaListener {
     @Autowired
     private EmailSenderService emailSenderService;
 
-
     @org.springframework.kafka.annotation.KafkaListener(topics = AppConstants.EMAIL_TOPIC_NAME, groupId = AppConstants.GROUP_ID)
     public void toEmail(String message) throws MessagingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();

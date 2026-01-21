@@ -1,0 +1,6 @@
+org\kyc\emailservice\emailservice\Service\EmailSenderService.class
+org\kyc\emailservice\emailservice\Kafka\CreateOtpEvent.class
+main\java\org\kyc\emailservice\emailservice\EmailServiceApplication.class
+org\kyc\emailservice\emailservice\Kafka\AppConstants.class
+org\kyc\emailservice\emailservice\Kafka\CreateOtpEvent$CreateOtpEventBuilder.class
+org\kyc\emailservice\emailservice\Kafka\KafkaListener.class
