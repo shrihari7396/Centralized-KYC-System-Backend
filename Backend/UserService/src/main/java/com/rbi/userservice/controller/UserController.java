@@ -3,6 +3,7 @@ package com.rbi.userservice.controller;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
+import com.rbi.userservice.Model.UpdateStatusDto;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
-        if(userService.registerUser(registerDto)) {
+        if (userService.registerUser(registerDto)) {
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully ...");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed ...");
@@ -39,6 +40,11 @@ public class UserController {
     @PostMapping("/otpVerification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));
+    }
+
+    @PostMapping("/updateStatus")
+    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
     }
 
 }

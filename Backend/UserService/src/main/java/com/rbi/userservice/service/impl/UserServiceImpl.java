@@ -1,9 +1,10 @@
 package com.rbi.userservice.service.impl;
 
 import com.rbi.userservice.DTO.LoginResponseDto;
-import  com.rbi.userservice.DTO.OtpRequestDto;
+import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
+import com.rbi.userservice.Model.UpdateStatusDto;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
 import com.rbi.userservice.Repository.UserRepository;
@@ -20,32 +21,31 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final JWTService jwtService;
+    private final UserRepository userRepository;
 
-
-    @Autowired
-    UserRepository userRepository;
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
-          SecureRandom secureRandom = new SecureRandom();
-            int otp = secureRandom.nextInt(1_000_000);
-            String finalotp = String.format("%06d", otp);
-//          logic for kafka to send
+        SecureRandom secureRandom = new SecureRandom();
+        int otp = secureRandom.nextInt(1_000_000);
+        String finalotp = String.format("%06d", otp);
+        // logic for kafka to send
         CreateOtpEvent event = CreateOtpEvent.builder()
                 .firstName(otpRequestDto.getFirstName())
                 .lastName(otpRequestDto.getLastName())
                 .email(otpRequestDto.getEmail())
                 .otp(finalotp)
                 .build();
-            saveOtp(finalotp, otpRequestDto.getEmail());
-            kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
-            return true;
+        saveOtp(finalotp, otpRequestDto.getEmail());
+        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
+        return true;
     }
 
     @Override
@@ -62,19 +62,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean verifyOtp(String otp,String email) {
-      String StoredOtp = redisTemplate.opsForValue().get(email);
-      boolean result = StoredOtp.equals(otp);
-      if(StoredOtp == null || !result){
-          throw new InValidOtpException("Invalid OTP");
-      }
-      deleteOtp(email);
-      return result;
+    public Boolean verifyOtp(String otp, String email) {
+        String StoredOtp = redisTemplate.opsForValue().get(email);
+        boolean result = StoredOtp.equals(otp);
+        if (StoredOtp == null || !result) {
+            throw new InValidOtpException("Invalid OTP");
+        }
+        deleteOtp(email);
+        return result;
     }
 
     @Override
-    public void saveOtp(String otp,String email) {
-        redisTemplate.opsForValue().set(email,otp, Duration.ofMinutes(10));
+    public void saveOtp(String otp, String email) {
+        redisTemplate.opsForValue().set(email, otp, Duration.ofMinutes(10));
     }
 
     @Override
@@ -86,8 +86,7 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto) {
         LoginResponseDto response = null;
 
-
-        if(verifyOtp(otpVerificationDto.getEmail(), otpVerificationDto.getOtp())){
+        if (verifyOtp(otpVerificationDto.getEmail(), otpVerificationDto.getOtp())) {
             String token = jwtService.generateToken(null, null);
             response = LoginResponseDto.builder()
                     .role(otpVerificationDto.getRole())
@@ -98,11 +97,17 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        if(response == null){
+        if (response == null) {
             throw new InValidOtpException("Invalid OTP");
         }
         return response;
     }
 
+    @Override
+    public Object updateStatus(UpdateStatusDto updateStatusDto) {
+        UserEntity user = userRepository.findByEmail(updateStatusDto.getEmail());
+        user.setStatus(updateStatusDto.getStatus());
+        return userRepository.save(user);
+    }
 
 }
