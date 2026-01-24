@@ -4,7 +4,7 @@ import com.rbi.userservice.DTO.LoginResponseDto;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.Model.UpdateStatusDto;
+import com.rbi.userservice.DTO.UpdateStatusDto;
 
 public interface UserService {
     Boolean sendOtp(OtpRequestDto otpRequestDto);
