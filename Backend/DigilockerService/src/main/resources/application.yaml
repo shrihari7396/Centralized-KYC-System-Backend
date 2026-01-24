@@ -1,3 +1,15 @@
 spring:
   application:
     name: DigilockerService
+
+digilocker:
+  client-id: YOUR_CLIENT_ID
+  client-secret: YOUR_CLIENT_SECRET
+  auth-url: https://digilocker.meripehchaan.gov.in/public/oauth2/1/authorize
+  token-url: https://digilocker.meripehchaan.gov.in/public/oauth2/1/token
+  user-url: https://digilocker.meripehchaan.gov.in/public/oauth2/1/user
+  redirect-uri: http://localhost:8080/auth/callback
+  api-base-url: https://digilocker.meripehchaan.gov.in/public/oauth2/1/files
+
+server:
+  port: 8083
