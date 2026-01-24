@@ -3,7 +3,7 @@ package com.rbi.userservice.controller;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.Model.UpdateStatusDto;
+import com.rbi.userservice.DTO.UpdateStatusDto;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,7 +28,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/requestOtp")
+    @PostMapping("/request-otp")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
         if (userService.sendOtp(otpRequestDtp)) {
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
@@ -37,12 +37,12 @@ public class UserController {
         }
     }
 
-    @PostMapping("/otpVerification")
+    @PostMapping("/otp-verification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));
     }
 
-    @PostMapping("/updateStatus")
+    @PostMapping("/update-status")
     public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
     }
