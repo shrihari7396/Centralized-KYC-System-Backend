@@ -1,4 +1,4 @@
-package org.kyc.management.kycmanagementservice.DTO;
+package org.kyc.management.kycmanagementservice.dto;
 
 import lombok.Data;
 import org.kyc.management.kycmanagementservice.entity.UserStatus;

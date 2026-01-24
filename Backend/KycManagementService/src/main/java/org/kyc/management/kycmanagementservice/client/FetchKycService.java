@@ -1,7 +1,9 @@
-package org.kyc.management.kycmanagementservice.service;
+package org.kyc.management.kycmanagementservice.client;
 
-import org.springframework.stereotype.Service;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@Service
-public class fetchKycService {
+@FeignClient(name="DigilockerService")
+public interface FetchKycService {
+    @GetMapping("/")
 }

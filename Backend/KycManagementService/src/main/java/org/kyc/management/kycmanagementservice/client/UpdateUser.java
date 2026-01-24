@@ -1,16 +1,13 @@
-package org.kyc.management.kycmanagementservice.service;
+package org.kyc.management.kycmanagementservice.client;
 
-import org.kyc.management.kycmanagementservice.DTO.UpdateStatusDto;
+import org.kyc.management.kycmanagementservice.dto.UpdateStatusDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name="UserService")
-public interface updateUser {
+public interface UpdateUser {
     @PutMapping("/update-status")
      ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto);
-
 }
