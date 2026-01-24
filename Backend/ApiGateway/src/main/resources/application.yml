@@ -8,12 +8,12 @@ spring:
       server:
         webflux:
           routes:
-            - id: email-service
-              uri: lb://EMAILSERVICE
-              predicates:
-#                - Path=/api/v1/questions/**
-              filters:
-                - StripPrefix=2
+#            - id: email-service
+#              uri: lb://EMAILSERVICE
+#              predicates:
+# #                - Path=/api/v1/questions/**
+#              filters:
+#                - StripPrefix=2
             #  - AddRequestHeader=X-Custom-Header, Anuj
 
             - id: user-service

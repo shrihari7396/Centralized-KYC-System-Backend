@@ -24,7 +24,7 @@ public class RateLimitFilter implements GlobalFilter {
     @Value("${rateLimitter.limit}")
     private String LIMIT;
 
-    @Value("${rateLimitter.limit}")
+    @Value("${rateLimitter.windowSize}")
     private String WINDOW;
 
     @Override
