@@ -91,7 +91,7 @@ public class AuthorizationServerConfig {
 	@Bean
 	public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
 		JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
-		
+        //It stores OAuth clients, not users. eg mobiledevice , frontend
 		// Initialize with a default 'oidc-client' if it doesn't exist.
 		// This is useful for testing and initial setup.
 		try {
