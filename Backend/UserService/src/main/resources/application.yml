@@ -1,6 +1,8 @@
 spring:
   application:
     name: UserService
+  main:
+    lazy-initialization: true
   datasource:
     url: jdbc:mysql://localhost:3307/kyc_user_service
     username: root
