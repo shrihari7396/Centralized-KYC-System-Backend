@@ -1,11 +1,13 @@
 package org.kyc.management.kycmanagementservice.entity;
 
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 public class MockUser {
+    @Id
     private String digilockerUserId;
     private String name;
     private String dob;
