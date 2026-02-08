@@ -8,6 +8,7 @@ import lombok.Data;
 @Builder
 public class MockDocument {
     @Id
+    private String userId;
     private String documentId;
     private String type;
     private String issuedBy;

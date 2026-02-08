@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class MockDocument {
+    private String digilockerUserId;
     private String documentId;
     private String type;
     private String issuedBy;
