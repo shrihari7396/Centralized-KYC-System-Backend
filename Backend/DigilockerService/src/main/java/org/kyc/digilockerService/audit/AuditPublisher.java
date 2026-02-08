@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 public class AuditPublisher {
 
     public void publishEvent(AuditEvent event) {
-        // Stub for Kafka publishing
         log.info("AUDIT EVENT PUBLISHED: {}", event);
     }
 }
