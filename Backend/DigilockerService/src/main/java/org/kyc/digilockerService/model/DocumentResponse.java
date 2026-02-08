@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 @Builder
 public class DocumentResponse {
-    private List<MockDocument> documents;
+    private List<VerifiedDocumentProof> documents;
 }

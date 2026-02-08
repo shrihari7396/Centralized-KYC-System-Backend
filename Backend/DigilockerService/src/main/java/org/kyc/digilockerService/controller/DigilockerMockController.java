@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.kyc.digilockerService.model.ConsentRequest;
 import org.kyc.digilockerService.model.ConsentResponse;
 import org.kyc.digilockerService.model.DocumentResponse;
-import org.kyc.digilockerService.model.MockUser;
+import org.kyc.digilockerService.model.VerifiedIdentity;
 import org.kyc.digilockerService.service.MockDigilockerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ public class DigilockerMockController {
     }
 
     @GetMapping("/user/{digilockerUserId}")
-    public ResponseEntity<MockUser> getUserProfile(@PathVariable String digilockerUserId) {
+    public ResponseEntity<VerifiedIdentity> getUserProfile(@PathVariable String digilockerUserId) {
         return ResponseEntity.ok(mockDigilockerService.getUserProfile(digilockerUserId));
     }
 
