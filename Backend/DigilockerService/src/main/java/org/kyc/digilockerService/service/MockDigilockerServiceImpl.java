@@ -48,8 +48,8 @@ public class MockDigilockerServiceImpl implements MockDigilockerService {
     }
 
     @Override
-    public MockUser getUserProfile(String digilockerUserId) {
-        MockUser user = DataGeneratorUtil.generateMockUser(digilockerUserId);
+    public VerifiedIdentity getUserProfile(String digilockerUserId) {
+        VerifiedIdentity identity = DataGeneratorUtil.generateVerifiedIdentity(digilockerUserId);
 
         auditPublisher.publishEvent(AuditEvent.builder()
                 .eventType("USER_PROFILE_FETCH")
@@ -58,12 +58,12 @@ public class MockDigilockerServiceImpl implements MockDigilockerService {
                 .source("digilocker-mock-service")
                 .build());
 
-        return user;
+        return identity;
     }
 
     @Override
     public DocumentResponse getDocuments(String digilockerUserId) {
-        List<MockDocument> documents = DataGeneratorUtil.generateMockDocuments();
+        List<VerifiedDocumentProof> documents = DataGeneratorUtil.generateMockDocuments(java.util.UUID.fromString(digilockerUserId));
 
         auditPublisher.publishEvent(AuditEvent.builder()
                 .eventType("DOCUMENTS_FETCH")
