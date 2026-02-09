@@ -19,19 +19,19 @@ spring:
             - id: user-service
               uri: lb://USERSERVICE
               predicates:
-                - Path=/api/v1/inventory/**
+                - Path=/user
               filters:
-                - StripPrefix=2
+                - StripPrefix=1
 
-#            - id: submission-service
-#              uri: lb://SUBMISSIONSERVICE
-#              predicates:
-#                - Path=/api/v1/submission/**
-#              filters:
-#                - AddRequestHeader=X-Custom-Header, Anuj
-#                - StripPrefix=2
-#            #                - RedirectTo=302, https://codingshuttle.com
-#
+            - id: BankService
+              uri: lb://BANKSERVICE
+              predicates:
+                - Path=/bank
+              filters:
+                - AddRequestHeader=X-Custom-Header, Anuj
+                - StripPrefix=1
+            #                - RedirectTo=302, https://codingshuttle.com
+
 #            - id: auth-service
 #              uri: lb://AUTHSERVICE   # 🔥 Use Eureka name (uppercase)
 #              predicates:
