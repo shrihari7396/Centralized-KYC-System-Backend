@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("digilocker/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

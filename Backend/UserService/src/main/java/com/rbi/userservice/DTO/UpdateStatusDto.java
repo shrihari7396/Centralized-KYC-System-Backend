@@ -1,4 +1,4 @@
-package com.rbi.userservice.Model;
+package com.rbi.userservice.DTO;
 
 import com.rbi.userservice.Model.UserStatus;
 import lombok.Data;
