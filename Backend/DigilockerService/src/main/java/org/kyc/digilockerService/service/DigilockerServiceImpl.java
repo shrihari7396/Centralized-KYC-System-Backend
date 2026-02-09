@@ -3,6 +3,7 @@ package org.kyc.digilockerService.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.digilockerService.config.DigilockerConfig;
+import org.kyc.digilockerService.model.KycStatus;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -67,6 +68,29 @@ public class DigilockerServiceImpl implements DigilockerService {
         ResponseEntity<String> response = restTemplate.postForEntity(digilockerConfig.getTokenUrl(), request,
                 String.class);
         return response.getBody(); // Should parse this to get access_token
+    }
+
+    @Override
+    public KycStatus handleCallback(String code, String state) {
+
+        // 1. Exchange code for access token
+        String tokenResponse = getAccessToken(code, state);
+
+        // In real life parse access_token from JSON
+        // For mock/demo we assume success
+        String digilockerUserId = UUID.randomUUID().toString();
+
+        // 2. Mark KYC as pending (verification will follow)
+        KycStatus status = KycStatus.builder()
+                .kycStatusId(UUID.randomUUID())
+                .userId(UUID.fromString(digilockerUserId))
+                .status("PENDING")
+                .verifiedAt(null)
+                .build();
+
+        log.info("KYC initiated for user {}", digilockerUserId);
+
+        return status;
     }
 
     @Override
