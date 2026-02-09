@@ -7,6 +7,7 @@ import org.kyc.digilockerService.util.DataGeneratorUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -76,4 +77,44 @@ public class MockDigilockerServiceImpl implements MockDigilockerService {
                 .documents(documents)
                 .build();
     }
+    @Override
+    public VerifiedAddress extractVerifiedAddress(String digilockerUserId) {
+
+        // Step 1: Fetch mock documents
+        DocumentResponse response = getDocuments(digilockerUserId);
+
+        // Step 2: Pick Aadhaar / DL (mock logic)
+        VerifiedDocumentProof addressDoc = response.getDocuments().stream()
+                .filter(doc ->
+                        "AADHAAR".equalsIgnoreCase(doc.getDocumentType())
+                                || "DRIVING_LICENSE".equalsIgnoreCase(doc.getDocumentType()))
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalStateException("No address proof found"));
+
+        // Step 3: Extract verified address
+        VerifiedAddress address = VerifiedAddress.builder()
+                .addressId(UUID.randomUUID())
+                .userId(UUID.fromString(digilockerUserId))
+                .addressLine1("Flat 101, Sample Residency")
+                .addressLine2("MG Road")
+                .city("Pune")
+                .district("Pune")
+                .state("Maharashtra")
+                .pincode("411001")
+                .country("India")
+                .addressSource(addressDoc.getDocumentType())
+                .verifiedAt(java.time.LocalDateTime.now())
+                .build();
+
+        auditPublisher.publishEvent(AuditEvent.builder()
+                .eventType("ADDRESS_VERIFIED")
+                .userId(digilockerUserId)
+                .timestamp(DataGeneratorUtil.getCurrentTimestamp())
+                .source("digilocker-mock-service")
+                .build());
+
+        return address;
+    }
+
 }
