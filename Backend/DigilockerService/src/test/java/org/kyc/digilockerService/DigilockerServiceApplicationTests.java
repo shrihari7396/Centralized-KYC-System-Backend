@@ -1,4 +1,4 @@
-package org.kyc.DigilockerService;
+package org.kyc.digilockerService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
