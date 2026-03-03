@@ -41,7 +41,7 @@ public class RateLimitFilter implements GlobalFilter {
         if (count != null && count == 1) {
             redisTemplate.expire(key, Duration.ofSeconds(Long.parseLong(WINDOW)));
         }
-
+                                                    
         // 4. Check limit
         if (count != null && count > Long.parseLong(LIMIT)) {
             exchange.getResponse()

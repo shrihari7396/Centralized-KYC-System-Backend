@@ -19,20 +19,27 @@ import java.time.LocalDateTime;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
+
     @Column(nullable = false)
-    String firstName;
+    private String firstName;
+
     @Column(nullable = false)
-    String lastName;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false, unique = true)
-    private String mobileNumber;
+    private String phone;
 
     @Column(nullable = false)
     private String passwordHash;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private java.util.List<String> roles;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
