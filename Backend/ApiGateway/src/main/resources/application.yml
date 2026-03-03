@@ -8,6 +8,20 @@ spring:
       server:
         webflux:
           routes:
+
+# Exanmple Usage of ratelimitter
+            - id: AI_SERVICE
+              uri: lb://AI-SERVICE
+              predicates:
+                - Path=/api/ai/**
+              filters:
+                - PrefixPath=/ai-service
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 5
+                    redis-rate-limiter.burstCapacity: 10
+                    key-resolver: "#{@visitorKeyResolver}"
+
 #            - id: email-service
 #              uri: lb://EMAILSERVICE
 #              predicates:
@@ -66,5 +80,4 @@ logging:
         web: DEBUG
 
 rateLimitter:
-  limit: 100
-  windowSize: 1000
+
