@@ -8,7 +8,6 @@ import java.util.Map;
 
 @Data
 public class LogEventDTO {
-
     private String serviceId;
     private String eventType;
     private LogLevel level;

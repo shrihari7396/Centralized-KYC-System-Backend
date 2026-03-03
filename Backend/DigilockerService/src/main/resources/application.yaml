@@ -1,7 +1,9 @@
 spring:
   application:
     name: DigilockerService
-
+  output:
+    ansi:
+      enabled: always
 server:
   port: 8083
 

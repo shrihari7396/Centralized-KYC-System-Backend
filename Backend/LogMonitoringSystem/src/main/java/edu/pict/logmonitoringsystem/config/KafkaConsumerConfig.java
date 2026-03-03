@@ -48,7 +48,7 @@ public class KafkaConsumerConfig {
 
         // VERY IMPORTANT: manual commit after DB write
         factory.getContainerProperties()
-                .setAckMode(ContainerProperties.AckMode.MANUAL);
+                .setAckMode(ContainerProperties.AckMode.BATCH);
 
         // Scale consumers (increase later without code change)
         factory.setConcurrency(3);

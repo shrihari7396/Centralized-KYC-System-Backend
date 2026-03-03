@@ -1,4 +1,37 @@
 package edu.pict.logmonitoringsystem.entity;
 
-public class TrafficPoliceEntity {
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "traffic_profiles")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrafficProfileEntity {
+
+    @Id
+    private String key; // ip:endpoint:window
+
+    private String ip;
+    private String endpoint;
+
+    private long requestCount;
+    private long errorCount;
+
+    private double avgPayloadSize;
+    private double payloadEntropy;
+
+    private double avgInterRequestGap;
+
+    private Instant windowStart;
+    private Instant windowEnd;
 }
