@@ -1,4 +1,4 @@
-package com.rbi.kyc.dto;
+package org.kyc.management.kycmanagementservice.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KycResponseDto {
+public class KycSubmittedEvent {
 
+    private Long userId;
     private Long kycRequestId;
-    private String status; // PENDING, VERIFIED, REJECTED
-    private String message;
-    private LocalDateTime timestamp;
+    private String status;
+    private LocalDateTime submittedAt;
 }

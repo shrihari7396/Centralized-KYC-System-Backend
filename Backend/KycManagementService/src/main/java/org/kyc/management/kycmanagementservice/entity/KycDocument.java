@@ -1,4 +1,4 @@
-package com.rbi.kyc.entity;
+package org.kyc.management.kycmanagementservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
