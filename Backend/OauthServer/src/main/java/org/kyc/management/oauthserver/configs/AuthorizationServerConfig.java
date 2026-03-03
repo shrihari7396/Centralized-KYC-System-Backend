@@ -98,7 +98,7 @@ public class AuthorizationServerConfig {
 		    if (registeredClientRepository.findByClientId("oidc-client") == null) {
 		        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
 		                .clientId("oidc-client")
-		                .clientSecret("{noop}secret") // {noop} means plain text (no hashing)
+		                .clientSecret("{noop}secret")
 		                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 		                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 		                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
