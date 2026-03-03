@@ -1,40 +1,56 @@
 package com.rbi.consent.entity;
 
+import com.rbi.consent.enums.ConsentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "consent_records")
+@Table(name = "consents", indexes = {
+    @Index(name = "idx_user_bank", columnList = "userId, bankId")
+})
 public class ConsentRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false)
-    private Long userId;
+    private UUID userId;
 
     @Column(nullable = false)
-    private String dataUsage;
+    private UUID bankId;
 
+    @Column(columnDefinition = "TEXT")
+    private String jwtToken;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String purpose;
+    private ConsentStatus consentStatus;
 
-    @Column(nullable = false)
-    private String status; // REQUESTED, GIVEN, WITHDRAWN
+    private LocalDateTime requestedAt;
 
-    private LocalDateTime grantedAt;
+    private LocalDateTime approvedAt;
 
-    @Column(nullable = false)
-    private Date expiresAt;
+    private LocalDateTime expiryAt;
+
+    private boolean active;
+
+    @Column(columnDefinition = "TEXT")
+    private String consentDocuments; // JSON representation of requested documents
 }

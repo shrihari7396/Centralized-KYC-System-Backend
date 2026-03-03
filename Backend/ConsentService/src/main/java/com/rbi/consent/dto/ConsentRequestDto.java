@@ -1,14 +1,14 @@
 package com.rbi.consent.dto;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
+import com.rbi.consent.enums.ConsentDocumentType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -17,15 +17,11 @@ import java.util.Date;
 public class ConsentRequestDto {
 
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private UUID userId;
 
-    @NotBlank(message = "Data usage category is required")
-    private String dataUsage;
+    @NotNull(message = "Bank ID is required")
+    private UUID bankId;
 
-    @NotBlank(message = "Purpose is required")
-    private String purpose;
-
-    @NotNull(message = "Expiry date is required")
-    @Future(message = "Expiry date must be in the future")
-    private Date expiresAt;
+    @NotNull(message = "Requested documents are required")
+    private List<ConsentDocumentType> requestedDocuments;
 }
