@@ -1,0 +1,14 @@
+package org.kyc.management.bankservice.client;
+
+import org.kyc.management.bankservice.dto.KycSubmissionDto;
+import org.kyc.management.bankservice.dto.KycResponseDto;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+@FeignClient(name = "KYCMANAGEMENTSERVICE", path = "/api/kyc")
+public interface KycFeignClient {
+    @PostMapping("/submit")
+    KycResponseDto submitKyc(@RequestBody KycSubmissionDto submissionDto, @RequestHeader("Authorization") String token);
+}
