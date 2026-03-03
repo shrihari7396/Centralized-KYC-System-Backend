@@ -1,9 +1,7 @@
 package org.kyc.management.bankservice.client;
 
-import org.kyc.management.bankservice.dto.DocumentResponse;
 import org.kyc.management.bankservice.entity.MockUser;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
