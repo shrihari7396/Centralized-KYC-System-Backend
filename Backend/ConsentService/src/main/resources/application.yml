@@ -1,0 +1,33 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: consent-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/kyc_consent_db?createDatabaseIfNotExist=true&useSSL=false
+    username: root
+    password: password # Replace with env specific password if needed
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000 # Access token validity used system-wide (e.g. 1 day limit for standard auth)
+  consent-expiration: 172800000 # 2 days = 48 * 60 * 60 * 1000
+
+logging:
+  level:
+    com.rbi.consent: DEBUG
