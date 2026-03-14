@@ -12,6 +12,7 @@ import com.rbi.consent.enums.ConsentStatus;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
 import com.rbi.consent.exception.ConsentRejectedException;
+import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.repository.ConsentRepository;
 import com.rbi.consent.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class ConsentServiceImpl implements ConsentService {
     private final JwtService jwtService;
     private final WebSocketPublisher webSocketPublisher;
     private final BankFeignClient bankFeignClient;
+    private final ConsentKafkaProducer consentKafkaProducer;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -74,13 +76,14 @@ public class ConsentServiceImpl implements ConsentService {
 
         ConsentRecord updated = consentRepository.save(record);
 
-        // Notify Bank
-        try {
-            bankFeignClient.notifyBank(updated.getId(), jwt);
-        } catch (Exception e) {
-            log.error("Failed to notify bank: {}", e.getMessage());
-            // Optionally handle retry or queueing
-        }
+        // Notify Bank via Kafka Event
+        ConsentApprovedEvent event = ConsentApprovedEvent.builder()
+                .consentId(updated.getId())
+                .userId(updated.getUserId())
+                .bankId(updated.getBankId())
+                .jwtToken(jwt)
+                .build();
+        consentKafkaProducer.sendConsentApprovedEvent(event);
 
         // Notify WS success
         webSocketPublisher.publishConsentApproved(record.getBankId(), "Consent Approved for " + record.getUserId());
