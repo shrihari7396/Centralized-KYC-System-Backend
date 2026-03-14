@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,7 +25,7 @@ public class KycRecord {
     private String aadharNumber;
     private String panNumber;
     private String fullName;
-    private String dob;
+    private LocalDate dob;
     private String address;
 
     @Column(name = "verification_status")

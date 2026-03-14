@@ -14,7 +14,6 @@ import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import com.rbi.userservice.service.JWTService;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

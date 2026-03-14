@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @Data
@@ -15,8 +16,10 @@ public class DigiLockerDataFetchedEvent {
     private String mobileNumber;
     private String aadharNumber;
     private String panNumber;
-    private String fullName;
-    private String dob;
+    private String firstName;
+    private String lastName;
+    private String middleName;
+    private LocalDate dob;
     private String address;
     private Map<String, String> additionalDetails;
 }

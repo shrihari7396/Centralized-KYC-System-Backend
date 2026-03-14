@@ -29,10 +29,15 @@ public class KycKafkaConsumer {
         KycRecord record = kycRecordRepository.findByMobileNumber(event.getMobileNumber())
                 .orElse(new KycRecord());
 
+        String fullName = String.format("%s %s %s", 
+                event.getFirstName(), 
+                event.getMiddleName() != null ? event.getMiddleName() : "", 
+                event.getLastName()).replaceAll("\\s+", " ").trim();
+
         record.setMobileNumber(event.getMobileNumber());
         record.setAadharNumber(event.getAadharNumber());
         record.setPanNumber(event.getPanNumber());
-        record.setFullName(event.getFullName());
+        record.setFullName(fullName);
         record.setDob(event.getDob());
         record.setAddress(event.getAddress());
         record.setStatus("VERIFIED");
@@ -44,7 +49,7 @@ public class KycKafkaConsumer {
         KycVerificationSuccessEvent successEvent = KycVerificationSuccessEvent.builder()
                 .mobileNumber(event.getMobileNumber())
                 .status("SUCCESS")
-                .fullName(event.getFullName())
+                .fullName(fullName)
                 .build();
 
         log.info("Sending KYC verification success event to Kafka topic {}: {}", SUCCESS_TOPIC, successEvent);
