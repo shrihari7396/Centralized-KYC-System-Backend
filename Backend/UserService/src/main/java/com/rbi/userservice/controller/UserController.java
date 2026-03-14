@@ -35,6 +35,15 @@ public class UserController {
         }
     }
 
+    @PostMapping("/request-otp-phone")
+    public ResponseEntity<?> requestOTPByPhone(@RequestParam String phone) {
+        if (userService.sendOtpByPhone(phone)) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully to " + phone);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed to " + phone);
+        }
+    }
+
     @PostMapping("/otp-verification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));

@@ -33,17 +33,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
+        return generateAndSendOtp(otpRequestDto.getFirstName(), otpRequestDto.getLastName(), otpRequestDto.getEmail(), otpRequestDto.getEmail());
+    }
+
+    @Override
+    public Boolean sendOtpByPhone(String phone) {
+        UserEntity user = userRepository.findByPhone(phone)
+                .orElseThrow(() -> new RuntimeException("User not found with phone: " + phone));
+        return generateAndSendOtp(user.getFirstName(), user.getLastName(), user.getEmail(), phone);
+    }
+
+    private Boolean generateAndSendOtp(String firstName, String lastName, String email, String key) {
         SecureRandom secureRandom = new SecureRandom();
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
-        // logic for kafka to send
+        
         CreateOtpEvent event = CreateOtpEvent.builder()
-                .firstName(otpRequestDto.getFirstName())
-                .lastName(otpRequestDto.getLastName())
-                .email(otpRequestDto.getEmail())
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
                 .otp(finalotp)
                 .build();
-        saveOtp(finalotp, otpRequestDto.getEmail());
+        
+        saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
         return true;
     }
@@ -55,31 +67,34 @@ public class UserServiceImpl implements UserService {
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .status(UserStatus.KYC_PENDING)
-                .mobileNumber(user.getMobileNumber())
+                .phone(user.getMobileNumber()) // Fixed field name
                 .build();
 
         return userRepository.save(u) != null;
     }
 
     @Override
-    public Boolean verifyOtp(String otp, String email) {
-        String StoredOtp = redisTemplate.opsForValue().get(email);
+    public Boolean verifyOtp(String otp, String key) {
+        String StoredOtp = redisTemplate.opsForValue().get(key);
+        if (StoredOtp == null) {
+            throw new InValidOtpException("Expired or invalid OTP");
+        }
         boolean result = StoredOtp.equals(otp);
-        if (StoredOtp == null || !result) {
+        if (!result) {
             throw new InValidOtpException("Invalid OTP");
         }
-        deleteOtp(email);
+        deleteOtp(key);
         return result;
     }
 
     @Override
-    public void saveOtp(String otp, String email) {
-        redisTemplate.opsForValue().set(email, otp, Duration.ofMinutes(10));
+    public void saveOtp(String otp, String key) {
+        redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
     }
 
     @Override
-    public void deleteOtp(String email) {
-        redisTemplate.delete(email);
+    public void deleteOtp(String key) {
+        redisTemplate.delete(key);
     }
 
     @Override
@@ -106,6 +121,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Object updateStatus(UpdateStatusDto updateStatusDto) {
         UserEntity user = userRepository.findByEmail(updateStatusDto.getEmail());
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + updateStatusDto.getEmail());
+        }
         user.setStatus(updateStatusDto.getStatus());
         return userRepository.save(user);
     }

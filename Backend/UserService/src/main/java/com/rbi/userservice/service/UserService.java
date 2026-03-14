@@ -8,14 +8,15 @@ import com.rbi.userservice.DTO.UpdateStatusDto;
 
 public interface UserService {
     Boolean sendOtp(OtpRequestDto otpRequestDto);
+    Boolean sendOtpByPhone(String phone);
 
     Boolean registerUser(RegisterDTO user);
 
-    Boolean verifyOtp(String otp, String email);
+    Boolean verifyOtp(String otp, String key);
 
-    void saveOtp(String otp, String email);
+    void saveOtp(String otp, String key);
 
-    void deleteOtp(String email);
+    void deleteOtp(String key);
 
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
 
