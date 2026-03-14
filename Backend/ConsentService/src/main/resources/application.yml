@@ -28,6 +28,12 @@ jwt:
   expiration: 86400000 # Access token validity used system-wide (e.g. 1 day limit for standard auth)
   consent-expiration: 172800000 # 2 days = 48 * 60 * 60 * 1000
 
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 logging:
   level:
     com.rbi.consent: DEBUG

@@ -34,6 +34,9 @@ public class BankCustomer {
     private String overrideReason;
     private Timestamp verifiedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String consentToken; // JWT token from ConsentService
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Timestamp createdAt;
 
