@@ -20,6 +20,9 @@ public class KycService {
     @Autowired
     private JwtParserUtil jwtParserUtil;
 
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
     /**
      * Stores incoming data from Digilocker with a PENDING verification status.
      * Overwrites existing records for the same User ID.
@@ -41,6 +44,15 @@ public class KycService {
      * Validates Bank request and returns matching data only if the profile is VERIFIED.
      */
     public Map<String, Object> getVerifiedDataForBank(String token) {
+        if (jwtParserUtil.isTokenExpired(token)) {
+            throw new RuntimeException("Invalid JWT: Token has expired.");
+        }
+
+        String jti = jwtParserUtil.extractJti(token);
+        if (jti != null && tokenBlacklistService.isBlacklisted(jti)) {
+            throw new RuntimeException("Invalid JWT: Token is blacklisted (already used).");
+        }
+
         String userId = jwtParserUtil.extractUserId(token);
         if (userId == null || userId.trim().isEmpty()) {
             throw new IllegalArgumentException("Invalid JWT: User ID is missing.");
@@ -60,7 +72,15 @@ public class KycService {
 
         List<String> requestedFields = jwtParserUtil.extractRequestedFields(token);
         
-        return filterEntityFields(entity, requestedFields);
+        Map<String, Object> responseFields = filterEntityFields(entity, requestedFields);
+
+        // Blacklist token after successful processing
+        if (jti != null) {
+            long remainingSeconds = jwtParserUtil.getExpirationRemainingSeconds(token);
+            tokenBlacklistService.blacklistToken(jti, remainingSeconds > 0 ? remainingSeconds : 3600); // fallback 1h
+        }
+
+        return responseFields;
     }
 
     /**

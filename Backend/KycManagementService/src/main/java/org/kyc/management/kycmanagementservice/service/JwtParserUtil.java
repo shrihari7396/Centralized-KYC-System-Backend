@@ -58,4 +58,44 @@ public class JwtParserUtil {
         }
         return fields;
     }
+
+    /**
+     * Extracts the token ID (JTI).
+     */
+    public String extractJti(String token) {
+        JsonNode payload = parsePayload(token);
+        if (payload.has("jti")) {
+            return payload.get("jti").asText();
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the token is expired by verifying the 'exp' claim.
+     */
+    public boolean isTokenExpired(String token) {
+        JsonNode payload = parsePayload(token);
+        if (payload.has("exp")) {
+            long expEpoch = payload.get("exp").asLong();
+            long currentEpoch = System.currentTimeMillis() / 1000;
+            return currentEpoch >= expEpoch;
+        }
+        // If there's no expiration claim, we could either consider it never expires, 
+        // or immediately expires. Let's assume valid but not trackable for expiration.
+        return false;
+    }
+
+    /**
+     * Extracts the remaining time to live for a token in seconds.
+     */
+    public long getExpirationRemainingSeconds(String token) {
+        JsonNode payload = parsePayload(token);
+        if (payload.has("exp")) {
+            long expEpoch = payload.get("exp").asLong();
+            long currentEpoch = System.currentTimeMillis() / 1000;
+            long remaining = expEpoch - currentEpoch;
+            return remaining > 0 ? remaining : 0;
+        }
+        return 0;
+    }
 }
