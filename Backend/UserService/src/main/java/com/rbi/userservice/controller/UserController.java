@@ -4,11 +4,14 @@ import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.DTO.UpdateStatusDto;
+import com.rbi.userservice.kafka.LogProducer;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,12 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final LogProducer logProducer;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
         if (userService.registerUser(registerDto)) {
+            logProducer.info("USER_REGISTRATION_SUCCESS", Map.of("email", registerDto.getEmail()));
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully ...");
         } else {
+            logProducer.warning("USER_REGISTRATION_FAILED", Map.of("email", registerDto.getEmail()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed ...");
         }
     }
@@ -29,8 +35,10 @@ public class UserController {
     @PostMapping("/request-otp")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
         if (userService.sendOtp(otpRequestDtp)) {
+            logProducer.info("OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
         } else {
+            logProducer.warning("OTP_REQUEST_EMAIL_FAILED", Map.of("email", otpRequestDtp.getEmail()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed ...");
         }
     }
@@ -38,8 +46,10 @@ public class UserController {
     @PostMapping("/request-otp-phone")
     public ResponseEntity<?> requestOTPByPhone(@RequestParam String phone) {
         if (userService.sendOtpByPhone(phone)) {
+            logProducer.info("OTP_REQUEST_PHONE_SUCCESS", Map.of("phone", phone));
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully to " + phone);
         } else {
+            logProducer.warning("OTP_REQUEST_PHONE_FAILED", Map.of("phone", phone));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed to " + phone);
         }
     }

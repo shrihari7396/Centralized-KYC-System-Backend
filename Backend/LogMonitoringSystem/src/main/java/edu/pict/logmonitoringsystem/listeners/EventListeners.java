@@ -7,15 +7,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Component
 public class EventListeners {
     private final LogRepository logRepository;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(
-            topics = "application-events",
+            topics = {"log-info", "log-warning", "log-error"},
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(List<LogEventDTO> events) {
@@ -28,15 +30,21 @@ public class EventListeners {
                             .eventType(event.getEventType())
                             .level(event.getLevel())
                             .occurredAt(event.getOccurredAt())
-//                            .payload(objectMapper.writeValueAsString(event.getPayload()))
+                            .payload(event.getPayload() != null ? toJson(event.getPayload()) : null)
                             .build()).toList();
 
             // 3️⃣ Persist to DB
             logRepository.saveAll(logs);
         } catch (Exception ex) {
-            // ❌ DO NOT ACK → message will be retried
-            // Later: send to DLT
             ex.printStackTrace();
+        }
+    }
+
+    private String toJson(Object payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (Exception e) {
+            return "{\"error\": \"Failed to serialize payload\"}";
         }
     }
 }
