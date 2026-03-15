@@ -9,6 +9,7 @@ import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.entity.ConsentRecord;
 import com.rbi.consent.enums.ConsentDocumentType;
 import com.rbi.consent.enums.ConsentStatus;
+import com.rbi.consent.event.ConsentApprovedEvent;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
 import com.rbi.consent.exception.ConsentRejectedException;
