@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class OtpRequestDto {
 
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 
     @NotBlank(message = "Channel is required (SMS/EMAIL)")
     private String channel;

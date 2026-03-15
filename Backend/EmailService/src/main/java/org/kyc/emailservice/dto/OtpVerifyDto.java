@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class OtpVerifyDto {
 
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 
     @NotNull(message = "OTP Request ID is required")
     private Long otpRequestId;

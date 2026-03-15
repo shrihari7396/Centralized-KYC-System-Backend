@@ -13,5 +13,5 @@ public interface ConsentService {
 
     void rejectConsent(UUID consentId);
 
-    ConsentResponseDto getConsent(UUID userId, UUID bankId);
+    ConsentResponseDto getConsent(String userId, UUID bankId);
 }

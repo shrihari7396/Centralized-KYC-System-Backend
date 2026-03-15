@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface ConsentRepository extends JpaRepository<ConsentRecord, UUID> {
 
-    Optional<ConsentRecord> findByUserIdAndBankIdAndActiveTrue(UUID userId, UUID bankId);
+    Optional<ConsentRecord> findByUserIdAndBankIdAndActiveTrue(String userId, UUID bankId);
     
     List<ConsentRecord> findByConsentStatus(ConsentStatus status);
 }

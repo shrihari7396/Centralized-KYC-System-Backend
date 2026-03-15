@@ -37,7 +37,7 @@ public class ConsentController {
     }
 
     @GetMapping
-    public ResponseEntity<ConsentResponseDto> getConsent(@RequestParam UUID userId, @RequestParam UUID bankId) {
+    public ResponseEntity<ConsentResponseDto> getConsent(@RequestParam String userId, @RequestParam UUID bankId) {
         ConsentResponseDto response = consentService.getConsent(userId, bankId);
         return ResponseEntity.ok(response);
     }

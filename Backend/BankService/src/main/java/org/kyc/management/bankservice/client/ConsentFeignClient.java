@@ -12,7 +12,7 @@ import java.util.Map;
 @FeignClient(name = "ConsentService", path = "/consents")
 public interface ConsentFeignClient {
     @GetMapping
-    Map<String, Object> getConsent(@RequestParam("userId") Long userId, @RequestParam("bankId") UUID bankId);
+    Map<String, Object> getConsent(@RequestParam("userId") String userId, @RequestParam("bankId") UUID bankId);
 
     @PostMapping("/request")
     Map<String, Object> requestConsent(@RequestBody Map<String, Object> requestDto);

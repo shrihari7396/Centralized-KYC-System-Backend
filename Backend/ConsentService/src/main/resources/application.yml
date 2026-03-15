@@ -15,6 +15,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 eureka:
   client:
@@ -27,12 +36,6 @@ jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000 # Access token validity used system-wide (e.g. 1 day limit for standard auth)
   consent-expiration: 172800000 # 2 days = 48 * 60 * 60 * 1000
-
-  kafka:
-    producer:
-      bootstrap-servers: localhost:9092
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 logging:
   level:

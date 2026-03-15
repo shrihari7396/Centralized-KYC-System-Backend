@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class ConsentDto {
 
     private Long consentId;
-    private Long userId;
+    private String userId;
     private String dataUsage;
     private String purpose;
     private String status; // REQUESTED/GIVEN/WITHDRAWN

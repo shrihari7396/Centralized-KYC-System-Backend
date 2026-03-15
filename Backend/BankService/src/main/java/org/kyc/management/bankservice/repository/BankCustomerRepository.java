@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface BankCustomerRepository extends JpaRepository<BankCustomer, UUID> {
-    Optional<BankCustomer> findByUserIdAndBankId(Long userId, UUID bankId);
-    Optional<BankCustomer> findByUserId(Long userId);
+    Optional<BankCustomer> findByUserIdAndBankId(String userId, UUID bankId);
+    Optional<BankCustomer> findByUserId(String userId);
 }

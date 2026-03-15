@@ -17,7 +17,7 @@ import java.util.UUID;
 public class ConsentRequestDto {
 
     @NotNull(message = "User ID is required")
-    private UUID userId;
+    private String userId;
 
     @NotNull(message = "Bank ID is required")
     private UUID bankId;

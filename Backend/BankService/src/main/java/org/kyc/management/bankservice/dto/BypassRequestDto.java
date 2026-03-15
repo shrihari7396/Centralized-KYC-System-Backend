@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 public class BypassRequestDto {
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 
     @NotBlank(message = "Reason is required")
     private String reason;

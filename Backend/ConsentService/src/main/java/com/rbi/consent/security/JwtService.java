@@ -26,13 +26,13 @@ public class JwtService {
     @Value("${jwt.consent-expiration:172800000}")
     private long consentJwtExpiration;
 
-    public String generateConsentToken(UUID userId, UUID bankId, UUID consentId, List<ConsentDocumentType> documents) {
+    public String generateConsentToken(String userId, UUID bankId, UUID consentId, List<ConsentDocumentType> documents) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("bankId", bankId.toString());
         extraClaims.put("consentId", consentId.toString());
         extraClaims.put("documents", documents);
         
-        return buildToken(extraClaims, userId.toString(), consentJwtExpiration);
+        return buildToken(extraClaims, userId, consentJwtExpiration);
     }
 
     private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {

@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ConsentApprovedEvent {
     private UUID consentId;
-    private Long userId; // Assuming BankService uses Long for userId as per entity
+    private String userId;
     private UUID bankId;
     private String jwtToken;
 }

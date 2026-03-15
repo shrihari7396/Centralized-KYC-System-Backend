@@ -16,7 +16,7 @@ public class BankServiceImpl implements BankService {
     private final BankCustomerRepository repo;
 
     @Override
-    public BankCustomer getCustomerStatus(Long userId) {
+    public BankCustomer getCustomerStatus(String userId) {
         return repo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
     }

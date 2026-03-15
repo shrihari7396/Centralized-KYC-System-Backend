@@ -20,7 +20,7 @@ public class BankCustomer {
     private UUID id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(nullable = false)
     private UUID bankId;

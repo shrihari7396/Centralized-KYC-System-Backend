@@ -115,7 +115,7 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     @Override
-    public ConsentResponseDto getConsent(UUID userId, UUID bankId) {
+    public ConsentResponseDto getConsent(String userId, UUID bankId) {
         Optional<ConsentRecord> consentOpt = consentRepository.findByUserIdAndBankIdAndActiveTrue(userId, bankId);
 
         if (consentOpt.isEmpty()) {

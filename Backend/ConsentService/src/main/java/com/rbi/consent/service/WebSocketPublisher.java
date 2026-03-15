@@ -14,7 +14,7 @@ public class WebSocketPublisher {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void publishConsentRequested(UUID userId, Object payload) {
+    public void publishConsentRequested(String userId, Object payload) {
         String destination = "/topic/consent/" + userId;
         log.info("Publishing CONSENT_REQUESTED to {}", destination);
         messagingTemplate.convertAndSend(destination, payload);

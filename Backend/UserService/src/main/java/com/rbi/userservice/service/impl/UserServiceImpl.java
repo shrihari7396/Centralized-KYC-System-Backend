@@ -119,10 +119,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object updateStatus(UpdateStatusDto updateStatusDto) {
-        UserEntity user = userRepository.findByEmail(updateStatusDto.getEmail());
-        if (user == null) {
-            throw new RuntimeException("User not found with email: " + updateStatusDto.getEmail());
-        }
+        UserEntity user = userRepository.findById(updateStatusDto.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + updateStatusDto.getEmail()));
         user.setStatus(updateStatusDto.getStatus());
         return userRepository.save(user);
     }

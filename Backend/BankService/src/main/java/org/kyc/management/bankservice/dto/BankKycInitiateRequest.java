@@ -11,5 +11,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class BankKycInitiateRequest {
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 }

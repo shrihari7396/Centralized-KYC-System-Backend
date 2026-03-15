@@ -4,6 +4,6 @@ import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
 
 public interface BankService {
-    BankCustomer getCustomerStatus(Long userId);
+    BankCustomer getCustomerStatus(String userId);
     BankCustomer bypassKyc(BypassRequestDto bypassRequestDto);
 }

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OtpGeneratedEvent {
 
-    private Long userId;
+    private String userId;
     private Long otpRequestId;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

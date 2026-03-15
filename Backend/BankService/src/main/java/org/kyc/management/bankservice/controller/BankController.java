@@ -31,7 +31,7 @@ public class BankController {
     }
 
     @GetMapping("/status/{userId}")
-    public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") Long userId) {
+    public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") String userId) {
         return ResponseEntity.ok(bankSvc.getCustomerStatus(userId));
     }
 

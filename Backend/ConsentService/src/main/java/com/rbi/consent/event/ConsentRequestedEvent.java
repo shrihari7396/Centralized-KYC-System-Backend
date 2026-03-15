@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ConsentRequestedEvent {
 
-    private Long userId;
+    private String userId;
     private Long consentId;
     private LocalDateTime timestamp;
 }

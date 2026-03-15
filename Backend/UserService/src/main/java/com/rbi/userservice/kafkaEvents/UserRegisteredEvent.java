@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRegisteredEvent {
-    private Long userId;
-    private String email;
+    private String userId; // userId is the email
     private LocalDateTime createdAt;
 }

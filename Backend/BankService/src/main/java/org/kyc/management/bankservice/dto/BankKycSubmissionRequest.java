@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BankKycSubmissionRequest {
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 
     @NotNull(message = "Identity is required")
     @Valid

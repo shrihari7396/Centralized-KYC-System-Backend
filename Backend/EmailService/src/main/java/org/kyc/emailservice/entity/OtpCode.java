@@ -22,7 +22,7 @@ public class OtpCode {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(nullable = false)
     private String codeHash;

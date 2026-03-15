@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ConsentApprovedEvent {
     private UUID consentId;
-    private UUID userId;
+    private String userId;
     private UUID bankId;
     private String jwtToken;
 }

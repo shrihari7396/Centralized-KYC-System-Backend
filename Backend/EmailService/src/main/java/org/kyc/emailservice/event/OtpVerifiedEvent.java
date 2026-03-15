@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OtpVerifiedEvent {
 
-    private Long userId;
+    private String userId;
     private Long otpRequestId;
     private LocalDateTime verifiedAt;
 }
