@@ -1,6 +1,6 @@
 spring:
   application:
-    name: DigilockerService
+    name: DIGILOCKERSERVICE
   output:
     ansi:
       enabled: always
@@ -10,7 +10,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 server:
-  port: 8083
+  port: 8088
 
 eureka:
   client:

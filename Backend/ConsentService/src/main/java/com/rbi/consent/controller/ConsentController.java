@@ -24,20 +24,30 @@ public class ConsentController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
+    @PostMapping("/{consentId}/send-otp")
+    public ResponseEntity<String> sendOtp(@PathVariable java.util.UUID consentId) {
+        consentService.sendConsentOtp(consentId);
+        return ResponseEntity.ok("OTP sent successfully to registered email");
+    }
+
     @PostMapping("/approve/{consentId}")
-    public ResponseEntity<ConsentResponseDto> approveConsent(@PathVariable UUID consentId) {
-        ConsentResponseDto response = consentService.approveConsent(consentId);
+    public ResponseEntity<ConsentResponseDto> approveConsent(
+            @PathVariable java.util.UUID consentId,
+            @Valid @RequestBody com.rbi.consent.dto.ConsentActionDto actionDto) {
+        ConsentResponseDto response = consentService.approveConsent(consentId, actionDto.getOtp());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reject/{consentId}")
-    public ResponseEntity<Void> rejectConsent(@PathVariable UUID consentId) {
-        consentService.rejectConsent(consentId);
+    public ResponseEntity<Void> rejectConsent(
+            @PathVariable java.util.UUID consentId,
+            @Valid @RequestBody com.rbi.consent.dto.ConsentActionDto actionDto) {
+        consentService.rejectConsent(consentId, actionDto.getOtp());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
-    public ResponseEntity<ConsentResponseDto> getConsent(@RequestParam String userId, @RequestParam UUID bankId) {
+    public ResponseEntity<ConsentResponseDto> getConsent(@RequestParam String userId, @RequestParam java.util.UUID bankId) {
         ConsentResponseDto response = consentService.getConsent(userId, bankId);
         return ResponseEntity.ok(response);
     }

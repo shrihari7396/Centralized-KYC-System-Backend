@@ -36,6 +36,11 @@ public class ConsentServiceImpl implements ConsentService {
     private final BankFeignClient bankFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
     private final ObjectMapper objectMapper;
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+    private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String OTP_KEY_PREFIX = "consent_otp:";
+    private static final long OTP_EXPIRY_MINUTES = 5;
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
@@ -58,7 +63,55 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     @Override
-    public ConsentResponseDto approveConsent(UUID consentId) {
+    public void sendConsentOtp(UUID consentId) {
+        ConsentRecord record = consentRepository.findById(consentId)
+                .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
+
+        if (record.getConsentStatus() != ConsentStatus.PENDING) {
+            throw new IllegalArgumentException("OTP can only be sent for PENDING consent requests.");
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        
+        // Store in Redis with TTL
+        String redisKey = OTP_KEY_PREFIX + consentId;
+        redisTemplate.opsForValue().set(redisKey, otp, OTP_EXPIRY_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
+        
+        log.info("Generated OTP for consent {}: {}", consentId, otp);
+
+        // Send OTP via Kafka for EmailService to pick up
+        com.rbi.consent.event.CreateOtpEvent otpEvent = com.rbi.consent.event.CreateOtpEvent.builder()
+                .email(record.getUserId()) // userId is the email
+                .otp(otp)
+                .firstName("User") // We don't have user name in ConsentRecord, but can be improved
+                .lastName("")
+                .build();
+        
+        kafkaTemplate.send(com.rbi.consent.config.KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
+        log.info("Sent CreateOtpEvent for consent {} to Kafka", consentId);
+    }
+
+    private void verifyOtp(UUID consentId, String otpInput) {
+        String redisKey = OTP_KEY_PREFIX + consentId;
+        String storedOtp = redisTemplate.opsForValue().get(redisKey);
+        
+        if (storedOtp == null) {
+            throw new RuntimeException("OTP expired or not requested.");
+        }
+        
+        if (!storedOtp.equals(otpInput)) {
+            throw new RuntimeException("Invalid OTP provided.");
+        }
+        
+        // Delete OTP after successful verification
+        redisTemplate.delete(redisKey);
+    }
+
+    @Override
+    public ConsentResponseDto approveConsent(UUID consentId, String otp) {
+        verifyOtp(consentId, otp);
+        
         ConsentRecord record = consentRepository.findById(consentId)
                 .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
 
@@ -98,7 +151,9 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     @Override
-    public void rejectConsent(UUID consentId) {
+    public void rejectConsent(UUID consentId, String otp) {
+        verifyOtp(consentId, otp);
+        
         ConsentRecord record = consentRepository.findById(consentId)
                 .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
 

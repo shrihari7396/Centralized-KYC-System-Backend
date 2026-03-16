@@ -9,9 +9,11 @@ public interface ConsentService {
 
     void requestConsent(ConsentRequestDto requestDto);
 
-    ConsentResponseDto approveConsent(UUID consentId);
+    void sendConsentOtp(java.util.UUID consentId);
 
-    void rejectConsent(UUID consentId);
+    ConsentResponseDto approveConsent(java.util.UUID consentId, String otp);
 
-    ConsentResponseDto getConsent(String userId, UUID bankId);
+    void rejectConsent(java.util.UUID consentId, String otp);
+
+    ConsentResponseDto getConsent(String userId, java.util.UUID bankId);
 }

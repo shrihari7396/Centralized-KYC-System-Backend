@@ -33,16 +33,43 @@ spring:
             - id: user-service
               uri: lb://USERSERVICE
               predicates:
-                - Path=/user
+                - Path=/user/**
               filters:
                 - StripPrefix=1
 
-            - id: BankService
+            - id: bank-service
               uri: lb://BANKSERVICE
               predicates:
-                - Path=/bank
+                - Path=/bank/**
               filters:
-                - AddRequestHeader=X-Custom-Header, Anuj
+                - StripPrefix=1
+
+            - id: consent-service
+              uri: lb://CONSENT-SERVICE
+              predicates:
+                - Path=/consent/**
+              filters:
+                - StripPrefix=1
+
+            - id: kyc-management-service
+              uri: lb://KYCMANAGEMENTSERVICE
+              predicates:
+                - Path=/kyc/**
+              filters:
+                - StripPrefix=1
+
+            - id: email-service
+              uri: lb://EMAILSERVICE
+              predicates:
+                - Path=/email/**
+              filters:
+                - StripPrefix=1
+
+            - id: digilocker-service
+              uri: lb://DIGILOCKERSERVICE
+              predicates:
+                - Path=/digilocker/**
+              filters:
                 - StripPrefix=1
             #                - RedirectTo=302, https://codingshuttle.com
 
@@ -70,7 +97,7 @@ server:
   port: 8083
 
 jwt:
-  secret: 7x9A$mK2#pQ8*vL5!nR3@wE6%tY1^uI4&oP7+sD0-fG9_hJ2=cV5~xZ8|aB4{mN6}qW3<eT7>yU1[iO0]lK9
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 864000000
 
 logging:
