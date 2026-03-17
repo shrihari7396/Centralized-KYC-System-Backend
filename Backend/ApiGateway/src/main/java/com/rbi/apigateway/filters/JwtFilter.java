@@ -1,7 +1,9 @@
 package com.rbi.apigateway.filters;
 
+import com.rbi.apigateway.logging.KafkaLogProducer;
 import com.rbi.apigateway.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -20,6 +22,7 @@ import java.io.IOException;
 public class JwtFilter implements GlobalFilter , Ordered {
     @Autowired
     private final JwtService jwtService;
+    private final KafkaLogProducer kafkaLogProducer;
 
 
     @Override
@@ -54,10 +57,12 @@ public class JwtFilter implements GlobalFilter , Ordered {
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
+        kafkaLogProducer.logWarning("UNAUTHORIZED_ACCESS", Map.of("path", exchange.getRequest().getURI().getPath()));
         exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(401));
         return exchange.getResponse().setComplete();
     }
     private Mono<Void> forbidden(ServerWebExchange exchange) {
+        kafkaLogProducer.logWarning("FORBIDDEN_ACCESS", Map.of("path", exchange.getRequest().getURI().getPath()));
         exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(HttpStatus.SC_FORBIDDEN));
         return exchange.getResponse().setComplete();
     }
