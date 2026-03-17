@@ -11,6 +11,8 @@ import com.rbi.userservice.Repository.UserRepository;
 import com.rbi.userservice.config.KafkaTopicNameConstants;
 import com.rbi.userservice.exception.InValidOtpException;
 import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
+import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
+import com.rbi.userservice.logging.KafkaLogProducer;
 import com.rbi.userservice.service.JWTService;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,9 @@ import java.time.Duration;
 public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
+    private final KafkaLogProducer kafkaLogProducer;
     private final JWTService jwtService;
     private final UserRepository userRepository;
 
@@ -38,7 +42,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean sendOtpByPhone(String phone) {
         UserEntity user = userRepository.findByPhone(phone)
-                .orElseThrow(() -> new RuntimeException("User not found with phone: " + phone));
+                .orElseThrow(() -> {
+                    kafkaLogProducer.logError("USER_NOT_FOUND", java.util.Map.of("phone", phone));
+                    return new RuntimeException("User not found with phone: " + phone);
+                });
         return generateAndSendOtp(user.getFirstName(), user.getLastName(), user.getEmail(), phone);
     }
 
@@ -56,6 +63,9 @@ public class UserServiceImpl implements UserService {
         
         saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
+        
+        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email, "key", key));
+        
         return true;
     }
 
@@ -69,19 +79,29 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getMobileNumber()) // Fixed field name
                 .build();
 
-        return userRepository.save(u) != null;
+        UserEntity saved = userRepository.save(u);
+        if (saved != null) {
+            kafkaLogProducer.logInfo("USER_REGISTERED", java.util.Map.of("email", saved.getEmail(), "phone", saved.getPhone()));
+        } else {
+            kafkaLogProducer.logError("USER_REGISTRATION_FAILED", java.util.Map.of("email", user.getEmail()));
+        }
+        return saved != null;
     }
 
     @Override
     public Boolean verifyOtp(String otp, String key) {
         String StoredOtp = redisTemplate.opsForValue().get(key);
         if (StoredOtp == null) {
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", key));
             throw new InValidOtpException("Expired or invalid OTP");
         }
         boolean result = StoredOtp.equals(otp);
         if (!result) {
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", key));
             throw new InValidOtpException("Invalid OTP");
         }
+        
+        kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", key));
         deleteOtp(key);
         return result;
     }
@@ -112,8 +132,11 @@ public class UserServiceImpl implements UserService {
         }
 
         if (response == null) {
+            kafkaLogProducer.logWarning("LOGIN_FAILED", java.util.Map.of("email", otpVerificationDto.getEmail()));
             throw new InValidOtpException("Invalid OTP");
         }
+        
+        kafkaLogProducer.logInfo("USER_LOGGED_IN", java.util.Map.of("email", response.getEmail(), "role", response.getRole()));
         return response;
     }
 
