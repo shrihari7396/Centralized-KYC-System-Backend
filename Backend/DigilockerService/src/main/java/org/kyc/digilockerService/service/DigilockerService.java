@@ -3,6 +3,7 @@ package org.kyc.digilockerService.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.digilockerService.event.DigiLockerDataFetchedEvent;
+import org.kyc.digilockerService.logging.KafkaLogProducer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +18,12 @@ import org.kyc.digilockerService.util.RandomDate;
 public class DigilockerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaLogProducer kafkaLogProducer;
     private static final String TOPIC = "digilocker-data-fetched";
 
     public void processVerification(String mobileNumber) {
         log.info("Processing verification for mobile number: {}", mobileNumber);
+        kafkaLogProducer.logInfo("DIGILOCKER_VERIFICATION_STARTED", java.util.Map.of("mobileNumber", mobileNumber));
 
         // Generate dummy data
         DigiLockerDataFetchedEvent event = DigiLockerDataFetchedEvent.builder()
@@ -37,5 +40,11 @@ public class DigilockerService {
 
         log.info("Sending DigiLocker data fetched event to Kafka topic {}: {}", TOPIC, event);
         kafkaTemplate.send(TOPIC, mobileNumber, event);
+        
+        kafkaLogProducer.logInfo("DIGILOCKER_DATA_FETCHED", java.util.Map.of(
+            "mobileNumber", mobileNumber, 
+            "aadharNumber", event.getAadharNumber(),
+            "panNumber", event.getPanNumber()
+        ));
     }
 }

@@ -14,6 +14,7 @@ import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
 import com.rbi.consent.exception.ConsentRejectedException;
 import com.rbi.consent.kafka.ConsentKafkaProducer;
+import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
 import com.rbi.consent.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class ConsentServiceImpl implements ConsentService {
     private final WebSocketPublisher webSocketPublisher;
     private final BankFeignClient bankFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
+    private final KafkaLogProducer kafkaLogProducer;
     private final ObjectMapper objectMapper;
     private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
     private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
@@ -58,6 +60,8 @@ public class ConsentServiceImpl implements ConsentService {
 
         ConsentRecord saved = consentRepository.save(consentRecord);
 
+        kafkaLogProducer.logInfo("CONSENT_REQUESTED", java.util.Map.of("userId", requestDto.getUserId(), "bankId", requestDto.getBankId(), "consentId", saved.getId()));
+
         // Notify Frontend WebSocket
         webSocketPublisher.publishConsentRequested(requestDto.getUserId(), saved);
     }
@@ -65,9 +69,13 @@ public class ConsentServiceImpl implements ConsentService {
     @Override
     public void sendConsentOtp(UUID consentId) {
         ConsentRecord record = consentRepository.findById(consentId)
-                .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
+                .orElseThrow(() -> {
+                    kafkaLogProducer.logError("CONSENT_OTP_FAILED", java.util.Map.of("consentId", consentId, "reason", "Consent not found"));
+                    return new ConsentNotFoundException("Consent not found.");
+                });
 
         if (record.getConsentStatus() != ConsentStatus.PENDING) {
+            kafkaLogProducer.logWarning("CONSENT_OTP_REJECTED", java.util.Map.of("consentId", consentId, "reason", "Not in pending state"));
             throw new IllegalArgumentException("OTP can only be sent for PENDING consent requests.");
         }
 
@@ -97,10 +105,12 @@ public class ConsentServiceImpl implements ConsentService {
         String storedOtp = redisTemplate.opsForValue().get(redisKey);
         
         if (storedOtp == null) {
+            kafkaLogProducer.logWarning("OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
             throw new RuntimeException("OTP expired or not requested.");
         }
         
         if (!storedOtp.equals(otpInput)) {
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED", java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
             throw new RuntimeException("Invalid OTP provided.");
         }
         
@@ -142,6 +152,8 @@ public class ConsentServiceImpl implements ConsentService {
         // Notify WS success
         webSocketPublisher.publishConsentApproved(record.getBankId(), "Consent Approved for " + record.getUserId());
 
+        kafkaLogProducer.logInfo("CONSENT_APPROVED", java.util.Map.of("consentId", updated.getId(), "userId", updated.getUserId(), "bankId", updated.getBankId()));
+
         return ConsentResponseDto.builder()
                 .consentId(updated.getId())
                 .status(updated.getConsentStatus())
@@ -167,6 +179,8 @@ public class ConsentServiceImpl implements ConsentService {
 
         // Notify Bank
         webSocketPublisher.publishConsentRejected(record.getBankId(), "Consent Rejected for user " + record.getUserId());
+        
+        kafkaLogProducer.logWarning("CONSENT_REJECTED", java.util.Map.of("consentId", record.getId(), "userId", record.getUserId(), "bankId", record.getBankId()));
     }
 
     @Override
