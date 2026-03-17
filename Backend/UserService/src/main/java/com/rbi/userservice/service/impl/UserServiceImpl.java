@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
         LoginResponseDto response = null;
 
         if (verifyOtp(otpVerificationDto.getOtp(), otpVerificationDto.getEmail())) {
-            String token = jwtService.generateToken(otpVerificationDto.getEmail(), otpVerificationDto.getRole());
+            String token = jwtService.generateToken(otpVerificationDto.getEmail(), otpVerificationDto.getRole().toString());
             response = LoginResponseDto.builder()
                     .role(otpVerificationDto.getRole())
                     .email(otpVerificationDto.getEmail())

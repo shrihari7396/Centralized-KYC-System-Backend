@@ -4,7 +4,7 @@ spring:
   main:
     lazy-initialization: true
   datasource:
-    url: jdbc:mysql://localhost:3307/kyc_user_service
+    url: jdbc:mysql://localhost:3306/kyc
     username: root
     password: 899961
     driver-class-name: com.mysql.cj.jdbc.Driver
