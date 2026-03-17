@@ -3,6 +3,7 @@ package org.kyc.emailservice.emailservice.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.kyc.emailservice.emailservice.Kafka.CreateOtpEvent;
+import org.kyc.emailservice.logging.KafkaLogProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 public class EmailSenderService {
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private KafkaLogProducer kafkaLogProducer;
 
     String getbody(CreateOtpEvent event) {
         String otp = event.getOtp();
@@ -90,9 +93,9 @@ public class EmailSenderService {
         mimeMessageHelper.setTo(event.getEmail());
         mimeMessageHelper.setSubject(subject);
         mimeMessageHelper.setText(body, true); // Set true if the body contains HTML
-        System.out.println("here");
+        kafkaLogProducer.logInfo("EMAIL_SENDING_STARTED", java.util.Map.of("email", event.getEmail(), "subject", subject));
         mailSender.send(mimeMessage);
-        System.out.println("Email sent successfully!");
+        kafkaLogProducer.logInfo("EMAIL_SENT_SUCCESSFULLY", java.util.Map.of("email", event.getEmail()));
     }
 
 
