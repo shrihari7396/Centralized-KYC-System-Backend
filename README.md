@@ -25,7 +25,7 @@ The project focuses on **data security, reusability, and efficiency**, reducing 
 * Role-based access for institutions and admins
 * KYC status tracking (Pending / Verified / Rejected)
 * Data privacy and encryption support by database level encryption 
-
+* Automated Lifecycle Management (Periodic Updation): Implementing workflows for real-time KYC revocation, renewal, and address updation
 ---
 
 ## 🛠️ Technology Stack
