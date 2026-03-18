@@ -1,5 +1,6 @@
 package edu.pict.logmonitoringsystem.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -17,9 +18,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrafficProfileEntity {
-
     @Id
-    private String key; // ip:endpoint:window
+    @Column(name = "`key`")
+    private String key;
 
     private String ip;
     private String endpoint;
