@@ -24,7 +24,7 @@ The project focuses on **data security, reusability, and efficiency**, reducing 
 * Document upload and verification workflow
 * Role-based access for institutions and admins
 * KYC status tracking (Pending / Verified / Rejected)
-* Data privacy and encryption support
+* Data privacy and encryption support by database level encryption 
 
 ---
 
