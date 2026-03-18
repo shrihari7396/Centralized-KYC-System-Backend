@@ -7,6 +7,7 @@ import org.kyc.management.kycmanagementservice.event.DigiLockerDataFetchedEvent;
 import org.kyc.management.kycmanagementservice.event.KycVerificationSuccessEvent;
 import org.kyc.management.kycmanagementservice.logging.KafkaLogProducer;
 import org.kyc.management.kycmanagementservice.repository.KycRecordRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class KycKafkaConsumer {
 
     private final KycRecordRepository kycRecordRepository;
+    @Autowired(required = false)
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaLogProducer kafkaLogProducer;
     
