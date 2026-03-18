@@ -15,6 +15,7 @@ import java.util.UUID;
 public class LogEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -30,7 +31,7 @@ public class LogEntity {
     @Column(nullable = false)
     private Instant occurredAt;
 
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "TEXT")
     private String payload;
 
     @Column(nullable = false)

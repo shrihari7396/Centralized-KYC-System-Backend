@@ -28,7 +28,7 @@ import java.time.Duration;
 public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final RedisTemplate<String, String> redisTemplate;
+//    private final RedisTemplate<String, String> redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final KafkaLogProducer kafkaLogProducer;
     private final JWTService jwtService;

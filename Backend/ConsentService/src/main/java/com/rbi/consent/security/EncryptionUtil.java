@@ -17,7 +17,7 @@ import java.util.Base64;
  * Uses a random 12-byte IV prepended to the ciphertext for each encryption operation.
  */
 @Component
-public class EncryptionUtil {
+ public class EncryptionUtil {
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
