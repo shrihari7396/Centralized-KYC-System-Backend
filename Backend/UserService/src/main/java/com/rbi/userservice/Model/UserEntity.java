@@ -1,5 +1,6 @@
 package com.rbi.userservice.Model;
 
+import com.rbi.userservice.security.StringCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,13 +21,16 @@ public class UserEntity {
     @Column(nullable = false)
     private String email; // email is the userId / primary key
 
-    @Column(nullable = false)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String firstName;
 
-    @Column(nullable = false)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String lastName;
 
-    @Column(nullable = false, unique = true)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String phone;
 
     @Column(nullable = false)

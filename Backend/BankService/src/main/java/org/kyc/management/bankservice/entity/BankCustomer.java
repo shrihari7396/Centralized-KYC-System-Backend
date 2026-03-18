@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.kyc.management.bankservice.security.StringCryptoConverter;
+
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -19,7 +21,8 @@ public class BankCustomer {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String userId;
 
     @Column(nullable = false)
@@ -34,6 +37,7 @@ public class BankCustomer {
     private String overrideReason;
     private Timestamp verifiedAt;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(columnDefinition = "TEXT")
     private String consentToken; // JWT token from ConsentService
 

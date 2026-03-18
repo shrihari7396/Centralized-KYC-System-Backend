@@ -1,6 +1,7 @@
 package com.rbi.consent.entity;
 
 import com.rbi.consent.enums.ConsentStatus;
+import com.rbi.consent.security.StringCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,12 +31,14 @@ public class ConsentRecord {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(nullable = false)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String userId;
 
     @Column(nullable = false)
     private UUID bankId;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(columnDefinition = "TEXT")
     private String jwtToken;
 
