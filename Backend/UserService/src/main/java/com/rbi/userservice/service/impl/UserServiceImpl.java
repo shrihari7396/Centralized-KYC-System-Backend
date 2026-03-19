@@ -23,7 +23,6 @@ import java.time.Duration;
 public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
-//    private final RedisTemplate<String, String> redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final KafkaLogProducer kafkaLogProducer;
     private final JWTService jwtService;
@@ -138,14 +137,6 @@ public class UserServiceImpl implements UserService {
         
         kafkaLogProducer.logInfo("USER_LOGGED_IN", java.util.Map.of("email", response.getEmail(), "role", response.getRole()));
         return response;
-    }
-
-    @Override
-    public Object updateStatus(UpdateStatusDto updateStatusDto) {
-        UserEntity user = userRepository.findById(updateStatusDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + updateStatusDto.getEmail()));
-        user.setStatus(updateStatusDto.getStatus());
-        return userRepository.save(user);
     }
 
 }

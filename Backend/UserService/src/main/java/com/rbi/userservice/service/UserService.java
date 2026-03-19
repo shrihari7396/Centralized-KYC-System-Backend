@@ -4,6 +4,7 @@ import com.rbi.userservice.DTO.*;
 
 public interface UserService {
     Boolean sendOtp(OtpRequestDto otpRequestDto);
+
     Boolean sendOtpByPhone(String phone);
 
     Boolean registerUser(RegisterDTO user);
@@ -13,8 +14,9 @@ public interface UserService {
     void saveOtp(String otp, String key);
 
     void deleteOtp(String key);
+
     boolean isExistByEmail(String email);
+
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
 
-    Object updateStatus(UpdateStatusDto updateStatusDto);
 }

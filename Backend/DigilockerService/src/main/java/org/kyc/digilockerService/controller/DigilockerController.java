@@ -2,11 +2,11 @@ package org.kyc.digilockerService.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.digilockerService.client.UserClient;
 import org.kyc.digilockerService.dto.OtpGenerateRequest;
-import org.kyc.digilockerService.dto.OtpVerifyRequest;
+import org.kyc.digilockerService.dto.OtpVerificationDto;
 import org.kyc.digilockerService.kafka.LogProducer;
 import org.kyc.digilockerService.service.DigilockerService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 public class DigilockerController {
 
     private final DigilockerService digilockerService;
-    private final UserClient userClient;
+
     private final LogProducer logProducer;
 
     @GetMapping("/redirect")
@@ -30,46 +30,50 @@ public class DigilockerController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody OtpGenerateRequest request) {
-        log.info("Requesting OTP generation for mobile: {}", request.getMobileNumber());
-        logProducer.info("OTP_REQUEST_INITIATED", Map.of("mobileNumber", request.getMobileNumber()));
+        log.info("Requesting OTP generation for mobile: {}", request.getEmail());
+
+        Boolean response;
         try {
-            ResponseEntity<String> response = userClient.requestOTPByPhone(request.getMobileNumber());
-            logProducer.info("OTP_REQUEST_SUCCESS", Map.of("mobileNumber", request.getMobileNumber()));
-            return ResponseEntity.status(response.getStatusCode()).body(Map.of("message", response.getBody()));
+            response = digilockerService.generateAndSendOtp(request);
+            if(response) {
+                return ResponseEntity.status(HttpStatus.CREATED).body("OTP sent Successfully ...");
+            }
         } catch (Exception e) {
             log.error("Error requesting OTP from UserService", e);
-            logProducer.error("OTP_REQUEST_FAILED", Map.of("mobileNumber", request.getMobileNumber(), "error", e.getMessage()));
+            logProducer.error("OTP_REQUEST_FAILED", Map.of("email", request.getEmail(), "error", e.getMessage()));
             return ResponseEntity.badRequest().body(Map.of("error", "Failed to send OTP."));
         }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Some Error occurred at our end ... ");
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody OtpVerifyRequest request) {
-        log.info("Verifying OTP for mobile: {}", request.getMobileNumber());
+    public ResponseEntity<?> verifyOtp(@RequestBody OtpVerificationDto request) {
+        log.info("Verifying OTP for email: {}", request.getEmail());
         if (!request.isConsentAccepted()) {
-            logProducer.warning("OTP_VERIFICATION_REJECTED", Map.of("mobileNumber", request.getMobileNumber(), "reason", "Consent not accepted"));
+            logProducer.warning("OTP_VERIFICATION_REJECTED", Map.of("email", request.getEmail(), "reason", "Consent not accepted"));
             return ResponseEntity.badRequest().body(Map.of("error", "Consent must be accepted."));
         }
         
         try {
             Map<String, String> verificationRequest = Map.of(
                     "otp", request.getOtp(),
-                    "email", request.getMobileNumber()
+                    "email", request.getEmail()
             );
             
-            ResponseEntity<Object> response = userClient.otpVerification(verificationRequest);
+            Boolean response = digilockerService.verifyOtp(request.getOtp(), request.getEmail());
             
-            if (response.getStatusCode().is2xxSuccessful()) {
-                digilockerService.processVerification(request.getMobileNumber());
-                logProducer.info("OTP_VERIFICATION_SUCCESS", Map.of("mobileNumber", request.getMobileNumber()));
+            if (response) {
+                digilockerService.processVerification(request.getEmail());
+                logProducer.info("OTP_VERIFICATION_SUCCESS", Map.of("email", request.getEmail()));
                 return ResponseEntity.ok(Map.of("message", "Verification successful. Data is being processed."));
             } else {
-                logProducer.warning("OTP_VERIFICATION_FAILED", Map.of("mobileNumber", request.getMobileNumber()));
-                return ResponseEntity.status(response.getStatusCode()).body(Map.of("error", "OTP verification failed."));
+                logProducer.warning("OTP_VERIFICATION_FAILED", Map.of("email", request.getEmail()));
+                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(Map.of("error", "OTP verification failed."));
             }
         } catch (Exception e) {
             log.error("Error verifying OTP with UserService", e);
-            logProducer.error("OTP_VERIFICATION_ERROR", Map.of("mobileNumber", request.getMobileNumber(), "error", e.getMessage()));
+            logProducer.error("OTP_VERIFICATION_ERROR", Map.of("mobileNumber", request.getEmail(), "error", e.getMessage()));
             return ResponseEntity.badRequest().body(Map.of("error", "OTP verification failed."));
         }
     }

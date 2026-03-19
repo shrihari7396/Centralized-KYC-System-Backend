@@ -12,7 +12,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Builder
 public class DigiLockerDataFetchedEvent {
-    private String mobileNumber;
+    private String email;
     private String aadharNumber;
     private String panNumber;
     private String firstName;

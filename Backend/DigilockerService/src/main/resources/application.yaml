@@ -21,7 +21,11 @@ eureka:
   instance:
     prefer-ip-address: true
 
+
 # Logging for OTP
 logging:
   level:
     org.kyc.digilockerService: INFO
+
+secret:
+  key: askjdfkjasdkjfkjasdhfjhaskjdhfkjhasdkjfh

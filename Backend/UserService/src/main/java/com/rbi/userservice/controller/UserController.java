@@ -4,7 +4,7 @@ import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.exception.UserNotFoundException;
-import com.rbi.userservice.kafka.LogProducer;
+import com.rbi.userservice.kafkaEvents.LogProducer;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

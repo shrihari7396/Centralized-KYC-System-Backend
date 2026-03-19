@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OtpVerifyRequest {
-    private String mobileNumber;
+public class OtpVerificationDto {
+    private String email;
     private String otp;
     private boolean consentAccepted;
 }

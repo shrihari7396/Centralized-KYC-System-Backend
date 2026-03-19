@@ -1,4 +1,4 @@
-package com.rbi.userservice.kafka;
+package com.rbi.userservice.kafkaEvents;
 
 import com.rbi.userservice.dto.LogEventDTO;
 import lombok.RequiredArgsConstructor;
