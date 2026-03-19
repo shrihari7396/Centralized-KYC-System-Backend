@@ -33,13 +33,7 @@ public class UserEntity {
     @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String phone;
 
-    @Column(nullable = false)
-    private String passwordHash;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private java.util.List<String> roles;
+    private Role roles = Role.USER;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -52,4 +46,6 @@ public class UserEntity {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+
 }

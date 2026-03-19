@@ -15,6 +15,5 @@ public class RegisterDTO {
     private String firstName;
     private String lastName;
     private String mobileNumber;
-    private String passwordHash;
 }
 

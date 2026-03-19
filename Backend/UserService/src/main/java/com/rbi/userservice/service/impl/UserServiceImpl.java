@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isExistByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return userRepository.updateLastLogin(email) > 0;
     }
 
     @Override
