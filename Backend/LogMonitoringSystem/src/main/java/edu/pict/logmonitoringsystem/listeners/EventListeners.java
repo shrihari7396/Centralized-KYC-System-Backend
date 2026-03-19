@@ -1,5 +1,6 @@
 package edu.pict.logmonitoringsystem.listeners;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.pict.logmonitoringsystem.dtos.LogEventDTO;
 import edu.pict.logmonitoringsystem.entity.LogEntity;
 import edu.pict.logmonitoringsystem.repository.LogRepository;
@@ -7,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 @RequiredArgsConstructor

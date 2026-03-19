@@ -1,8 +1,8 @@
 package com.rbi.userservice.kafka;
 
+import com.rbi.userservice.dto.LogEventDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.rbi.userservice.dto.LogEventDTO;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 

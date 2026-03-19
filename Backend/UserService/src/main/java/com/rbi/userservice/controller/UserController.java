@@ -3,7 +3,7 @@ package com.rbi.userservice.controller;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.DTO.UpdateStatusDto;
+import com.rbi.userservice.exception.UserNotFoundException;
 import com.rbi.userservice.kafka.LogProducer;
 import com.rbi.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +24,17 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
         if (userService.registerUser(registerDto)) {
-            logProducer.info("USER_REGISTRATION_SUCCESS", Map.of("email", registerDto.getEmail()));
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully ...");
         } else {
-            logProducer.warning("USER_REGISTRATION_FAILED", Map.of("email", registerDto.getEmail()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed ...");
         }
     }
 
     @PostMapping("/request-otp")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
+        if(!userService.isExistByEmail(otpRequestDtp.getEmail())) {
+            throw new UserNotFoundException("User Not Found !!!");
+        }
         if (userService.sendOtp(otpRequestDtp)) {
             logProducer.info("OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
@@ -59,11 +60,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));
     }
 
-    @PutMapping("/updateStatus")
-    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
-    }
-
-    
+//    @PutMapping("/updateStatus")
+//    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
+//        return ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
+//    }
+//
+//
 
 }

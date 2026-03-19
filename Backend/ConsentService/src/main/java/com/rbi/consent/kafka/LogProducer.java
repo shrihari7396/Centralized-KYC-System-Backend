@@ -1,8 +1,8 @@
 package com.rbi.consent.kafka;
 
+import com.rbi.consent.dto.LogEventDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.rbi.consent.dto.LogEventDTO;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 

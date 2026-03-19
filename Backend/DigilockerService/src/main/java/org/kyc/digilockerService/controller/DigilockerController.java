@@ -2,7 +2,6 @@ package org.kyc.digilockerService.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.kyc.digilockerService.client.UserClient;
 import org.kyc.digilockerService.dto.OtpGenerateRequest;
 import org.kyc.digilockerService.dto.OtpVerifyRequest;

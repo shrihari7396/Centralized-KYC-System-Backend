@@ -1,8 +1,9 @@
 package org.kyc.management.bankservice.security;
 
-import org.springframework.stereotype.Component;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import org.springframework.stereotype.Component;
+
 import java.util.Date;
 
 @Component

@@ -1,7 +1,6 @@
 package com.rbi.userservice.DTO;
 
 import com.rbi.userservice.Model.Role;
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
 

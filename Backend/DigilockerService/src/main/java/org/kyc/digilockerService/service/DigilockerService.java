@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.digilockerService.event.DigiLockerDataFetchedEvent;
 import org.kyc.digilockerService.logging.KafkaLogProducer;
+import org.kyc.digilockerService.util.RandomDate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.kyc.digilockerService.util.RandomDate;
 
 @Service
 @RequiredArgsConstructor

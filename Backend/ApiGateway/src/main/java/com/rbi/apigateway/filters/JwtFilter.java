@@ -3,7 +3,6 @@ package com.rbi.apigateway.filters;
 import com.rbi.apigateway.logging.KafkaLogProducer;
 import com.rbi.apigateway.service.JwtService;
 import lombok.RequiredArgsConstructor;
-import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor

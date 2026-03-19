@@ -1,10 +1,6 @@
 package com.rbi.userservice.service;
 
-import com.rbi.userservice.DTO.LoginResponseDto;
-import com.rbi.userservice.DTO.OtpRequestDto;
-import com.rbi.userservice.DTO.OtpVerificationDto;
-import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.DTO.UpdateStatusDto;
+import com.rbi.userservice.DTO.*;
 
 public interface UserService {
     Boolean sendOtp(OtpRequestDto otpRequestDto);
@@ -17,7 +13,7 @@ public interface UserService {
     void saveOtp(String otp, String key);
 
     void deleteOtp(String key);
-
+    boolean isExistByEmail(String email);
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
 
     Object updateStatus(UpdateStatusDto updateStatusDto);

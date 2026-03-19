@@ -1,16 +1,11 @@
 package com.rbi.userservice.service.impl;
 
-import com.rbi.userservice.DTO.LoginResponseDto;
-import com.rbi.userservice.DTO.OtpRequestDto;
-import com.rbi.userservice.DTO.OtpVerificationDto;
-import com.rbi.userservice.DTO.RegisterDTO;
-import com.rbi.userservice.DTO.UpdateStatusDto;
+import com.rbi.userservice.DTO.*;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
 import com.rbi.userservice.Repository.UserRepository;
 import com.rbi.userservice.config.KafkaTopicNameConstants;
 import com.rbi.userservice.exception.InValidOtpException;
-import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import com.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import com.rbi.userservice.logging.KafkaLogProducer;
 import com.rbi.userservice.service.JWTService;
@@ -33,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final KafkaLogProducer kafkaLogProducer;
     private final JWTService jwtService;
     private final UserRepository userRepository;
+    private final SecureRandom secureRandom;
 
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
@@ -50,7 +46,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private Boolean generateAndSendOtp(String firstName, String lastName, String email, String key) {
-        SecureRandom secureRandom = new SecureRandom();
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
         
@@ -114,6 +109,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteOtp(String key) {
         redisTemplate.delete(key);
+    }
+
+    @Override
+    public boolean isExistByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     @Override
