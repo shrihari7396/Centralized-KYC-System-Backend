@@ -3,6 +3,7 @@ package org.kyc.digilockerService.service.impl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.kyc.digilockerService.service.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,15 +16,28 @@ import java.util.List;
 @Component
 public class JwtServiceImpl implements JwtService {
 
-    @Value("secret.key")
-    private String SECRET; // min 32 chars
-    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    @Value("${secret.key}")
+    private String SECRET; // must be >= 32 chars
 
-    public String extractEmail(String token) {
+    private SecretKey key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public String extractUsername(String token) {
         return getClaims(token).getSubject();
     }
 
-    public boolean isValid(String token) {
+    @Override
+    public List<String> extractRoles(String token) {
+        return getClaims(token).get("roles", List.class);
+    }
+
+    @Override
+    public boolean validateToken(String token) {
         try {
             Claims claims = getClaims(token);
             return !claims.getExpiration().before(new Date());
@@ -39,6 +53,4 @@ public class JwtServiceImpl implements JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-//    public List<?>
 }

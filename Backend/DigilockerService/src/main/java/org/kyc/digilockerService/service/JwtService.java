@@ -1,11 +1,12 @@
 package org.kyc.digilockerService.service;
 
-import io.jsonwebtoken.Claims;
+import java.util.List;
 
 public interface JwtService {
 
-    String extractEmail(String token);
+    String extractUsername(String token);
 
-    boolean isValid(String token);
+    List<String> extractRoles(String token);
 
+    boolean validateToken(String token);
 }
