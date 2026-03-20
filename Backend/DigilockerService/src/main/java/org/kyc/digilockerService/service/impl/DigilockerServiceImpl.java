@@ -42,7 +42,7 @@ public class DigilockerServiceImpl implements DigilockerService {
                         .build();
 
         saveOtp(finalotp, event.getEmail());
-        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
+        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event.getEmail(), event);
 
         kafkaLogProducer.logInfo(
                 "OTP_SENT", java.util.Map.of("email", otpGenerateRequest.getEmail()));

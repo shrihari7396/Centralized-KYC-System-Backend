@@ -21,16 +21,16 @@ public class UserKafkaConsumer {
 
     @KafkaListener(topics = SUCCESS_TOPIC, groupId = "user-service-group")
     public void consumeKycSuccess(KycVerificationSuccessEvent event) {
-        log.info("Consumed KYC success event for mobile: {}", event.getMobileNumber());
+        log.info("Consumed KYC success event for email: {}", event.getEmail());
 
-        Optional<UserEntity> userOpt = userRepository.findByPhone(event.getMobileNumber());
+        Optional<UserEntity> userOpt = userRepository.findByEmail(event.getEmail());
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
             user.setStatus(UserStatus.ACTIVE);
             userRepository.save(user);
-            log.info("User status updated to ACTIVE for phone: {}", event.getMobileNumber());
+            log.info("User status updated to ACTIVE for email: {}", event.getEmail());
         } else {
-            log.warn("User not found for phone: {}", event.getMobileNumber());
+            log.warn("User not found for email: {}", event.getEmail());
         }
     }
 }
