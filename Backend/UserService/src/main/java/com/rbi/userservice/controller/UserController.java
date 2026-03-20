@@ -47,18 +47,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/request-otp-phone")
-    public ResponseEntity<?> requestOTPByPhone(@RequestParam String phone) {
-        if (userService.sendOtpByPhone(phone)) {
-            logProducer.info("OTP_REQUEST_PHONE_SUCCESS", Map.of("phone", phone));
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("OTP Sent successfully to " + phone);
-        } else {
-            logProducer.warning("OTP_REQUEST_PHONE_FAILED", Map.of("phone", phone));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("OTP Sent failed to " + phone);
-        }
-    }
+
 
     @PostMapping("/otp-verification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {

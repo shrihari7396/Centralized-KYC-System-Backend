@@ -13,10 +13,14 @@ import com.rbi.userservice.service.UserService;
 import java.security.SecureRandom;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import static java.rmi.server.LogStream.log;
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
@@ -65,7 +69,7 @@ public class UserServiceImpl implements UserService {
                         .otp(finalotp)
                         .serviceType("LOGIN")
                         .build();
-
+        log(finalotp);
         saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
 

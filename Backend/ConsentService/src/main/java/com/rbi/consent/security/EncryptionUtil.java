@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
  * IV prepended to the ciphertext for each encryption operation.
  */
 @Component
+@Lazy(false)
 public class EncryptionUtil {
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
@@ -26,17 +28,11 @@ public class EncryptionUtil {
     private String secretKeyHex;
 
     private SecretKey secretKey;
-    private static EncryptionUtil instance;
 
     @PostConstruct
     public void init() {
         byte[] keyBytes = hexStringToByteArray(secretKeyHex);
         this.secretKey = new SecretKeySpec(keyBytes, "AES");
-        instance = this;
-    }
-
-    public static EncryptionUtil getInstance() {
-        return instance;
     }
 
     public String encrypt(String plainText) {

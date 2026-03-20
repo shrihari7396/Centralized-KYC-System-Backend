@@ -1,98 +1,72 @@
 spring:
   application:
     name: API-GATEWAY
+
+  # --- KAFKA CONFIG ---
   kafka:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # --- REDIS CONFIG ---
   data:
     redis:
       host: localhost
       port: 6379
+
+  # --- CLOUD GATEWAY CONFIG (MIGRATED KEYS) ---
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
-# Exanmple Usage of ratelimitter
-            - id: AI_SERVICE
-              uri: lb://AI-SERVICE
-              predicates:
-                - Path=/api/ai/**
-              filters:
-                - PrefixPath=/ai-service
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 5
-                    redis-rate-limiter.burstCapacity: 10
-                    key-resolver: "#{@visitorKeyResolver}"
+      routes:
+        - id: user-service
+          uri: lb://USERSERVICE
+          predicates:
+            - Path=/user/**
 
-#            - id: email-service
-#              uri: lb://EMAILSERVICE
-#              predicates:
-# #                - Path=/api/v1/questions/**
-#              filters:
-#                - StripPrefix=2
-            #  - AddRequestHeader=X-Custom-Header, Anuj
+        - id: bank-service
+          uri: lb://BANKSERVICE
+          predicates:
+            - Path=/bank/**
 
-            - id: user-service
-              uri: lb://USERSERVICE
-              predicates:
-                - Path=/user/**
-              filters:
-                - StripPrefix=1
+        - id: consent-service
+          uri: lb://CONSENT-SERVICE
+          predicates:
+            - Path=/consents/**
 
-            - id: bank-service
-              uri: lb://BANKSERVICE
-              predicates:
-                - Path=/bank/**
-              filters:
-                - StripPrefix=1
+        - id: kyc-management-service
+          uri: lb://KYCMANAGEMENTSERVICE
+          predicates:
+            - Path=/api/kyc/**
 
-            - id: consent-service
-              uri: lb://CONSENT-SERVICE
-              predicates:
-                - Path=/consent/**
-              filters:
-                - StripPrefix=1
+        - id: digilocker-service
+          uri: lb://DIGILOCKERSERVICE
+          predicates:
+            - Path=/api/digilocker/**
 
-            - id: kyc-management-service
-              uri: lb://KYCMANAGEMENTSERVICE
-              predicates:
-                - Path=/kyc/**
-              filters:
-                - StripPrefix=1
+        - id: AI_SERVICE
+          uri: lb://AI-SERVICE
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - PrefixPath=/ai-service
 
-            - id: email-service
-              uri: lb://EMAILSERVICE
-              predicates:
-                - Path=/email/**
-              filters:
-                - StripPrefix=1
-
-            - id: digilocker-service
-              uri: lb://DIGILOCKERSERVICE
-              predicates:
-                - Path=/digilocker/**
-              filters:
-                - StripPrefix=1
-            #                - RedirectTo=302, https://codingshuttle.com
-
-#            - id: auth-service
-#              uri: lb://AUTHSERVICE   # 🔥 Use Eureka name (uppercase)
-#              predicates:
-#                - Path=/api/v1/auth/**
-#              filters:
-#                - StripPrefix=2
-
-#      res
-#      resourceserver:
-#        jwt:
-#          # Provide your JWT secret/public key decoder here
-#          # OR configure a custom JWTAuthenticationFilter
-#          secret: your-secret-key
+# --- EUREKA CONFIG ---
 eureka:
   client:
     service-url:
@@ -100,18 +74,20 @@ eureka:
   instance:
     prefer-ip-address: true
 
+# --- SERVER CONFIG ---
 server:
   port: 8083
 
+# --- SECURITY / CUSTOM PROPS ---
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 864000000
 
+# --- LOGGING ---
 logging:
   level:
     org:
       springframework:
         web: DEBUG
-
-rateLimitter:
-
+        cloud:
+          gateway: DEBUG

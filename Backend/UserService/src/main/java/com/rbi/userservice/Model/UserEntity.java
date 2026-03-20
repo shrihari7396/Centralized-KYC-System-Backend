@@ -35,9 +35,12 @@ public class UserEntity {
 
     private Role roles = Role.USER;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private UserStatus status;
+
+    @Column(name = "password_hash", nullable = true)
+    private String passwordHash;
 
     private LocalDateTime lastLoginAt;
 
