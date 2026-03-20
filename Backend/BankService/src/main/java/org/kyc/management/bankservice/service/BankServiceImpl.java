@@ -179,7 +179,10 @@ public class BankServiceImpl implements BankService {
                 return true;
             }
         } catch (Exception e) {
-            kafkaLogProducer.logError("LOGOUT_FAILED", java.util.Map.of("token_snippet", token.substring(0, Math.min(token.length(), 10))));
+            kafkaLogProducer.logError(
+                    "LOGOUT_FAILED",
+                    java.util.Map.of(
+                            "token_snippet", token.substring(0, Math.min(token.length(), 10))));
         }
         return false;
     }
