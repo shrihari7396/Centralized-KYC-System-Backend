@@ -216,10 +216,26 @@ public class ConsentServiceImpl implements ConsentService {
 
         return ConsentResponseDto.builder()
                 .consentId(updated.getId())
+                .bankId(updated.getBankId())
                 .status(updated.getConsentStatus())
                 .jwtToken(updated.getJwtToken())
                 .expiryAt(updated.getExpiryAt())
                 .build();
+    }
+
+    @Override
+    public List<ConsentResponseDto> getAllConsents(String userId) {
+        return consentRepository.findByUserId(userId).stream()
+                .map(
+                        record ->
+                                ConsentResponseDto.builder()
+                                        .consentId(record.getId())
+                                        .bankId(record.getBankId())
+                                        .status(record.getConsentStatus())
+                                        .jwtToken(record.getJwtToken())
+                                        .expiryAt(record.getExpiryAt())
+                                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -279,6 +295,7 @@ public class ConsentServiceImpl implements ConsentService {
 
         return ConsentResponseDto.builder()
                 .consentId(record.getId())
+                .bankId(record.getBankId())
                 .status(record.getConsentStatus())
                 .jwtToken(record.getJwtToken())
                 .expiryAt(record.getExpiryAt())

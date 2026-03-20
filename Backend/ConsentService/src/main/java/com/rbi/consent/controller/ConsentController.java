@@ -5,6 +5,7 @@ import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.kafka.LogProducer;
 import com.rbi.consent.service.ConsentService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,12 @@ public class ConsentController {
         consentService.rejectConsent(consentId, otp);
         logProducer.info("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ConsentResponseDto>> getAllConsents(@PathVariable String userId) {
+        List<ConsentResponseDto> response = consentService.getAllConsents(userId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

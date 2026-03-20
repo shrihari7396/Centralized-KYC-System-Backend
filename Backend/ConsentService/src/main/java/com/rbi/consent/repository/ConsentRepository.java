@@ -13,5 +13,7 @@ public interface ConsentRepository extends JpaRepository<ConsentRecord, UUID> {
 
     Optional<ConsentRecord> findByUserIdAndBankIdAndActiveTrue(String userId, UUID bankId);
 
+    List<ConsentRecord> findByUserId(String userId);
+
     List<ConsentRecord> findByConsentStatus(ConsentStatus status);
 }

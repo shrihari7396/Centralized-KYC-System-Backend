@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class ConsentResponseDto {
 
     private UUID consentId;
+    private UUID bankId;
     private ConsentStatus status;
     private String jwtToken;
     private LocalDateTime expiryAt;

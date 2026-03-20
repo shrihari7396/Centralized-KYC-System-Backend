@@ -2,16 +2,20 @@ package com.rbi.consent.service;
 
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
+import java.util.List;
+import java.util.UUID;
 
 public interface ConsentService {
 
     void requestConsent(ConsentRequestDto requestDto);
 
-    void sendConsentOtp(java.util.UUID consentId);
+    void sendConsentOtp(UUID consentId);
 
-    ConsentResponseDto approveConsent(java.util.UUID consentId, String otp);
+    ConsentResponseDto approveConsent(UUID consentId, String otp);
 
-    void rejectConsent(java.util.UUID consentId, String otp);
+    void rejectConsent(UUID consentId, String otp);
 
-    ConsentResponseDto getConsent(String userId, java.util.UUID bankId);
+    List<ConsentResponseDto> getAllConsents(String userId);
+
+    ConsentResponseDto getConsent(String userId, UUID bankId);
 }
