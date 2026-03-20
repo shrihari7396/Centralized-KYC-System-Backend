@@ -31,14 +31,16 @@ run_service() {
 }
 
 # Start all services
+run_service DiscoveryService
+sleep 10
+run_service LogMonitoringSystem
+sleep 10
 run_service ApiGateway
 run_service BankService
 run_service ConsentService
 run_service DigilockerService
-run_service DiscoveryService
 run_service EmailService
 run_service KycManagementService
-run_service LogMonitoringSystem
 run_service UserService
 
 echo "All services started!"
