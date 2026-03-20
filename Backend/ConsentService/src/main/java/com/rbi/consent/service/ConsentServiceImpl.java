@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbi.consent.client.BankFeignClient;
+import com.rbi.consent.client.UserFeignClient;
+import com.rbi.consent.dto.UserDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.entity.ConsentRecord;
@@ -34,6 +36,7 @@ public class ConsentServiceImpl implements ConsentService {
     private final JwtService jwtService;
     private final WebSocketPublisher webSocketPublisher;
     private final BankFeignClient bankFeignClient;
+    private final UserFeignClient userFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
     private final KafkaLogProducer kafkaLogProducer;
     private final ObjectMapper objectMapper;
@@ -45,8 +48,15 @@ public class ConsentServiceImpl implements ConsentService {
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
-        // If an active consent already exists, maybe reject or override.
-        // For now, we just create a new one.
+        // If an active consent already exists, de-activate it before creating a new one.
+        consentRepository.findByUserIdAndBankIdAndActiveTrue(
+                requestDto.getUserId(), requestDto.getBankId())
+                .ifPresent(existing -> {
+                    existing.setActive(false);
+                    existing.setConsentStatus(ConsentStatus.EXPIRED);
+                    consentRepository.save(existing);
+                    log.info("De-activated existing active consent {} for user {}", existing.getId(), requestDto.getUserId());
+                });
 
         ConsentRecord consentRecord =
                 ConsentRecord.builder()
@@ -99,6 +109,14 @@ public class ConsentServiceImpl implements ConsentService {
                     "OTP can only be sent for PENDING consent requests.");
         }
 
+        // Fetch User Details for personalized OTP email
+        UserDto user = null;
+        try {
+            user = userFeignClient.getUserDetails(record.getUserId());
+        } catch (Exception e) {
+            log.warn("Failed to fetch user details for consent {}: {}", consentId, e.getMessage());
+        }
+
         // Generate 6-digit OTP
         String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
@@ -115,9 +133,8 @@ public class ConsentServiceImpl implements ConsentService {
                 com.rbi.consent.event.CreateOtpEvent.builder()
                         .email(record.getUserId()) // userId is the email
                         .otp(otp)
-                        .firstName("User") // We don't have user name in ConsentRecord, but can be
-                        // improved
-                        .lastName("")
+                        .firstName(user != null ? user.getFirstName() : "User")
+                        .lastName(user != null ? user.getLastName() : "")
                         .serviceType("CONSENT")
                         .build();
 

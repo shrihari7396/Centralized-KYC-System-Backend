@@ -185,4 +185,20 @@ public class UserServiceImpl implements UserService {
         }
         return false;
     }
+
+    @Override
+    public UserDto getUserDetails(String email) {
+        UserEntity user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(
+                                () -> new RuntimeException("User not found with email: " + email));
+        return UserDto.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .status(user.getStatus())
+                .build();
+    }
 }

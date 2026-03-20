@@ -67,4 +67,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Logout failed");
         }
     }
+
+    @GetMapping("/details")
+    public ResponseEntity<?> getUserDetails(@RequestParam String email) {
+        return ResponseEntity.ok(userService.getUserDetails(email));
+    }
 }
