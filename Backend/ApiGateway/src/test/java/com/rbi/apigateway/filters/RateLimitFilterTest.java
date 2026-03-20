@@ -1,31 +1,31 @@
-//package com.rbi.apigateway.filters;
+// package com.rbi.apigateway.filters;
 //
-//import org.apache.catalina.filters.RateLimitFilter;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-//import org.springframework.data.redis.core.StringRedisTemplate;
-//import org.springframework.data.redis.core.ValueOperations;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-//import org.springframework.mock.web.server.MockServerWebExchange;
-//import org.springframework.test.util.ReflectionTestUtils;
-//import org.springframework.web.server.ServerWebExchange;
-//import reactor.core.publisher.Mono;
-//import reactor.test.StepVerifier;
+// import org.apache.catalina.filters.RateLimitFilter;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.extension.ExtendWith;
+// import org.mockito.InjectMocks;
+// import org.mockito.Mock;
+// import org.mockito.junit.jupiter.MockitoExtension;
+// import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+// import org.springframework.data.redis.core.StringRedisTemplate;
+// import org.springframework.data.redis.core.ValueOperations;
+// import org.springframework.http.HttpStatus;
+// import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+// import org.springframework.mock.web.server.MockServerWebExchange;
+// import org.springframework.test.util.ReflectionTestUtils;
+// import org.springframework.web.server.ServerWebExchange;
+// import reactor.core.publisher.Mono;
+// import reactor.test.StepVerifier;
 //
-//import java.net.InetSocketAddress;
-//import java.time.Duration;
+// import java.net.InetSocketAddress;
+// import java.time.Duration;
 //
-//import static org.mockito.ArgumentMatchers.*;
-//import static org.mockito.Mockito.*;
+// import static org.mockito.ArgumentMatchers.*;
+// import static org.mockito.Mockito.*;
 //
-//@ExtendWith(MockitoExtension.class)
-//class RateLimitFilterTest {
+// @ExtendWith(MockitoExtension.class)
+// class RateLimitFilterTest {
 //
 //    @Mock
 //    private StringRedisTemplate redisTemplate;
@@ -68,7 +68,8 @@
 //                .verifyComplete();
 //
 //        verify(valueOperations).increment("rate_limit:127.0.0.1");
-//        verify(redisTemplate).expire(eq("rate_limit:127.0.0.1"), any(Duration.class)); // verification for first request
+//        verify(redisTemplate).expire(eq("rate_limit:127.0.0.1"), any(Duration.class)); //
+// verification for first request
 //        verify(chain).filter(exchange);
 //    }
 //
@@ -116,4 +117,4 @@
 //        verify(redisTemplate, never()).expire(anyString(), any(Duration.class));
 //        verify(chain).filter(exchange);
 //    }
-//}
+// }

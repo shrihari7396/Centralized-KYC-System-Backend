@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.GONE)
 public class ConsentExpiredException extends RuntimeException {
-    public ConsentExpiredException(String message) {
-        super(message);
-    }
+  public ConsentExpiredException(String message) {
+    super(message);
+  }
 }

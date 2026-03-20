@@ -4,12 +4,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "traffic_profiles")
@@ -18,21 +17,21 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrafficProfileEntity {
-    @Id
-    @Column(name = "`key`")
-    private String key;
+  @Id
+  @Column(name = "`key`")
+  private String key;
 
-    private String ip;
-    private String endpoint;
+  private String ip;
+  private String endpoint;
 
-    private long requestCount;
-    private long errorCount;
+  private long requestCount;
+  private long errorCount;
 
-    private double avgPayloadSize;
-    private double payloadEntropy;
+  private double avgPayloadSize;
+  private double payloadEntropy;
 
-    private double avgInterRequestGap;
+  private double avgInterRequestGap;
 
-    private Instant windowStart;
-    private Instant windowEnd;
+  private Instant windowStart;
+  private Instant windowEnd;
 }

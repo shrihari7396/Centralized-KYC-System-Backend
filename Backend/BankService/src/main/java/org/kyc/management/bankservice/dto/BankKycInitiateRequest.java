@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankKycInitiateRequest {
-    @NotNull(message = "User ID is required")
-    private String userId;
+  @NotNull(message = "User ID is required")
+  private String userId;
 }

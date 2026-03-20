@@ -10,21 +10,21 @@ import org.springframework.kafka.core.ConsumerFactory;
 @Configuration
 public class KafkaConfig {
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
+  @Bean
+  public ObjectMapper objectMapper() {
+    return new ObjectMapper();
+  }
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, LogEventDTO>
-    kafkaListenerContainerFactory(ConsumerFactory<String, LogEventDTO> consumerFactory) {
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, LogEventDTO> kafkaListenerContainerFactory(
+      ConsumerFactory<String, LogEventDTO> consumerFactory) {
 
-        ConcurrentKafkaListenerContainerFactory<String, LogEventDTO> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
+    ConcurrentKafkaListenerContainerFactory<String, LogEventDTO> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
 
-        factory.setConsumerFactory(consumerFactory);
-        factory.setBatchListener(true); 
+    factory.setConsumerFactory(consumerFactory);
+    factory.setBatchListener(true);
 
-        return factory;
-    }
+    return factory;
+  }
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class KycVerificationSuccessEvent {
-    private String mobileNumber;
-    private String status;
-    private String fullName;
+  private String mobileNumber;
+  private String status;
+  private String fullName;
 }

@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BypassRequestDto {
-    @NotNull(message = "User ID is required")
-    private String userId;
+  @NotNull(message = "User ID is required")
+  private String userId;
 
-    @NotBlank(message = "Reason is required")
-    private String reason;
+  @NotBlank(message = "Reason is required")
+  private String reason;
 }

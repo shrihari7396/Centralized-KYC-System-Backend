@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpRequestDto {
 
-    @NotNull(message = "User ID is required")
-    private String userId;
+  @NotNull(message = "User ID is required")
+  private String userId;
 
-    @NotBlank(message = "Channel is required (SMS/EMAIL)")
-    private String channel;
+  @NotBlank(message = "Channel is required (SMS/EMAIL)")
+  private String channel;
 
-    @NotBlank(message = "Reason is required")
-    private String reason;
+  @NotBlank(message = "Reason is required")
+  private String reason;
 }

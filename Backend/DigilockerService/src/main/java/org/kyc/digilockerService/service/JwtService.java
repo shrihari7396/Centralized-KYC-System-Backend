@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface JwtService {
 
-    String extractUsername(String token);
+  String extractUsername(String token);
 
-    List<String> extractRoles(String token);
+  List<String> extractRoles(String token);
 
-    boolean validateToken(String token);
+  boolean validateToken(String token);
 }

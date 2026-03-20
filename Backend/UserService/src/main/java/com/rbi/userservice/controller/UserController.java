@@ -6,65 +6,66 @@ import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.exception.UserNotFoundException;
 import com.rbi.userservice.kafkaEvents.LogProducer;
 import com.rbi.userservice.service.UserService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
-    private final LogProducer logProducer;
+  private final UserService userService;
+  private final LogProducer logProducer;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
-        if (userService.registerUser(registerDto)) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully ...");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed ...");
-        }
+  @PostMapping("/register")
+  public ResponseEntity<?> registerUser(@RequestBody RegisterDTO registerDto) {
+    if (userService.registerUser(registerDto)) {
+      return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully ...");
+    } else {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed ...");
     }
+  }
 
-    @PostMapping("/request-otp")
-    public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
-        if(!userService.isExistByEmail(otpRequestDtp.getEmail())) {
-            throw new UserNotFoundException("User Not Found !!!");
-        }
-        if (userService.sendOtp(otpRequestDtp)) {
-            logProducer.info("OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
-            return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
-        } else {
-            logProducer.warning("OTP_REQUEST_EMAIL_FAILED", Map.of("email", otpRequestDtp.getEmail()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed ...");
-        }
+  @PostMapping("/request-otp")
+  public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
+    if (!userService.isExistByEmail(otpRequestDtp.getEmail())) {
+      throw new UserNotFoundException("User Not Found !!!");
     }
-
-    @PostMapping("/request-otp-phone")
-    public ResponseEntity<?> requestOTPByPhone(@RequestParam String phone) {
-        if (userService.sendOtpByPhone(phone)) {
-            logProducer.info("OTP_REQUEST_PHONE_SUCCESS", Map.of("phone", phone));
-            return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully to " + phone);
-        } else {
-            logProducer.warning("OTP_REQUEST_PHONE_FAILED", Map.of("phone", phone));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed to " + phone);
-        }
+    if (userService.sendOtp(otpRequestDtp)) {
+      logProducer.info("OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
+      return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
+    } else {
+      logProducer.warning("OTP_REQUEST_EMAIL_FAILED", Map.of("email", otpRequestDtp.getEmail()));
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed ...");
     }
+  }
 
-    @PostMapping("/otp-verification")
-    public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.getLoginResponseDto(otpVerificationDto));
+  @PostMapping("/request-otp-phone")
+  public ResponseEntity<?> requestOTPByPhone(@RequestParam String phone) {
+    if (userService.sendOtpByPhone(phone)) {
+      logProducer.info("OTP_REQUEST_PHONE_SUCCESS", Map.of("phone", phone));
+      return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully to " + phone);
+    } else {
+      logProducer.warning("OTP_REQUEST_PHONE_FAILED", Map.of("phone", phone));
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP Sent failed to " + phone);
     }
+  }
 
-//    @PutMapping("/updateStatus")
-//    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
-//        return ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
-//    }
-//
-//
+  @PostMapping("/otp-verification")
+  public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(userService.getLoginResponseDto(otpVerificationDto));
+  }
+
+  //    @PutMapping("/updateStatus")
+  //    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
+  //        return
+  // ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
+  //    }
+  //
+  //
 
 }

@@ -9,25 +9,30 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthFilter;
+  private final JwtAuthenticationFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
-    }
+  public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+    this.jwtAuthFilter = jwtAuthFilter;
+  }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf().disable()
-            .authorizeHttpRequests()
-                .requestMatchers("/bank/kyc/initiate", "/bank/kyc/submit").hasAuthority("ROLE_BANK")
-                .requestMatchers("/bank/kyc/bypass").hasAuthority("ROLE_ADMIN")
-                .requestMatchers("/bank/kyc/status/**").hasAnyAuthority("ROLE_BANK", "ROLE_ADMIN")
-                .anyRequest().authenticated()
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf()
+        .disable()
+        .authorizeHttpRequests()
+        .requestMatchers("/bank/kyc/initiate", "/bank/kyc/submit")
+        .hasAuthority("ROLE_BANK")
+        .requestMatchers("/bank/kyc/bypass")
+        .hasAuthority("ROLE_ADMIN")
+        .requestMatchers("/bank/kyc/status/**")
+        .hasAnyAuthority("ROLE_BANK", "ROLE_ADMIN")
+        .anyRequest()
+        .authenticated()
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+  }
 }

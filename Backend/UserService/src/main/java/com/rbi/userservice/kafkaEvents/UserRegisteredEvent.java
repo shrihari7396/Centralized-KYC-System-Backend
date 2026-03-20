@@ -1,17 +1,16 @@
 package com.rbi.userservice.kafkaEvents;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRegisteredEvent {
-    private String userId; // userId is the email
-    private LocalDateTime createdAt;
+  private String userId; // userId is the email
+  private LocalDateTime createdAt;
 }

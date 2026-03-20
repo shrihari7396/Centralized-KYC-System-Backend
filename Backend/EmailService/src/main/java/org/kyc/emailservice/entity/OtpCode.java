@@ -1,12 +1,11 @@
 package org.kyc.emailservice.entity;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -16,29 +15,29 @@ import java.time.LocalDateTime;
 @Table(name = "otp_codes")
 public class OtpCode {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false)
-    private String userId;
+  @Column(nullable = false)
+  private String userId;
 
-    @Column(nullable = false)
-    private String codeHash;
+  @Column(nullable = false)
+  private String codeHash;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
+  @Column(nullable = false)
+  private LocalDateTime expiresAt;
 
-    @Column(nullable = false)
-    private Boolean verified = false;
+  @Column(nullable = false)
+  private Boolean verified = false;
 
-    @Column(nullable = false)
-    private String channel; // e.g., SMS or EMAIL
+  @Column(nullable = false)
+  private String channel; // e.g., SMS or EMAIL
 
-    @Column(nullable = false)
-    private String reason; // e.g., REGISTRATION
+  @Column(nullable = false)
+  private String reason; // e.g., REGISTRATION
 }

@@ -1,11 +1,10 @@
 package org.kyc.emailservice.event;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OtpVerifiedEvent {
 
-    private String userId;
-    private Long otpRequestId;
-    private LocalDateTime verifiedAt;
+  private String userId;
+  private Long otpRequestId;
+  private LocalDateTime verifiedAt;
 }

@@ -1,12 +1,11 @@
 package com.rbi.userservice.DTO;
 
 import com.rbi.userservice.Model.UserStatus;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @Builder
@@ -14,11 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDto {
 
-    private String userId;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phone;
-    private List<String> roles;
-    private UserStatus status;
+  private String userId;
+  private String firstName;
+  private String lastName;
+  private String email;
+  private String phone;
+  private List<String> roles;
+  private UserStatus status;
 }

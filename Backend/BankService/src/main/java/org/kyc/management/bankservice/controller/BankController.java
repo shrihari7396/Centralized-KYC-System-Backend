@@ -17,26 +17,27 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BankController {
 
-    private final KycOrchestrationService orchestrator;
-    private final BankService bankSvc;
+  private final KycOrchestrationService orchestrator;
+  private final BankService bankSvc;
 
-    @PostMapping("/initiate")
-    public ResponseEntity<BankCustomer> initiate(@RequestBody @Valid BankKycInitiateRequest req) {
-        return ResponseEntity.ok(orchestrator.initiateKyc(req));
-    }
+  @PostMapping("/initiate")
+  public ResponseEntity<BankCustomer> initiate(@RequestBody @Valid BankKycInitiateRequest req) {
+    return ResponseEntity.ok(orchestrator.initiateKyc(req));
+  }
 
-    @PostMapping("/submit")
-    public ResponseEntity<KycResponseDto> submitData(@RequestBody @Valid BankKycSubmissionRequest req) {
-        return ResponseEntity.ok(orchestrator.submitKycData(req));
-    }
+  @PostMapping("/submit")
+  public ResponseEntity<KycResponseDto> submitData(
+      @RequestBody @Valid BankKycSubmissionRequest req) {
+    return ResponseEntity.ok(orchestrator.submitKycData(req));
+  }
 
-    @GetMapping("/status/{userId}")
-    public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") String userId) {
-        return ResponseEntity.ok(bankSvc.getCustomerStatus(userId));
-    }
+  @GetMapping("/status/{userId}")
+  public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") String userId) {
+    return ResponseEntity.ok(bankSvc.getCustomerStatus(userId));
+  }
 
-    @PostMapping("/bypass")
-    public ResponseEntity<BankCustomer> adminBypass(@RequestBody @Valid BypassRequestDto req) {
-        return ResponseEntity.ok(bankSvc.bypassKyc(req));
-    }
+  @PostMapping("/bypass")
+  public ResponseEntity<BankCustomer> adminBypass(@RequestBody @Valid BypassRequestDto req) {
+    return ResponseEntity.ok(bankSvc.bypassKyc(req));
+  }
 }

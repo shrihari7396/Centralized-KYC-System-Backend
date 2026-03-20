@@ -11,9 +11,9 @@ import org.kyc.management.kycmanagementservice.entity.Address;
 @AllArgsConstructor
 @Builder
 public class DigilockerDataRequest {
-    private String userId;
-    private String aadhaarNo;
-    private String pan;
-    private String drivingLicense;
-    private Address address;
+  private String userId;
+  private String aadhaarNo;
+  private String pan;
+  private String drivingLicense;
+  private Address address;
 }
