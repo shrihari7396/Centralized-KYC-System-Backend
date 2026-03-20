@@ -1,4 +1,4 @@
-package org.kyc.emailservice.service.template;
+package org.kyc.emailservice.service.template.emailTemplates;
 
 import org.kyc.emailservice.event.CreateOtpEvent;
 

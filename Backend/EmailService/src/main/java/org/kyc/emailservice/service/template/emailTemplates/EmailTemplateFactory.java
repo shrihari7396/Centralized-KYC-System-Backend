@@ -1,4 +1,4 @@
-package org.kyc.emailservice.service.template;
+package org.kyc.emailservice.service.template.emailTemplates;
 
 import java.util.HashMap;
 import java.util.List;

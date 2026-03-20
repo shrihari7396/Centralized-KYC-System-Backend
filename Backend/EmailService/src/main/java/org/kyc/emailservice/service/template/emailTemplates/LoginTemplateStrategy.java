@@ -1,40 +1,37 @@
-package org.kyc.emailservice.service.template;
+package org.kyc.emailservice.service.template.emailTemplates;
 
 import org.kyc.emailservice.event.CreateOtpEvent;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DigilockerTemplateStrategy implements EmailTemplateStrategy {
+public class LoginTemplateStrategy implements EmailTemplateStrategy {
 
     @Override
     public String getServiceType() {
-        return "DIGILOCKER";
+        return "LOGIN";
     }
 
     @Override
     public String getSubject() {
-        return "Digilocker Data Fetch OTP Verification";
+        return "Login OTP Verification – Valid for 5 Minutes";
     }
 
     @Override
     public String getHtmlBody(CreateOtpEvent event) {
         return getTemplate(
-                event.getFirstName(),
-                event.getLastName(),
-                event.getOtp(),
-                "Fetch your Digilocker documents for KYC");
+                event.getFirstName(), event.getLastName(), event.getOtp(), "Login to your account");
     }
 
     private String getTemplate(String firstName, String lastName, String otp, String purpose) {
         return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body style=\"font-family: Arial; background-color: #f4f6f8; margin: 0; padding: 20px;\">"
                 + "<div style=\"max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);\">"
-                + "<h2 style=\"text-align: center; color: #1a73e8;\">Digilocker Verification</h2>"
+                + "<h2 style=\"text-align: center; color: #1a73e8;\">Login Verification</h2>"
                 + "<p>Dear "
                 + firstName
                 + " "
                 + lastName
                 + ",</p>"
-                + "<p>We received a request to <strong>"
+                + "<p>We received a request for <strong>"
                 + purpose
                 + "</strong>. Please use the One-Time Password (OTP) below to proceed.</p>"
                 + "<div style=\"text-align: center; margin: 30px 0;\"><span style=\"font-size: 28px; letter-spacing: 4px; font-weight: bold; color: #1a73e8;\">"

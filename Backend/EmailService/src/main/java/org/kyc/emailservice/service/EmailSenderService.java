@@ -4,6 +4,8 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.kyc.emailservice.event.CreateOtpEvent;
 import org.kyc.emailservice.logging.KafkaLogProducer;
+import org.kyc.emailservice.service.template.emailTemplates.EmailTemplateFactory;
+import org.kyc.emailservice.service.template.emailTemplates.EmailTemplateStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,10 +19,10 @@ public class EmailSenderService {
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Autowired private org.kyc.emailservice.service.template.EmailTemplateFactory templateFactory;
+    @Autowired private EmailTemplateFactory templateFactory;
 
     public void sendEmail(CreateOtpEvent event) throws MessagingException {
-        org.kyc.emailservice.service.template.EmailTemplateStrategy strategy =
+        EmailTemplateStrategy strategy =
                 templateFactory.getStrategy(event.getServiceType());
 
         String body = strategy.getHtmlBody(event);

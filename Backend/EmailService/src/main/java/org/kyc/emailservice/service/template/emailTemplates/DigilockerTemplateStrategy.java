@@ -1,19 +1,19 @@
-package org.kyc.emailservice.service.template;
+package org.kyc.emailservice.service.template.emailTemplates;
 
 import org.kyc.emailservice.event.CreateOtpEvent;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConsentTemplateStrategy implements EmailTemplateStrategy {
+public class DigilockerTemplateStrategy implements EmailTemplateStrategy {
 
     @Override
     public String getServiceType() {
-        return "CONSENT";
+        return "DIGILOCKER";
     }
 
     @Override
     public String getSubject() {
-        return "Consent Approval OTP Verification";
+        return "Digilocker Data Fetch OTP Verification";
     }
 
     @Override
@@ -22,13 +22,13 @@ public class ConsentTemplateStrategy implements EmailTemplateStrategy {
                 event.getFirstName(),
                 event.getLastName(),
                 event.getOtp(),
-                "Approve consent access for KYC documents");
+                "Fetch your Digilocker documents for KYC");
     }
 
     private String getTemplate(String firstName, String lastName, String otp, String purpose) {
         return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body style=\"font-family: Arial; background-color: #f4f6f8; margin: 0; padding: 20px;\">"
                 + "<div style=\"max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);\">"
-                + "<h2 style=\"text-align: center; color: #1a73e8;\">Consent Verification</h2>"
+                + "<h2 style=\"text-align: center; color: #1a73e8;\">Digilocker Verification</h2>"
                 + "<p>Dear "
                 + firstName
                 + " "
