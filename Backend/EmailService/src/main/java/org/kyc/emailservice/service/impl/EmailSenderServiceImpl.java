@@ -23,8 +23,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     @Autowired private EmailTemplateFactory templateFactory;
 
     public void sendEmail(CreateOtpEvent event) throws MessagingException {
-        EmailTemplateStrategy strategy =
-                templateFactory.getStrategy(event.getServiceType());
+        EmailTemplateStrategy strategy = templateFactory.getStrategy(event.getServiceType());
 
         String body = strategy.getHtmlBody(event);
         String subject = strategy.getSubject();
