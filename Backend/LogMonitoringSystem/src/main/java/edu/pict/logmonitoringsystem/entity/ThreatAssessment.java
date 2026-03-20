@@ -10,15 +10,15 @@ import java.util.UUID;
 @Table(name = "threat_assessments")
 public class ThreatAssessment {
 
-  @Id private UUID id;
+    @Id private UUID id;
 
-  private String sourceKey; // ip:endpoint
+    private String sourceKey; // ip:endpoint
 
-  private double threatScore;
+    private double threatScore;
 
-  private String classification; // NORMAL / SUSPICIOUS / ATTACK
+    private String classification; // NORMAL / SUSPICIOUS / ATTACK
 
-  private String decision; // RATE_LIMIT / BLOCK / ALLOW
+    private String decision; // RATE_LIMIT / BLOCK / ALLOW
 
-  private Instant evaluatedAt;
+    private Instant evaluatedAt;
 }

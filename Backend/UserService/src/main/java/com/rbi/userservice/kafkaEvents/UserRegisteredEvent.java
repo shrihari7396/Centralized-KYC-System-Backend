@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRegisteredEvent {
-  private String userId; // userId is the email
-  private LocalDateTime createdAt;
+    private String userId; // userId is the email
+    private LocalDateTime createdAt;
 }

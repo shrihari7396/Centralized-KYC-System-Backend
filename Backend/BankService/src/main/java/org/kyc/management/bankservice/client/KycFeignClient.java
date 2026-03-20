@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "KYCMANAGEMENTSERVICE", path = "/api/kyc")
 public interface KycFeignClient {
-  @PostMapping("/submit")
-  KycResponseDto submitKyc(
-      @RequestBody KycSubmissionDto submissionDto, @RequestHeader("Authorization") String token);
+    @PostMapping("/submit")
+    KycResponseDto submitKyc(
+            @RequestBody KycSubmissionDto submissionDto,
+            @RequestHeader("Authorization") String token);
 }

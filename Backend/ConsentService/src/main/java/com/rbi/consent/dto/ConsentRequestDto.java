@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsentRequestDto {
 
-  @NotNull(message = "User ID is required")
-  private String userId;
+    @NotNull(message = "User ID is required")
+    private String userId;
 
-  @NotNull(message = "Bank ID is required")
-  private UUID bankId;
+    @NotNull(message = "Bank ID is required")
+    private UUID bankId;
 
-  @NotNull(message = "Requested documents are required")
-  private List<ConsentDocumentType> requestedDocuments;
+    @NotNull(message = "Requested documents are required")
+    private List<ConsentDocumentType> requestedDocuments;
 }

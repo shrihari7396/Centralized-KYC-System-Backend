@@ -7,5 +7,5 @@ import lombok.Data;
 @Data
 @Builder
 public class DocumentResponse {
-  private List<Object> documents;
+    private List<Object> documents;
 }

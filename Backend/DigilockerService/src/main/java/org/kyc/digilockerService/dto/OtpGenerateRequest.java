@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OtpGenerateRequest {
-  private String email;
-  private String firstname;
-  private String lastname;
+    private String email;
+    private String firstname;
+    private String lastname;
 }

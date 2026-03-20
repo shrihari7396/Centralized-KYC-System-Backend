@@ -23,83 +23,88 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DigilockerService {
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final RedisTemplate<String, String> redisTemplate;
-  private final KafkaLogProducer kafkaLogProducer;
-  private final SecureRandom secureRandom;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final KafkaLogProducer kafkaLogProducer;
+    private final SecureRandom secureRandom;
 
-  public Boolean generateAndSendOtp(OtpGenerateRequest otpGenerateRequest) {
-    int otp = secureRandom.nextInt(1_000_000);
-    String finalotp = String.format("%06d", otp);
+    public Boolean generateAndSendOtp(OtpGenerateRequest otpGenerateRequest) {
+        int otp = secureRandom.nextInt(1_000_000);
+        String finalotp = String.format("%06d", otp);
 
-    CreateOtpEvent event =
-        CreateOtpEvent.builder()
-            .firstName(otpGenerateRequest.getFirstname())
-            .lastName(otpGenerateRequest.getLastname())
-            .email(otpGenerateRequest.getEmail())
-            .otp(finalotp)
-            .serviceType("DIGILOCKER")
-            .build();
+        CreateOtpEvent event =
+                CreateOtpEvent.builder()
+                        .firstName(otpGenerateRequest.getFirstname())
+                        .lastName(otpGenerateRequest.getLastname())
+                        .email(otpGenerateRequest.getEmail())
+                        .otp(finalotp)
+                        .serviceType("DIGILOCKER")
+                        .build();
 
-    saveOtp(finalotp, event.getEmail());
-    kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
+        saveOtp(finalotp, event.getEmail());
+        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
 
-    kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", otpGenerateRequest.getEmail()));
+        kafkaLogProducer.logInfo(
+                "OTP_SENT", java.util.Map.of("email", otpGenerateRequest.getEmail()));
 
-    return true;
-  }
-
-  public Boolean verifyOtp(String otp, String key) {
-    String StoredOtp = redisTemplate.opsForValue().get(key);
-    if (StoredOtp == null) {
-      kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", key));
-      throw new InValidOtpException("Expired or invalid OTP");
-    }
-    boolean result = StoredOtp.equals(otp);
-    if (!result) {
-      kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", key));
-      throw new InValidOtpException("Invalid OTP");
+        return true;
     }
 
-    kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", key));
-    deleteOtp(key);
-    return result;
-  }
+    public Boolean verifyOtp(String otp, String key) {
+        String StoredOtp = redisTemplate.opsForValue().get(key);
+        if (StoredOtp == null) {
+            kafkaLogProducer.logWarning(
+                    "OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", key));
+            throw new InValidOtpException("Expired or invalid OTP");
+        }
+        boolean result = StoredOtp.equals(otp);
+        if (!result) {
+            kafkaLogProducer.logWarning(
+                    "OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", key));
+            throw new InValidOtpException("Invalid OTP");
+        }
 
-  public void processVerification(String email) {
-    log.info("Processing verification for email: {}", email);
-    kafkaLogProducer.logInfo("DIGILOCKER_VERIFICATION_STARTED", java.util.Map.of("email", email));
+        kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", key));
+        deleteOtp(key);
+        return result;
+    }
 
-    // Generate dummy data
-    DigiLockerDataFetchedEvent event =
-        DigiLockerDataFetchedEvent.builder()
-            .email(email)
-            .aadharNumber(UUID.randomUUID().toString())
-            .panNumber(UUID.randomUUID().toString())
-            .firstName("John")
-            .lastName("Doe")
-            .middleName("Quincy")
-            .dob(RandomDate.generateRandomDOB())
-            .address(UUID.randomUUID().toString())
-            .additionalDetails(new HashMap<>(Map.of("requestId", UUID.randomUUID().toString())))
-            .build();
+    public void processVerification(String email) {
+        log.info("Processing verification for email: {}", email);
+        kafkaLogProducer.logInfo(
+                "DIGILOCKER_VERIFICATION_STARTED", java.util.Map.of("email", email));
 
-    kafkaTemplate.send(KafkaTopicNameConstants.DIGILOCKER_DATA_FETCHED_TOPIC, email, event);
+        // Generate dummy data
+        DigiLockerDataFetchedEvent event =
+                DigiLockerDataFetchedEvent.builder()
+                        .email(email)
+                        .aadharNumber(UUID.randomUUID().toString())
+                        .panNumber(UUID.randomUUID().toString())
+                        .firstName("John")
+                        .lastName("Doe")
+                        .middleName("Quincy")
+                        .dob(RandomDate.generateRandomDOB())
+                        .address(UUID.randomUUID().toString())
+                        .additionalDetails(
+                                new HashMap<>(Map.of("requestId", UUID.randomUUID().toString())))
+                        .build();
 
-    kafkaLogProducer.logInfo(
-        "DIGILOCKER_DATA_FETCHED",
-        java.util.Map.of(
-            "email", email,
-            "aadharNumber", event.getAadharNumber(),
-            "panNumber", event.getPanNumber()));
-  }
+        kafkaTemplate.send(KafkaTopicNameConstants.DIGILOCKER_DATA_FETCHED_TOPIC, email, event);
 
-  // otp related helper functions
-  private void deleteOtp(String key) {
-    redisTemplate.delete(key);
-  }
+        kafkaLogProducer.logInfo(
+                "DIGILOCKER_DATA_FETCHED",
+                java.util.Map.of(
+                        "email", email,
+                        "aadharNumber", event.getAadharNumber(),
+                        "panNumber", event.getPanNumber()));
+    }
 
-  void saveOtp(String key, String otp) {
-    redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
-  }
+    // otp related helper functions
+    private void deleteOtp(String key) {
+        redisTemplate.delete(key);
+    }
+
+    void saveOtp(String key, String otp) {
+        redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
+    }
 }

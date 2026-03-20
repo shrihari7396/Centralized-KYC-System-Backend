@@ -15,63 +15,63 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
 
-  @Value("${jwt.secret}")
-  private String secretKey;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-  @Value("${jwt.consent-expiration:172800000}")
-  private long consentJwtExpiration;
+    @Value("${jwt.consent-expiration:172800000}")
+    private long consentJwtExpiration;
 
-  public String generateConsentToken(
-      String userId, UUID bankId, UUID consentId, List<ConsentDocumentType> documents) {
-    Map<String, Object> extraClaims = new HashMap<>();
-    extraClaims.put("bankId", bankId.toString());
-    extraClaims.put("consentId", consentId.toString());
-    extraClaims.put("documents", documents);
+    public String generateConsentToken(
+            String userId, UUID bankId, UUID consentId, List<ConsentDocumentType> documents) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("bankId", bankId.toString());
+        extraClaims.put("consentId", consentId.toString());
+        extraClaims.put("documents", documents);
 
-    return buildToken(extraClaims, userId, consentJwtExpiration);
-  }
-
-  private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {
-    return Jwts.builder()
-        .setClaims(extraClaims)
-        .setSubject(subject)
-        .setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + expiration))
-        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-        .compact();
-  }
-
-  public boolean isTokenValid(String token) {
-    try {
-      return !isTokenExpired(token);
-    } catch (Exception e) {
-      return false;
+        return buildToken(extraClaims, userId, consentJwtExpiration);
     }
-  }
 
-  private boolean isTokenExpired(String token) {
-    return extractExpiration(token).before(new Date());
-  }
+    private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {
+        return Jwts.builder()
+                .setClaims(extraClaims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
 
-  private Date extractExpiration(String token) {
-    return extractClaim(token, Claims::getExpiration);
-  }
+    public boolean isTokenValid(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-  public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-    final Claims claims = extractAllClaims(token);
-    return claimsResolver.apply(claims);
-  }
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
 
-  private Claims extractAllClaims(String token) {
-    return Jwts.parserBuilder()
-        .setSigningKey(getSignInKey())
-        .build()
-        .parseClaimsJws(token)
-        .getBody();
-  }
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
 
-  private Key getSignInKey() {
-    byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-    return Keys.hmacShaKeyFor(keyBytes);
-  }
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 }

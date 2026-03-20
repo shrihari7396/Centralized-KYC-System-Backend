@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BankRepository extends JpaRepository<Bank, UUID> {
-  Optional<Bank> findByCode(String code);
+    Optional<Bank> findByCode(String code);
 }

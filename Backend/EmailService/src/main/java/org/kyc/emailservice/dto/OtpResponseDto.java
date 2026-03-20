@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpResponseDto {
 
-  private Long otpRequestId;
-  private String status;
-  private LocalDateTime expiresAt;
+    private Long otpRequestId;
+    private String status;
+    private LocalDateTime expiresAt;
 }

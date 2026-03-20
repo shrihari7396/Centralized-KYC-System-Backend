@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpVerifyDto {
 
-  @NotNull(message = "User ID is required")
-  private String userId;
+    @NotNull(message = "User ID is required")
+    private String userId;
 
-  @NotNull(message = "OTP Request ID is required")
-  private Long otpRequestId;
+    @NotNull(message = "OTP Request ID is required")
+    private Long otpRequestId;
 
-  @NotBlank(message = "OTP Code is required")
-  private String otpCode;
+    @NotBlank(message = "OTP Code is required")
+    private String otpCode;
 }

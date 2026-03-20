@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OtpVerificationDto {
-  private String email;
-  private String otp;
-  private boolean consentAccepted;
+    private String email;
+    private String otp;
+    private boolean consentAccepted;
 }

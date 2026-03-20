@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class UpdateStatusDto {
-  private String email;
-  private UserStatus status;
+    private String email;
+    private UserStatus status;
 }

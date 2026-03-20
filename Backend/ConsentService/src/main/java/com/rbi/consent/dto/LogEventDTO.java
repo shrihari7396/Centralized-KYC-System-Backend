@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LogEventDTO {
-  private String serviceId;
-  private String eventType;
-  private String level; // INFO, WARNING, ERROR
-  private Instant occurredAt;
-  private Map<String, Object> payload;
+    private String serviceId;
+    private String eventType;
+    private String level; // INFO, WARNING, ERROR
+    private Instant occurredAt;
+    private Map<String, Object> payload;
 }

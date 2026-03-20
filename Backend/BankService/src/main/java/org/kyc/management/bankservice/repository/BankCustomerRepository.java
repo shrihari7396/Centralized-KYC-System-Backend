@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BankCustomerRepository extends JpaRepository<BankCustomer, UUID> {
-  Optional<BankCustomer> findByUserIdAndBankId(String userId, UUID bankId);
+    Optional<BankCustomer> findByUserIdAndBankId(String userId, UUID bankId);
 
-  Optional<BankCustomer> findByUserId(String userId);
+    Optional<BankCustomer> findByUserId(String userId);
 }

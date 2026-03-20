@@ -7,11 +7,11 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaConfig {
-  @Bean
-  public NewTopic newTopic() {
-    return TopicBuilder.name(KafkaTopicNameConstants.OTP_CREATED_TOPIC)
-        //                .partitions(3)
-        //                .replicas(3)
-        .build();
-  }
+    @Bean
+    public NewTopic newTopic() {
+        return TopicBuilder.name(KafkaTopicNameConstants.OTP_CREATED_TOPIC)
+                //                .partitions(3)
+                //                .replicas(3)
+                .build();
+    }
 }

@@ -30,250 +30,257 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ConsentServiceImpl implements ConsentService {
 
-  private final ConsentRepository consentRepository;
-  private final JwtService jwtService;
-  private final WebSocketPublisher webSocketPublisher;
-  private final BankFeignClient bankFeignClient;
-  private final ConsentKafkaProducer consentKafkaProducer;
-  private final KafkaLogProducer kafkaLogProducer;
-  private final ObjectMapper objectMapper;
-  private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
-  private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
+    private final ConsentRepository consentRepository;
+    private final JwtService jwtService;
+    private final WebSocketPublisher webSocketPublisher;
+    private final BankFeignClient bankFeignClient;
+    private final ConsentKafkaProducer consentKafkaProducer;
+    private final KafkaLogProducer kafkaLogProducer;
+    private final ObjectMapper objectMapper;
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+    private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
 
-  private static final String OTP_KEY_PREFIX = "consent_otp:";
-  private static final long OTP_EXPIRY_MINUTES = 5;
+    private static final String OTP_KEY_PREFIX = "consent_otp:";
+    private static final long OTP_EXPIRY_MINUTES = 5;
 
-  @Override
-  public void requestConsent(ConsentRequestDto requestDto) {
-    // If an active consent already exists, maybe reject or override.
-    // For now, we just create a new one.
+    @Override
+    public void requestConsent(ConsentRequestDto requestDto) {
+        // If an active consent already exists, maybe reject or override.
+        // For now, we just create a new one.
 
-    ConsentRecord consentRecord =
-        ConsentRecord.builder()
-            .userId(requestDto.getUserId())
-            .bankId(requestDto.getBankId())
-            .consentStatus(ConsentStatus.PENDING)
-            .active(false)
-            .requestedAt(LocalDateTime.now())
-            .consentDocuments(toJson(requestDto.getRequestedDocuments()))
-            .build();
+        ConsentRecord consentRecord =
+                ConsentRecord.builder()
+                        .userId(requestDto.getUserId())
+                        .bankId(requestDto.getBankId())
+                        .consentStatus(ConsentStatus.PENDING)
+                        .active(false)
+                        .requestedAt(LocalDateTime.now())
+                        .consentDocuments(toJson(requestDto.getRequestedDocuments()))
+                        .build();
 
-    ConsentRecord saved = consentRepository.save(consentRecord);
+        ConsentRecord saved = consentRepository.save(consentRecord);
 
-    kafkaLogProducer.logInfo(
-        "CONSENT_REQUESTED",
-        java.util.Map.of(
-            "userId",
-            requestDto.getUserId(),
-            "bankId",
-            requestDto.getBankId(),
-            "consentId",
-            saved.getId()));
+        kafkaLogProducer.logInfo(
+                "CONSENT_REQUESTED",
+                java.util.Map.of(
+                        "userId",
+                        requestDto.getUserId(),
+                        "bankId",
+                        requestDto.getBankId(),
+                        "consentId",
+                        saved.getId()));
 
-    // Notify Frontend WebSocket
-    webSocketPublisher.publishConsentRequested(requestDto.getUserId(), saved);
-  }
-
-  @Override
-  public void sendConsentOtp(UUID consentId) {
-    ConsentRecord record =
-        consentRepository
-            .findById(consentId)
-            .orElseThrow(
-                () -> {
-                  kafkaLogProducer.logError(
-                      "CONSENT_OTP_FAILED",
-                      java.util.Map.of("consentId", consentId, "reason", "Consent not found"));
-                  return new ConsentNotFoundException("Consent not found.");
-                });
-
-    if (record.getConsentStatus() != ConsentStatus.PENDING) {
-      kafkaLogProducer.logWarning(
-          "CONSENT_OTP_REJECTED",
-          java.util.Map.of("consentId", consentId, "reason", "Not in pending state"));
-      throw new IllegalArgumentException("OTP can only be sent for PENDING consent requests.");
+        // Notify Frontend WebSocket
+        webSocketPublisher.publishConsentRequested(requestDto.getUserId(), saved);
     }
 
-    // Generate 6-digit OTP
-    String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+    @Override
+    public void sendConsentOtp(UUID consentId) {
+        ConsentRecord record =
+                consentRepository
+                        .findById(consentId)
+                        .orElseThrow(
+                                () -> {
+                                    kafkaLogProducer.logError(
+                                            "CONSENT_OTP_FAILED",
+                                            java.util.Map.of(
+                                                    "consentId",
+                                                    consentId,
+                                                    "reason",
+                                                    "Consent not found"));
+                                    return new ConsentNotFoundException("Consent not found.");
+                                });
 
-    // Store in Redis with TTL
-    String redisKey = OTP_KEY_PREFIX + consentId;
-    redisTemplate
-        .opsForValue()
-        .set(redisKey, otp, OTP_EXPIRY_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
+        if (record.getConsentStatus() != ConsentStatus.PENDING) {
+            kafkaLogProducer.logWarning(
+                    "CONSENT_OTP_REJECTED",
+                    java.util.Map.of("consentId", consentId, "reason", "Not in pending state"));
+            throw new IllegalArgumentException(
+                    "OTP can only be sent for PENDING consent requests.");
+        }
 
-    log.info("Generated OTP for consent {}: {}", consentId, otp);
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
-    // Send OTP via Kafka for EmailService to pick up
-    com.rbi.consent.event.CreateOtpEvent otpEvent =
-        com.rbi.consent.event.CreateOtpEvent.builder()
-            .email(record.getUserId()) // userId is the email
-            .otp(otp)
-            .firstName("User") // We don't have user name in ConsentRecord, but can be improved
-            .lastName("")
-            .serviceType("CONSENT")
-            .build();
+        // Store in Redis with TTL
+        String redisKey = OTP_KEY_PREFIX + consentId;
+        redisTemplate
+                .opsForValue()
+                .set(redisKey, otp, OTP_EXPIRY_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
 
-    kafkaTemplate.send(com.rbi.consent.config.KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
-    log.info("Sent CreateOtpEvent for consent {} to Kafka", consentId);
-  }
+        log.info("Generated OTP for consent {}: {}", consentId, otp);
 
-  private void verifyOtp(UUID consentId, String otpInput) {
-    String redisKey = OTP_KEY_PREFIX + consentId;
-    String storedOtp = redisTemplate.opsForValue().get(redisKey);
+        // Send OTP via Kafka for EmailService to pick up
+        com.rbi.consent.event.CreateOtpEvent otpEvent =
+                com.rbi.consent.event.CreateOtpEvent.builder()
+                        .email(record.getUserId()) // userId is the email
+                        .otp(otp)
+                        .firstName("User") // We don't have user name in ConsentRecord, but can be
+                        // improved
+                        .lastName("")
+                        .serviceType("CONSENT")
+                        .build();
 
-    if (storedOtp == null) {
-      kafkaLogProducer.logWarning(
-          "OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
-      throw new RuntimeException("OTP expired or not requested.");
+        kafkaTemplate.send(
+                com.rbi.consent.config.KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
+        log.info("Sent CreateOtpEvent for consent {} to Kafka", consentId);
     }
 
-    if (!storedOtp.equals(otpInput)) {
-      kafkaLogProducer.logWarning(
-          "OTP_VERIFICATION_FAILED",
-          java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
-      throw new RuntimeException("Invalid OTP provided.");
+    private void verifyOtp(UUID consentId, String otpInput) {
+        String redisKey = OTP_KEY_PREFIX + consentId;
+        String storedOtp = redisTemplate.opsForValue().get(redisKey);
+
+        if (storedOtp == null) {
+            kafkaLogProducer.logWarning(
+                    "OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
+            throw new RuntimeException("OTP expired or not requested.");
+        }
+
+        if (!storedOtp.equals(otpInput)) {
+            kafkaLogProducer.logWarning(
+                    "OTP_VERIFICATION_FAILED",
+                    java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
+            throw new RuntimeException("Invalid OTP provided.");
+        }
+
+        // Delete OTP after successful verification
+        redisTemplate.delete(redisKey);
     }
 
-    // Delete OTP after successful verification
-    redisTemplate.delete(redisKey);
-  }
+    @Override
+    public ConsentResponseDto approveConsent(UUID consentId, String otp) {
+        verifyOtp(consentId, otp);
 
-  @Override
-  public ConsentResponseDto approveConsent(UUID consentId, String otp) {
-    verifyOtp(consentId, otp);
+        ConsentRecord record =
+                consentRepository
+                        .findById(consentId)
+                        .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
 
-    ConsentRecord record =
-        consentRepository
-            .findById(consentId)
-            .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
+        if (record.getConsentStatus() != ConsentStatus.PENDING) {
+            throw new IllegalArgumentException("Consent is not in PENDING state.");
+        }
 
-    if (record.getConsentStatus() != ConsentStatus.PENDING) {
-      throw new IllegalArgumentException("Consent is not in PENDING state.");
+        List<ConsentDocumentType> documents = fromJson(record.getConsentDocuments());
+        String jwt =
+                jwtService.generateConsentToken(
+                        record.getUserId(), record.getBankId(), record.getId(), documents);
+
+        record.setConsentStatus(ConsentStatus.APPROVED);
+        record.setApprovedAt(LocalDateTime.now());
+        record.setExpiryAt(LocalDateTime.now().plusDays(2));
+        record.setActive(true);
+        record.setJwtToken(jwt);
+
+        ConsentRecord updated = consentRepository.save(record);
+
+        // Notify Bank via Kafka Event
+        ConsentApprovedEvent event =
+                ConsentApprovedEvent.builder()
+                        .consentId(updated.getId())
+                        .userId(updated.getUserId())
+                        .bankId(updated.getBankId())
+                        .jwtToken(jwt)
+                        .build();
+        consentKafkaProducer.sendConsentApprovedEvent(event);
+
+        // Notify WS success
+        webSocketPublisher.publishConsentApproved(
+                record.getBankId(), "Consent Approved for " + record.getUserId());
+
+        kafkaLogProducer.logInfo(
+                "CONSENT_APPROVED",
+                java.util.Map.of(
+                        "consentId",
+                        updated.getId(),
+                        "userId",
+                        updated.getUserId(),
+                        "bankId",
+                        updated.getBankId()));
+
+        return ConsentResponseDto.builder()
+                .consentId(updated.getId())
+                .status(updated.getConsentStatus())
+                .jwtToken(updated.getJwtToken())
+                .expiryAt(updated.getExpiryAt())
+                .build();
     }
 
-    List<ConsentDocumentType> documents = fromJson(record.getConsentDocuments());
-    String jwt =
-        jwtService.generateConsentToken(
-            record.getUserId(), record.getBankId(), record.getId(), documents);
+    @Override
+    public void rejectConsent(UUID consentId, String otp) {
+        verifyOtp(consentId, otp);
 
-    record.setConsentStatus(ConsentStatus.APPROVED);
-    record.setApprovedAt(LocalDateTime.now());
-    record.setExpiryAt(LocalDateTime.now().plusDays(2));
-    record.setActive(true);
-    record.setJwtToken(jwt);
+        ConsentRecord record =
+                consentRepository
+                        .findById(consentId)
+                        .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
 
-    ConsentRecord updated = consentRepository.save(record);
+        if (record.getConsentStatus() != ConsentStatus.PENDING) {
+            throw new IllegalArgumentException("Consent is not in PENDING state.");
+        }
 
-    // Notify Bank via Kafka Event
-    ConsentApprovedEvent event =
-        ConsentApprovedEvent.builder()
-            .consentId(updated.getId())
-            .userId(updated.getUserId())
-            .bankId(updated.getBankId())
-            .jwtToken(jwt)
-            .build();
-    consentKafkaProducer.sendConsentApprovedEvent(event);
+        record.setConsentStatus(ConsentStatus.REJECTED);
+        record.setActive(false);
+        consentRepository.save(record);
 
-    // Notify WS success
-    webSocketPublisher.publishConsentApproved(
-        record.getBankId(), "Consent Approved for " + record.getUserId());
+        // Notify Bank
+        webSocketPublisher.publishConsentRejected(
+                record.getBankId(), "Consent Rejected for user " + record.getUserId());
 
-    kafkaLogProducer.logInfo(
-        "CONSENT_APPROVED",
-        java.util.Map.of(
-            "consentId",
-            updated.getId(),
-            "userId",
-            updated.getUserId(),
-            "bankId",
-            updated.getBankId()));
-
-    return ConsentResponseDto.builder()
-        .consentId(updated.getId())
-        .status(updated.getConsentStatus())
-        .jwtToken(updated.getJwtToken())
-        .expiryAt(updated.getExpiryAt())
-        .build();
-  }
-
-  @Override
-  public void rejectConsent(UUID consentId, String otp) {
-    verifyOtp(consentId, otp);
-
-    ConsentRecord record =
-        consentRepository
-            .findById(consentId)
-            .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
-
-    if (record.getConsentStatus() != ConsentStatus.PENDING) {
-      throw new IllegalArgumentException("Consent is not in PENDING state.");
+        kafkaLogProducer.logWarning(
+                "CONSENT_REJECTED",
+                java.util.Map.of(
+                        "consentId",
+                        record.getId(),
+                        "userId",
+                        record.getUserId(),
+                        "bankId",
+                        record.getBankId()));
     }
 
-    record.setConsentStatus(ConsentStatus.REJECTED);
-    record.setActive(false);
-    consentRepository.save(record);
+    @Override
+    public ConsentResponseDto getConsent(String userId, UUID bankId) {
+        Optional<ConsentRecord> consentOpt =
+                consentRepository.findByUserIdAndBankIdAndActiveTrue(userId, bankId);
 
-    // Notify Bank
-    webSocketPublisher.publishConsentRejected(
-        record.getBankId(), "Consent Rejected for user " + record.getUserId());
+        if (consentOpt.isEmpty()) {
+            // Check if rejected or expired
+            throw new ConsentNotFoundException("No active consent found.");
+        }
 
-    kafkaLogProducer.logWarning(
-        "CONSENT_REJECTED",
-        java.util.Map.of(
-            "consentId",
-            record.getId(),
-            "userId",
-            record.getUserId(),
-            "bankId",
-            record.getBankId()));
-  }
+        ConsentRecord record = consentOpt.get();
 
-  @Override
-  public ConsentResponseDto getConsent(String userId, UUID bankId) {
-    Optional<ConsentRecord> consentOpt =
-        consentRepository.findByUserIdAndBankIdAndActiveTrue(userId, bankId);
+        if (record.getExpiryAt().isBefore(LocalDateTime.now())) {
+            record.setConsentStatus(ConsentStatus.EXPIRED);
+            record.setActive(false);
+            consentRepository.save(record);
+            throw new ConsentExpiredException("Consent has expired.");
+        }
 
-    if (consentOpt.isEmpty()) {
-      // Check if rejected or expired
-      throw new ConsentNotFoundException("No active consent found.");
+        if (record.getConsentStatus() == ConsentStatus.REJECTED) {
+            throw new ConsentRejectedException("Consent was rejected.");
+        }
+
+        return ConsentResponseDto.builder()
+                .consentId(record.getId())
+                .status(record.getConsentStatus())
+                .jwtToken(record.getJwtToken())
+                .expiryAt(record.getExpiryAt())
+                .build();
     }
 
-    ConsentRecord record = consentOpt.get();
-
-    if (record.getExpiryAt().isBefore(LocalDateTime.now())) {
-      record.setConsentStatus(ConsentStatus.EXPIRED);
-      record.setActive(false);
-      consentRepository.save(record);
-      throw new ConsentExpiredException("Consent has expired.");
+    private String toJson(List<ConsentDocumentType> types) {
+        try {
+            return objectMapper.writeValueAsString(types);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize documents.");
+        }
     }
 
-    if (record.getConsentStatus() == ConsentStatus.REJECTED) {
-      throw new ConsentRejectedException("Consent was rejected.");
+    private List<ConsentDocumentType> fromJson(String json) {
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<ConsentDocumentType>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize documents.");
+        }
     }
-
-    return ConsentResponseDto.builder()
-        .consentId(record.getId())
-        .status(record.getConsentStatus())
-        .jwtToken(record.getJwtToken())
-        .expiryAt(record.getExpiryAt())
-        .build();
-  }
-
-  private String toJson(List<ConsentDocumentType> types) {
-    try {
-      return objectMapper.writeValueAsString(types);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to serialize documents.");
-    }
-  }
-
-  private List<ConsentDocumentType> fromJson(String json) {
-    try {
-      return objectMapper.readValue(json, new TypeReference<List<ConsentDocumentType>>() {});
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to deserialize documents.");
-    }
-  }
 }

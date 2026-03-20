@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsentRequestedEvent {
 
-  private String userId;
-  private Long consentId;
-  private LocalDateTime timestamp;
+    private String userId;
+    private Long consentId;
+    private LocalDateTime timestamp;
 }

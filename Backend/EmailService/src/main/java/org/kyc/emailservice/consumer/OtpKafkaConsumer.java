@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OtpKafkaConsumer {
-  @Autowired private EmailSenderService emailSenderService;
+    @Autowired private EmailSenderService emailSenderService;
 
-  @KafkaListener(topics = AppConstants.EMAIL_TOPIC_NAME, groupId = AppConstants.GROUP_ID)
-  public void toEmail(String message) throws MessagingException, JsonProcessingException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    CreateOtpEvent event = objectMapper.readValue(message, CreateOtpEvent.class);
-    emailSenderService.sendEmail(event);
-  }
+    @KafkaListener(topics = AppConstants.EMAIL_TOPIC_NAME, groupId = AppConstants.GROUP_ID)
+    public void toEmail(String message) throws MessagingException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreateOtpEvent event = objectMapper.readValue(message, CreateOtpEvent.class);
+        emailSenderService.sendEmail(event);
+    }
 }

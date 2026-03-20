@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "ConsentService", path = "/consents")
 public interface ConsentFeignClient {
-  @GetMapping
-  Map<String, Object> getConsent(
-      @RequestParam("userId") String userId, @RequestParam("bankId") UUID bankId);
+    @GetMapping
+    Map<String, Object> getConsent(
+            @RequestParam("userId") String userId, @RequestParam("bankId") UUID bankId);
 
-  @PostMapping("/request")
-  Map<String, Object> requestConsent(@RequestBody Map<String, Object> requestDto);
+    @PostMapping("/request")
+    Map<String, Object> requestConsent(@RequestBody Map<String, Object> requestDto);
 }

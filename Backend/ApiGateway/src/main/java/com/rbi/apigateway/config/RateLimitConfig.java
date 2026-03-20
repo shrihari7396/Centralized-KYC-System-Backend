@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class RateLimitConfig {
 
-  @Bean
-  public KeyResolver visitorKeyResolver() {
-    return exchange ->
-        Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(Constants.VISITOR_ID));
-  }
+    @Bean
+    public KeyResolver visitorKeyResolver() {
+        return exchange ->
+                Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(Constants.VISITOR_ID));
+    }
 }

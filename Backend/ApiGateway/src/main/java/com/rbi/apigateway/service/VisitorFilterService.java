@@ -15,43 +15,43 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class VisitorFilterService {
-  private final SecretKeySpec hmacSecretKey;
-  private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private final SecretKeySpec hmacSecretKey;
+    private static final String HMAC_ALGORITHM = "HmacSHA256";
 
-  public String generateSignedId() {
-    String uuid = UUID.randomUUID().toString();
-    String signature = calculateHmac(uuid);
-    return uuid + "." + signature;
-  }
-
-  public String verifyAndExtractId(String fullToken) {
-    if (fullToken == null || !fullToken.contains(".")) return null;
-
-    String[] parts = fullToken.split("\\.");
-    if (parts.length != 2) return null;
-
-    String uuid = parts[0];
-    String receivedSignature = parts[1];
-    String expectedSignature = calculateHmac(uuid);
-
-    if (MessageDigest.isEqual(receivedSignature.getBytes(), expectedSignature.getBytes())) {
-      return uuid;
+    public String generateSignedId() {
+        String uuid = UUID.randomUUID().toString();
+        String signature = calculateHmac(uuid);
+        return uuid + "." + signature;
     }
-    log.warn("⚠️ Security Alert: Tampered or invalid cookie detected!");
-    return null;
-  }
 
-  private String calculateHmac(String data) {
-    try {
-      // We get a fresh instance of Mac for each thread/call
-      // because Mac is NOT thread-safe.
-      Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-      mac.init(hmacSecretKey);
-      byte[] hmacBytes = mac.doFinal(data.getBytes());
-      return Base64.getUrlEncoder().withoutPadding().encodeToString(hmacBytes);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-      log.error("Cryptographic failure: {}", e.getMessage());
-      throw new RuntimeException("Internal Security Error");
+    public String verifyAndExtractId(String fullToken) {
+        if (fullToken == null || !fullToken.contains(".")) return null;
+
+        String[] parts = fullToken.split("\\.");
+        if (parts.length != 2) return null;
+
+        String uuid = parts[0];
+        String receivedSignature = parts[1];
+        String expectedSignature = calculateHmac(uuid);
+
+        if (MessageDigest.isEqual(receivedSignature.getBytes(), expectedSignature.getBytes())) {
+            return uuid;
+        }
+        log.warn("⚠️ Security Alert: Tampered or invalid cookie detected!");
+        return null;
     }
-  }
+
+    private String calculateHmac(String data) {
+        try {
+            // We get a fresh instance of Mac for each thread/call
+            // because Mac is NOT thread-safe.
+            Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+            mac.init(hmacSecretKey);
+            byte[] hmacBytes = mac.doFinal(data.getBytes());
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hmacBytes);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Cryptographic failure: {}", e.getMessage());
+            throw new RuntimeException("Internal Security Error");
+        }
+    }
 }

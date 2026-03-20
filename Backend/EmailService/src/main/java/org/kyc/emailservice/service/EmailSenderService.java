@@ -11,36 +11,41 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailSenderService {
-  @Autowired private JavaMailSender mailSender;
-  @Autowired private KafkaLogProducer kafkaLogProducer;
+    @Autowired private JavaMailSender mailSender;
+    @Autowired private KafkaLogProducer kafkaLogProducer;
 
-  @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
-  private String fromEmail;
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String fromEmail;
 
-  @Autowired private org.kyc.emailservice.service.template.EmailTemplateFactory templateFactory;
+    @Autowired private org.kyc.emailservice.service.template.EmailTemplateFactory templateFactory;
 
-  public void sendEmail(CreateOtpEvent event) throws MessagingException {
-    org.kyc.emailservice.service.template.EmailTemplateStrategy strategy =
-        templateFactory.getStrategy(event.getServiceType());
+    public void sendEmail(CreateOtpEvent event) throws MessagingException {
+        org.kyc.emailservice.service.template.EmailTemplateStrategy strategy =
+                templateFactory.getStrategy(event.getServiceType());
 
-    String body = strategy.getHtmlBody(event);
-    String subject = strategy.getSubject();
+        String body = strategy.getHtmlBody(event);
+        String subject = strategy.getSubject();
 
-    MimeMessage mimeMessage = mailSender.createMimeMessage();
-    MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false);
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false);
 
-    mimeMessageHelper.setFrom(fromEmail);
-    mimeMessageHelper.setTo(event.getEmail());
-    mimeMessageHelper.setSubject(subject);
-    mimeMessageHelper.setText(body, true);
+        mimeMessageHelper.setFrom(fromEmail);
+        mimeMessageHelper.setTo(event.getEmail());
+        mimeMessageHelper.setSubject(subject);
+        mimeMessageHelper.setText(body, true);
 
-    kafkaLogProducer.logInfo(
-        "EMAIL_SENDING_STARTED",
-        java.util.Map.of(
-            "email", event.getEmail(), "subject", subject, "type", strategy.getServiceType()));
-    mailSender.send(mimeMessage);
-    kafkaLogProducer.logInfo(
-        "EMAIL_SENT_SUCCESSFULLY",
-        java.util.Map.of("email", event.getEmail(), "type", strategy.getServiceType()));
-  }
+        kafkaLogProducer.logInfo(
+                "EMAIL_SENDING_STARTED",
+                java.util.Map.of(
+                        "email",
+                        event.getEmail(),
+                        "subject",
+                        subject,
+                        "type",
+                        strategy.getServiceType()));
+        mailSender.send(mimeMessage);
+        kafkaLogProducer.logInfo(
+                "EMAIL_SENT_SUCCESSFULLY",
+                java.util.Map.of("email", event.getEmail(), "type", strategy.getServiceType()));
+    }
 }

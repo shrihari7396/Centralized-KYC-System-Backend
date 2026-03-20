@@ -147,7 +147,10 @@ It contains all the interfaces and classes necessary for creating and managing J
 				<version>2.43.0</version>
 				<configuration>
 					<java>
-						<googleJavaFormat/>
+						<googleJavaFormat>
+							<style>AOSP</style>
+						</googleJavaFormat>
+
 						<removeUnusedImports/>
 					</java>
 				</configuration>

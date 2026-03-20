@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsentDto {
 
-  private Long consentId;
-  private String userId;
-  private String dataUsage;
-  private String purpose;
-  private String status; // REQUESTED/GIVEN/WITHDRAWN
-  private LocalDateTime grantedAt;
+    private Long consentId;
+    private String userId;
+    private String dataUsage;
+    private String purpose;
+    private String status; // REQUESTED/GIVEN/WITHDRAWN
+    private LocalDateTime grantedAt;
 }

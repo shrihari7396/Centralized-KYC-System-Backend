@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 public class ConsentServiceApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(ConsentServiceApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(ConsentServiceApplication.class, args);
+    }
 }

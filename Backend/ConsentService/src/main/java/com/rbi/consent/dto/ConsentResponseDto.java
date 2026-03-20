@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsentResponseDto {
 
-  private UUID consentId;
-  private ConsentStatus status;
-  private String jwtToken;
-  private LocalDateTime expiryAt;
+    private UUID consentId;
+    private ConsentStatus status;
+    private String jwtToken;
+    private LocalDateTime expiryAt;
 }

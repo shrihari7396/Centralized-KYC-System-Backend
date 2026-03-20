@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserLoggedInEvent {
-  private String userId; // userId is the email
-  private LocalDateTime timestamp;
+    private String userId; // userId is the email
+    private LocalDateTime timestamp;
 }

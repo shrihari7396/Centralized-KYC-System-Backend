@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpGeneratedEvent {
 
-  private String userId;
-  private Long otpRequestId;
-  private LocalDateTime createdAt;
-  private LocalDateTime expiresAt;
+    private String userId;
+    private Long otpRequestId;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
 }

@@ -15,21 +15,21 @@ import org.kyc.management.kycmanagementservice.security.StringCryptoConverter;
 @Builder
 public class KycEntity {
 
-  @Id private String userId;
+    @Id private String userId;
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(columnDefinition = "TEXT")
-  private String aadhaarNo;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private String aadhaarNo;
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(columnDefinition = "TEXT")
-  private String pan;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private String pan;
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(columnDefinition = "TEXT")
-  private String drivingLicense;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private String drivingLicense;
 
-  @Embedded private Address address;
+    @Embedded private Address address;
 
-  private String status;
+    private String status;
 }

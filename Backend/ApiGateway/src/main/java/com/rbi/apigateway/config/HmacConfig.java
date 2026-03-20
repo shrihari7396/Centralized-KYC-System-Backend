@@ -9,13 +9,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HmacConfig {
 
-  @Value("${apigateway.security.secret-key}")
-  private String secretKey;
+    @Value("${apigateway.security.secret-key}")
+    private String secretKey;
 
-  private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final String HMAC_ALGORITHM = "HmacSHA256";
 
-  @Bean
-  public SecretKeySpec hmacSecretKey() {
-    return new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
-  }
+    @Bean
+    public SecretKeySpec hmacSecretKey() {
+        return new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
+    }
 }

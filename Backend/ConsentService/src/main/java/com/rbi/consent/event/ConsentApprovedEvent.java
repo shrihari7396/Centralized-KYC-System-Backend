@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConsentApprovedEvent {
-  private UUID consentId;
-  private String userId;
-  private UUID bankId;
-  private String jwtToken;
+    private UUID consentId;
+    private String userId;
+    private UUID bankId;
+    private String jwtToken;
 }

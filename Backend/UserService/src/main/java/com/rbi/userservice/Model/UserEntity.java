@@ -17,31 +17,31 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @Table(name = "users")
 public class UserEntity {
-  @Id
-  @Column(nullable = false)
-  private String email; // email is the userId / primary key
+    @Id
+    @Column(nullable = false)
+    private String email; // email is the userId / primary key
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String firstName;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String firstName;
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String lastName;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String lastName;
 
-  @Convert(converter = StringCryptoConverter.class)
-  @Column(nullable = false, unique = true, columnDefinition = "TEXT")
-  private String phone;
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
+    private String phone;
 
-  private Role roles = Role.USER;
+    private Role roles = Role.USER;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private UserStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status;
 
-  private LocalDateTime lastLoginAt;
+    private LocalDateTime lastLoginAt;
 
-  @CreationTimestamp private LocalDateTime createdAt;
+    @CreationTimestamp private LocalDateTime createdAt;
 
-  @UpdateTimestamp private LocalDateTime updatedAt;
+    @UpdateTimestamp private LocalDateTime updatedAt;
 }

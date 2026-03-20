@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsentActionDto {
 
-  @NotBlank(message = "OTP is required")
-  private String otp;
+    @NotBlank(message = "OTP is required")
+    private String otp;
 }

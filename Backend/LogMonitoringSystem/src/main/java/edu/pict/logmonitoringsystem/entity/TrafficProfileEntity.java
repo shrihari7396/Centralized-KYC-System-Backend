@@ -17,21 +17,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrafficProfileEntity {
-  @Id
-  @Column(name = "`key`")
-  private String key;
+    @Id
+    @Column(name = "`key`")
+    private String key;
 
-  private String ip;
-  private String endpoint;
+    private String ip;
+    private String endpoint;
 
-  private long requestCount;
-  private long errorCount;
+    private long requestCount;
+    private long errorCount;
 
-  private double avgPayloadSize;
-  private double payloadEntropy;
+    private double avgPayloadSize;
+    private double payloadEntropy;
 
-  private double avgInterRequestGap;
+    private double avgInterRequestGap;
 
-  private Instant windowStart;
-  private Instant windowEnd;
+    private Instant windowStart;
+    private Instant windowEnd;
 }

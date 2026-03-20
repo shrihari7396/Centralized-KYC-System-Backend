@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpVerifyResponseDto {
 
-  private Boolean verified;
-  private LocalDateTime timestamp;
-  private String message;
+    private Boolean verified;
+    private LocalDateTime timestamp;
+    private String message;
 }

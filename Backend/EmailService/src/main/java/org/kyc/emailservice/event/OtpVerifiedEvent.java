@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpVerifiedEvent {
 
-  private String userId;
-  private Long otpRequestId;
-  private LocalDateTime verifiedAt;
+    private String userId;
+    private Long otpRequestId;
+    private LocalDateTime verifiedAt;
 }

@@ -10,10 +10,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, String> {
-  java.util.Optional<UserEntity> findByPhone(String phone);
+    java.util.Optional<UserEntity> findByPhone(String phone);
 
-  @Modifying
-  @Transactional
-  @Query("UPDATE UserEntity u SET u.lastLoginAt = CURRENT_TIMESTAMP WHERE u.email = :email")
-  int updateLastLogin(@Param("email") String email);
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserEntity u SET u.lastLoginAt = CURRENT_TIMESTAMP WHERE u.email = :email")
+    int updateLastLogin(@Param("email") String email);
 }

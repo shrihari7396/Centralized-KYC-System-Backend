@@ -11,34 +11,34 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(ConsentNotFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleConsentNotFound(ConsentNotFoundException ex) {
-    return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-  }
+    @ExceptionHandler(ConsentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleConsentNotFound(ConsentNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
 
-  @ExceptionHandler(ConsentExpiredException.class)
-  public ResponseEntity<Map<String, Object>> handleConsentExpired(ConsentExpiredException ex) {
-    return buildErrorResponse(HttpStatus.GONE, ex.getMessage()); // 410 Gone for expired
-  }
+    @ExceptionHandler(ConsentExpiredException.class)
+    public ResponseEntity<Map<String, Object>> handleConsentExpired(ConsentExpiredException ex) {
+        return buildErrorResponse(HttpStatus.GONE, ex.getMessage()); // 410 Gone for expired
+    }
 
-  @ExceptionHandler(ConsentRejectedException.class)
-  public ResponseEntity<Map<String, Object>> handleConsentRejected(ConsentRejectedException ex) {
-    return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
-  }
+    @ExceptionHandler(ConsentRejectedException.class)
+    public ResponseEntity<Map<String, Object>> handleConsentRejected(ConsentRejectedException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-    return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-  }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+    }
 
-  private ResponseEntity<Map<String, Object>> buildErrorResponse(
-      HttpStatus status, String message) {
-    Map<String, Object> errorAttributes = new HashMap<>();
-    errorAttributes.put("timestamp", LocalDateTime.now());
-    errorAttributes.put("status", status.value());
-    errorAttributes.put("error", status.getReasonPhrase());
-    errorAttributes.put("message", message);
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(
+            HttpStatus status, String message) {
+        Map<String, Object> errorAttributes = new HashMap<>();
+        errorAttributes.put("timestamp", LocalDateTime.now());
+        errorAttributes.put("status", status.value());
+        errorAttributes.put("error", status.getReasonPhrase());
+        errorAttributes.put("message", message);
 
-    return new ResponseEntity<>(errorAttributes, status);
-  }
+        return new ResponseEntity<>(errorAttributes, status);
+    }
 }

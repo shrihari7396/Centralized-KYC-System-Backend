@@ -11,12 +11,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ConsentKafkaProducer {
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
-  private static final String TOPIC = "consent-approved-topic";
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private static final String TOPIC = "consent-approved-topic";
 
-  public void sendConsentApprovedEvent(ConsentApprovedEvent event) {
-    log.info(
-        "Sending ConsentApprovedEvent to topic {} for consentId: {}", TOPIC, event.getConsentId());
-    kafkaTemplate.send(TOPIC, event);
-  }
+    public void sendConsentApprovedEvent(ConsentApprovedEvent event) {
+        log.info(
+                "Sending ConsentApprovedEvent to topic {} for consentId: {}",
+                TOPIC,
+                event.getConsentId());
+        kafkaTemplate.send(TOPIC, event);
+    }
 }

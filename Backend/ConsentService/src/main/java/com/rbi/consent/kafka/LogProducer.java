@@ -13,30 +13,30 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class LogProducer {
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-  public void info(String eventType, Map<String, Object> payload) {
-    send("log-info", "INFO", eventType, payload);
-  }
+    public void info(String eventType, Map<String, Object> payload) {
+        send("log-info", "INFO", eventType, payload);
+    }
 
-  public void warning(String eventType, Map<String, Object> payload) {
-    send("log-warning", "WARNING", eventType, payload);
-  }
+    public void warning(String eventType, Map<String, Object> payload) {
+        send("log-warning", "WARNING", eventType, payload);
+    }
 
-  public void error(String eventType, Map<String, Object> payload) {
-    send("log-error", "ERROR", eventType, payload);
-  }
+    public void error(String eventType, Map<String, Object> payload) {
+        send("log-error", "ERROR", eventType, payload);
+    }
 
-  private void send(String topic, String level, String eventType, Map<String, Object> payload) {
-    LogEventDTO event =
-        LogEventDTO.builder()
-            .serviceId("ConsentService")
-            .eventType(eventType)
-            .level(level)
-            .occurredAt(Instant.now())
-            .payload(payload)
-            .build();
+    private void send(String topic, String level, String eventType, Map<String, Object> payload) {
+        LogEventDTO event =
+                LogEventDTO.builder()
+                        .serviceId("ConsentService")
+                        .eventType(eventType)
+                        .level(level)
+                        .occurredAt(Instant.now())
+                        .payload(payload)
+                        .build();
 
-    kafkaTemplate.send(topic, event);
-  }
+        kafkaTemplate.send(topic, event);
+    }
 }

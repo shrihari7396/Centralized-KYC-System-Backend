@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateOtpEvent {
-  private String firstName;
-  private String lastName;
-  private String email;
-  private String otp;
-  private String serviceType; // e.g., "LOGIN", "DIGILOCKER", "CONSENT"
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String otp;
+    private String serviceType; // e.g., "LOGIN", "DIGILOCKER", "CONSENT"
 }

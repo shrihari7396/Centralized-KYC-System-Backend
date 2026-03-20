@@ -12,22 +12,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
 
-  @Value("${jwt.token}")
-  private String jwtSecret;
+    @Value("${jwt.token}")
+    private String jwtSecret;
 
-  private SecretKey getSecret() {
-    return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-  }
-
-  public String getUserRoles(String token) {
-    try {
-      Claims claims =
-          Jwts.parser().verifyWith(getSecret()).build().parseSignedClaims(token).getPayload();
-
-      return claims.get("role", String.class);
-
-    } catch (JwtException e) {
-      throw new JwtException("Invalid token");
+    private SecretKey getSecret() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
-  }
+
+    public String getUserRoles(String token) {
+        try {
+            Claims claims =
+                    Jwts.parser()
+                            .verifyWith(getSecret())
+                            .build()
+                            .parseSignedClaims(token)
+                            .getPayload();
+
+            return claims.get("role", String.class);
+
+        } catch (JwtException e) {
+            throw new JwtException("Invalid token");
+        }
+    }
 }

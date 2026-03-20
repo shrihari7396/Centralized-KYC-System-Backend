@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ConsentRepository extends JpaRepository<ConsentRecord, UUID> {
 
-  Optional<ConsentRecord> findByUserIdAndBankIdAndActiveTrue(String userId, UUID bankId);
+    Optional<ConsentRecord> findByUserIdAndBankIdAndActiveTrue(String userId, UUID bankId);
 
-  List<ConsentRecord> findByConsentStatus(ConsentStatus status);
+    List<ConsentRecord> findByConsentStatus(ConsentStatus status);
 }

@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserProfileDto {
 
-  private String userId;
-  private String firstName;
-  private String lastName;
-  private String email;
-  private String phone;
-  private List<String> roles;
-  private java.time.LocalDateTime createdAt;
+    private String userId;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private List<String> roles;
+    private java.time.LocalDateTime createdAt;
 }
