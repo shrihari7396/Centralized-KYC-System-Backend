@@ -11,4 +11,10 @@ import lombok.NoArgsConstructor;
 public class BankKycInitiateRequest {
     @NotNull(message = "User ID is required")
     private String userId;
+
+    @NotNull(message = "Bank ID is required")
+    private java.util.UUID bankId;
+
+    @NotNull(message = "Requested documents are required")
+    private java.util.List<String> requestedDocuments;
 }

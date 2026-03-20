@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+    
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -66,12 +66,16 @@ public class UserController {
                 .body(userService.getLoginResponseDto(otpVerificationDto));
     }
 
-    //    @PutMapping("/updateStatus")
-    //    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusDto updateStatusDto) {
-    //        return
-    // ResponseEntity.status(HttpStatus.CREATED).body(userService.updateStatus(updateStatusDto));
-    //    }
-    //
-    //
-
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (userService.logout(token)) {
+            return ResponseEntity.ok("Logged out successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Logout failed");
+        }
+    }
 }

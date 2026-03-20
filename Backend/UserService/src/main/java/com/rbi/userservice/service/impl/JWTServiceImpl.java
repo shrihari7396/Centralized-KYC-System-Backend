@@ -32,11 +32,17 @@ public class JWTServiceImpl implements JWTService {
                 .claims()
                 .add(claims)
                 .subject(email)
+                .id(java.util.UUID.randomUUID().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationInMillis))
                 .and()
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    @Override
+    public String extractJti(String token) {
+        return extractClaim(token, Claims::getId);
     }
 
     @Override

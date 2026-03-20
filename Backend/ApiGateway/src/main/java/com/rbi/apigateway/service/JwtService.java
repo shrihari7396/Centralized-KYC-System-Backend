@@ -34,4 +34,24 @@ public class JwtService {
             throw new JwtException("Invalid token");
         }
     }
+
+    public String getJtiFromToken(String token) {
+        try {
+            Claims claims =
+                    Jwts.parser()
+                            .verifyWith(getSecret())
+                            .build()
+                            .parseSignedClaims(token)
+                            .getPayload();
+
+            String jti = claims.getId();
+            if (jti == null) {
+                jti = claims.get("jti", String.class);
+            }
+            return jti;
+
+        } catch (JwtException e) {
+            throw new JwtException("Invalid token");
+        }
+    }
 }

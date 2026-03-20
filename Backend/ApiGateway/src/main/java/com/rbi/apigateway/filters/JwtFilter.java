@@ -14,31 +14,47 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 
 @Component
 @RequiredArgsConstructor
 public class JwtFilter implements GlobalFilter, Ordered {
-    @Autowired private final JwtService jwtService;
+    private final JwtService jwtService;
     private final KafkaLogProducer kafkaLogProducer;
+    private final ReactiveStringRedisTemplate reactiveRedisTemplate;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         String authheader = exchange.getRequest().getHeaders().getFirst("Authorization");
         String path = exchange.getRequest().getURI().getPath();
+
         if (authheader == null || !authheader.startsWith("Bearer ")) {
-            return unauthorized(exchange);
+            return chain.filter(exchange);
         }
+
         String token = authheader.substring(7);
         try {
-            String role = jwtService.getUserRoles(token);
-            //            temporary only for user
-            if (path.startsWith("/users/") && !"USER".equals(role)) {
-                return forbidden(exchange);
-            }
-            ServerHttpRequest mutatedrequest =
-                    exchange.getRequest().mutate().header("X-User-Role", role).build();
-            return chain.filter(exchange.mutate().request(mutatedrequest).build());
+            String jti = jwtService.getJtiFromToken(token);
+
+            return reactiveRedisTemplate.hasKey("blacklist:" + jti)
+                    .flatMap(isBlacklisted -> {
+                        if (Boolean.TRUE.equals(isBlacklisted)) {
+                            return unauthorized(exchange);
+                        }
+                        try {
+                            String role = jwtService.getUserRoles(token);
+                            if (path.startsWith("/users/") && !"USER".equals(role)) {
+                                return forbidden(exchange);
+                            }
+                            ServerHttpRequest mutatedrequest =
+                                    exchange.getRequest().mutate().header("X-User-Role", role).build();
+                            return chain.filter(exchange.mutate().request(mutatedrequest).build());
+                        } catch (Exception e) {
+                            return unauthorized(exchange);
+                        }
+                    });
+
         } catch (Exception e) {
             return unauthorized(exchange);
         }

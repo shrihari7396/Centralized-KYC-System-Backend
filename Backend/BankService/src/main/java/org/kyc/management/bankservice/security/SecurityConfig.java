@@ -17,21 +17,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/bank/kyc/initiate", "/bank/kyc/submit")
-                .hasAuthority("ROLE_BANK")
-                .requestMatchers("/bank/kyc/bypass")
-                .hasAuthority("ROLE_ADMIN")
-                .requestMatchers("/bank/kyc/status/**")
-                .hasAnyAuthority("ROLE_BANK", "ROLE_ADMIN")
-                .anyRequest()
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/bank/kyc/request-otp",
+                                                "/bank/kyc/otp-verification")
+                                        .permitAll()
+                                        .requestMatchers("/bank/kyc/initiate", "/bank/kyc/submit")
+                                        .hasAuthority("BANK")
+                                        .requestMatchers("/bank/kyc/bypass")
+                                        .hasAuthority("ADMIN")
+                                        .requestMatchers("/bank/kyc/status/**")
+                                        .hasAnyAuthority("BANK", "ADMIN")
+                                        .anyRequest()
+                                        .authenticated())
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

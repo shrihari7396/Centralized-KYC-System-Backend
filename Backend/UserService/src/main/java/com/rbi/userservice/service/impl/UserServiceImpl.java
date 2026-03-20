@@ -161,4 +161,21 @@ public class UserServiceImpl implements UserService {
                 java.util.Map.of("email", response.getEmail(), "role", response.getRole()));
         return response;
     }
+
+    @Override
+    public Boolean logout(String token) {
+        try {
+            String jti = jwtService.extractJti(token);
+            java.util.Date expiration = jwtService.extractExpiration(token);
+            long ttl = expiration.getTime() - System.currentTimeMillis();
+
+            if (ttl > 0) {
+                redisTemplate.opsForValue().set("blacklist:" + jti, "true", Duration.ofMillis(ttl));
+                return true;
+            }
+        } catch (Exception e) {
+            kafkaLogProducer.logError("LOGOUT_FAILED", java.util.Map.of("token_snippet", token.substring(0, Math.min(token.length(), 10))));
+        }
+        return false;
+    }
 }

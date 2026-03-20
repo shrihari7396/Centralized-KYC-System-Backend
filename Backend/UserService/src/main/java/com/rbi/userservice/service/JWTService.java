@@ -23,5 +23,7 @@ public interface JWTService {
 
     Claims extractAllClaims(String token);
 
+    String extractJti(String token);
+
     SecretKey getSigningKey();
 }

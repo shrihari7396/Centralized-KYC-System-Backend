@@ -18,4 +18,6 @@ public interface UserService {
     boolean isExistByEmail(String email);
 
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
+
+    Boolean logout(String token);
 }
