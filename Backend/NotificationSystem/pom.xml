@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>rbi.notification</groupId>
-	<artifactId>notification_systemds</artifactId>
+	<artifactId>NotificationSystem</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>NotificationSystem</name>
 	<description>NotificationSystem</description>

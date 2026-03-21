@@ -89,14 +89,27 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notification);
     }
 
+    private void sendPendingNotification(String userId,  List<Notification> notifications) {
+        String destination =
+                "/queue/notifications"; // STOMP /user/{userId}/queue/notifications translates to
+        // this
+        // Convert and send to user
+        messagingTemplate.convertAndSendToUser(
+                userId, // SimplePrincipal name (email)
+                destination,
+                notifications);
+
+        // 3. Update status to DELIVERED
+        notifications.forEach(notification -> notification.setStatus(NotificationStatus.DELIVERED));
+        notificationRepository.saveAll(notifications);
+    }
+
     @Override
     @Transactional
     public void sendOfflineNotifications(String userId) {
         List<Notification> pendingNotifications =
                 notificationRepository.findByUserIdAndStatus(userId, NotificationStatus.PENDING);
-        for (Notification notification : pendingNotifications) {
-            sendNotificationToUser(notification);
-        }
+        sendPendingNotification(userId, pendingNotifications);
     }
 
     @Override
