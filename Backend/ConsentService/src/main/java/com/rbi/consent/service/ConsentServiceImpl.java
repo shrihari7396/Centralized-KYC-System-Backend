@@ -5,9 +5,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbi.consent.client.BankFeignClient;
 import com.rbi.consent.client.UserFeignClient;
-import com.rbi.consent.dto.UserDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
+import com.rbi.consent.dto.UserDto;
 import com.rbi.consent.entity.ConsentRecord;
 import com.rbi.consent.enums.ConsentDocumentType;
 import com.rbi.consent.enums.ConsentStatus;
@@ -49,14 +49,18 @@ public class ConsentServiceImpl implements ConsentService {
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
         // If an active consent already exists, de-activate it before creating a new one.
-        consentRepository.findByUserIdAndBankIdAndActiveTrue(
-                requestDto.getUserId(), requestDto.getBankId())
-                .ifPresent(existing -> {
-                    existing.setActive(false);
-                    existing.setConsentStatus(ConsentStatus.EXPIRED);
-                    consentRepository.save(existing);
-                    log.info("De-activated existing active consent {} for user {}", existing.getId(), requestDto.getUserId());
-                });
+        consentRepository
+                .findByUserIdAndBankIdAndActiveTrue(requestDto.getUserId(), requestDto.getBankId())
+                .ifPresent(
+                        existing -> {
+                            existing.setActive(false);
+                            existing.setConsentStatus(ConsentStatus.EXPIRED);
+                            consentRepository.save(existing);
+                            log.info(
+                                    "De-activated existing active consent {} for user {}",
+                                    existing.getId(),
+                                    requestDto.getUserId());
+                        });
 
         ConsentRecord consentRecord =
                 ConsentRecord.builder()

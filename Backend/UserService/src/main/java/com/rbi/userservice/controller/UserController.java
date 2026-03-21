@@ -47,8 +47,6 @@ public class UserController {
         }
     }
 
-
-
     @PostMapping("/otp-verification")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -1,5 +1,7 @@
 package com.rbi.userservice.service.impl;
 
+import static java.rmi.server.LogStream.log;
+
 import com.rbi.userservice.DTO.*;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
@@ -17,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import static java.rmi.server.LogStream.log;
 
 @Slf4j
 @RequiredArgsConstructor
