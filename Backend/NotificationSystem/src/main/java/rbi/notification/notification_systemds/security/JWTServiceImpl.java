@@ -34,10 +34,12 @@ public class JWTServiceImpl implements JWTService {
     @Override
     public String extractUserId(String token) {
         // Look for claim "userId", fallback to subject
-        return extractClaim(token, claims -> {
-            String userId = claims.get("userId", String.class);
-            return userId != null ? userId : claims.getSubject();
-        });
+        return extractClaim(
+                token,
+                claims -> {
+                    String userId = claims.get("userId", String.class);
+                    return userId != null ? userId : claims.getSubject();
+                });
     }
 
     @Override

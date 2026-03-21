@@ -22,17 +22,18 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-            
+
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 if (jwtService.validateToken(token)) {
                     String userId = jwtService.extractUserId(token);
                     accessor.setUser(new UserPrincipal(userId));
-                    
+
                     // Register session in Redis
                     String sessionId = accessor.getSessionId();
                     sessionRegistry.registerSession(userId, sessionId);
@@ -43,8 +44,6 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                 throw new IllegalArgumentException("Missing or invalid Authorization header");
             }
         }
-        
-
 
         return message;
     }

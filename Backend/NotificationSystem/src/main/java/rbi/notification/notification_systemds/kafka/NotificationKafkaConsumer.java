@@ -21,11 +21,10 @@ public class NotificationKafkaConsumer {
     }
 
     @RetryableTopic(
-        attempts = "3",
-        backoff = @Backoff(delay = 1000, multiplier = 2.0),
-        autoCreateTopics = "false",
-        dltStrategy = DltStrategy.FAIL_ON_ERROR
-    )
+            attempts = "3",
+            backoff = @Backoff(delay = 1000, multiplier = 2.0),
+            autoCreateTopics = "false",
+            dltStrategy = DltStrategy.FAIL_ON_ERROR)
     @KafkaListener(topics = "notifications", groupId = "notification-group")
     public void consume(NotificationEvent event) {
         log.info("Consumed notification event for user: {}", event.getUserId());
