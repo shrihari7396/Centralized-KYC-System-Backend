@@ -3,6 +3,8 @@ package rbi.notification.notification_systemds.service.impl;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +13,9 @@ import org.springframework.stereotype.Service;
 import rbi.notification.notification_systemds.service.SessionRegistry;
 
 @Service
+@Slf4j
 public class RedisSessionRegistry implements SessionRegistry {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisSessionRegistry.class);
     private final StringRedisTemplate redisTemplate;
 
     @Value("${INSTANCE_ID:${random.uuid}}")
