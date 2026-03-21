@@ -130,14 +130,20 @@ public class KycService {
     }
 
     public UserProfileResponseDto getUserProfile(String userId) {
-        KycEntity kycEntity = kycRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("KYC Entity not found for user: " + userId));
+        KycEntity kycEntity =
+                kycRepository
+                        .findById(userId)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "KYC Entity not found for user: " + userId));
 
         VerifiedIdentity identity = new VerifiedIdentity();
         identity.setGender("Not Available"); // Not available in current schema
 
         if (kycEntity.getAadhaarNo() != null) {
-            Optional<KycRecord> recordOpt = kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
+            Optional<KycRecord> recordOpt =
+                    kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
             if (recordOpt.isPresent()) {
                 identity.setFullName(recordOpt.get().getFullName());
                 identity.setDob(recordOpt.get().getDob());
@@ -145,19 +151,25 @@ public class KycService {
         }
 
         return UserProfileResponseDto.builder()
-            .status(kycEntity.getStatus())
-            .identity(identity)
-            .address(kycEntity.getAddress())
-            .build();
+                .status(kycEntity.getStatus())
+                .identity(identity)
+                .address(kycEntity.getAddress())
+                .build();
     }
 
     public List<DocumentProofResponseDto> getDocumentProofs(String userId) {
-        KycEntity kycEntity = kycRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("KYC Entity not found for user: " + userId));
+        KycEntity kycEntity =
+                kycRepository
+                        .findById(userId)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "KYC Entity not found for user: " + userId));
 
         LocalDateTime verifiedAt = null;
         if (kycEntity.getAadhaarNo() != null) {
-            Optional<KycRecord> recordOpt = kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
+            Optional<KycRecord> recordOpt =
+                    kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
             if (recordOpt.isPresent()) {
                 verifiedAt = recordOpt.get().getUpdatedAt();
             }
@@ -178,7 +190,8 @@ public class KycService {
 
         if (kycEntity.getDrivingLicense() != null) {
             String maskedId = maskId(kycEntity.getDrivingLicense());
-            proofs.add(new DocumentProofResponseDto("DRIVING_LICENSE", "RTO", maskedId, verifiedAt));
+            proofs.add(
+                    new DocumentProofResponseDto("DRIVING_LICENSE", "RTO", maskedId, verifiedAt));
         }
 
         return proofs;
@@ -198,13 +211,14 @@ public class KycService {
         }
 
         // Generate a new token if not present
-        KycTokenResponseDto newToken = KycTokenResponseDto.builder()
-            .tokenId(UUID.randomUUID().toString())
-            .allowedData(Arrays.asList("NAME", "DOB", "ADDRESS"))
-            .issuedAt(LocalDateTime.now())
-            .expiresAt(LocalDateTime.now().plusYears(1))
-            .status("ACTIVE")
-            .build();
+        KycTokenResponseDto newToken =
+                KycTokenResponseDto.builder()
+                        .tokenId(UUID.randomUUID().toString())
+                        .allowedData(Arrays.asList("NAME", "DOB", "ADDRESS"))
+                        .issuedAt(LocalDateTime.now())
+                        .expiresAt(LocalDateTime.now().plusYears(1))
+                        .status("ACTIVE")
+                        .build();
 
         kycTokenRedisService.saveToken(userId, newToken);
         return newToken;

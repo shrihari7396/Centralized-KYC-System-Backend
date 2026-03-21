@@ -1,6 +1,7 @@
 package rbi.notification.notification_systemds.interceptor;
 
 import java.security.Principal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -14,6 +15,7 @@ import rbi.notification.notification_systemds.security.UserPrincipal;
 import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
 
+@Slf4j
 @Component
 public class SessionChannelInterceptor implements ChannelInterceptor {
 
@@ -58,8 +60,7 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
             // Fetch and send offline notifications
             notificationService.sendOfflineNotifications(userId);
 
-            System.out.println(
-                    "Registered authenticated session: " + sessionId + " for user: " + userId);
+            log.info("Registered authenticated session: {} for user: {}", sessionId, userId);
         }
 
         if (accessor != null && StompCommand.DISCONNECT.equals(accessor.getCommand())) {
@@ -67,8 +68,7 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
             Principal user = accessor.getUser();
             if (sessionId != null && user != null) {
                 sessionRegistry.unregisterSession(user.getName(), sessionId);
-                System.out.println(
-                        "Unregistered session: " + sessionId + " for user: " + user.getName());
+                log.info("Unregistered session: {} for user: {}", sessionId, user.getName());
             }
         }
 

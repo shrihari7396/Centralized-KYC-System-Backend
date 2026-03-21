@@ -1,6 +1,7 @@
 package rbi.notification.notification_systemds.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -9,6 +10,7 @@ import rbi.notification.notification_systemds.model.Notification;
 import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
 
+@Slf4j
 @Component
 public class RedisNotificationSubscriber implements MessageListener {
 
@@ -41,30 +43,27 @@ public class RedisNotificationSubscriber implements MessageListener {
                     try {
                         String destination = "/queue/notifications";
                         messagingTemplate.convertAndSendToUser(userId, destination, notification);
-                        System.out.println(
-                                "Successfully sent notification "
-                                        + notification.getId()
-                                        + " online to user "
-                                        + userId);
+                        log.info(
+                                "Successfully sent notification {} online to user {}",
+                                notification.getId(),
+                                userId);
                     } catch (Exception e) {
                         // 3. Failure Handling: Rollback to PENDING so it can be retried or
                         // delivered on reconnect
-                        System.err.println(
-                                "Failed to send notification "
-                                        + notification.getId()
-                                        + ". Rolling back to PENDING.");
+                        log.error(
+                                "Failed to send notification {}. Rolling back to PENDING.",
+                                notification.getId());
                         notificationService.rollbackToPending(notification.getId());
                         throw e;
                     }
                 } else {
-                    System.out.println(
-                            "Notification "
-                                    + notification.getId()
-                                    + " already claimed by another node.");
+                    log.info(
+                            "Notification {} already claimed by another node.",
+                            notification.getId());
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Handle appropriately
+            log.error("Failed to process Redis notification message", e);
         }
     }
 }

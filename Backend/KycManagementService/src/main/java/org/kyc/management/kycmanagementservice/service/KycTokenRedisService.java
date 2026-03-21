@@ -3,24 +3,22 @@ package org.kyc.management.kycmanagementservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.kyc.management.kycmanagementservice.dto.KycTokenResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 @Service
 public class KycTokenRedisService {
 
     private static final String REDIS_TOKEN_PREFIX = "KYC_TOKEN:";
-    
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-    
+
+    @Autowired private StringRedisTemplate redisTemplate;
+
     private final ObjectMapper objectMapper;
 
     public KycTokenRedisService() {
@@ -31,15 +29,13 @@ public class KycTokenRedisService {
     public void saveToken(String userId, KycTokenResponseDto tokenDto) {
         try {
             String json = objectMapper.writeValueAsString(tokenDto);
-            long daysToLive = Duration.between(LocalDateTime.now(), tokenDto.getExpiresAt()).toDays();
+            long daysToLive =
+                    Duration.between(LocalDateTime.now(), tokenDto.getExpiresAt()).toDays();
             if (daysToLive <= 0) daysToLive = 1;
 
-            redisTemplate.opsForValue().set(
-                REDIS_TOKEN_PREFIX + userId,
-                json,
-                daysToLive,
-                TimeUnit.DAYS
-            );
+            redisTemplate
+                    .opsForValue()
+                    .set(REDIS_TOKEN_PREFIX + userId, json, daysToLive, TimeUnit.DAYS);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error serializing token to Redis", e);
         }

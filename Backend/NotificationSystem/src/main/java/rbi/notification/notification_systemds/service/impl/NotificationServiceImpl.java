@@ -1,6 +1,10 @@
 package rbi.notification.notification_systemds.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,29 +14,21 @@ import rbi.notification.notification_systemds.model.NotificationStatus;
 import rbi.notification.notification_systemds.repository.NotificationRepository;
 import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
+import rbi.notification.notification_systemds.utility.InstanceId;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final SessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
 
-    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
-    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public NotificationServiceImpl(
-            NotificationRepository notificationRepository,
-            SessionRegistry sessionRegistry,
-            SimpMessagingTemplate messagingTemplate,
-            org.springframework.data.redis.core.StringRedisTemplate redisTemplate,
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
-        this.notificationRepository = notificationRepository;
-        this.sessionRegistry = sessionRegistry;
-        this.messagingTemplate = messagingTemplate;
-        this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
-    }
+    private final InstanceId instanceId;
 
     @Override
     @Transactional
@@ -53,43 +49,36 @@ public class NotificationServiceImpl implements NotificationService {
         // 2. Look up the target instance of the user
         String targetInstanceId = sessionRegistry.getInstanceForUser(event.getUserId());
         if (targetInstanceId != null) {
-            try {
-                String json = objectMapper.writeValueAsString(notification);
-                redisTemplate.convertAndSend("notify:" + targetInstanceId, json);
-                System.out.println(
-                        "Published to Redis for notification: "
-                                + event.getNotificationId()
-                                + " to instance: "
-                                + targetInstanceId);
-            } catch (Exception e) {
-                e.printStackTrace(); // Handle appropriately in logs
+            if (targetInstanceId.equals(instanceId.getInstanceId())) {
+                log.info(
+                        "User {} is on the local instance. Bypassing Redis serialization.",
+                        event.getUserId());
+                String destination = "/queue/notifications";
+                messagingTemplate.convertAndSendToUser(
+                        event.getUserId(), destination, notification);
+                notification.setStatus(NotificationStatus.DELIVERED);
+                notificationRepository.save(notification);
+            } else {
+                try {
+                    String json = objectMapper.writeValueAsString(notification);
+                    redisTemplate.convertAndSend("notify:" + targetInstanceId, json);
+                    log.info(
+                            "Published to Redis for notification: {} to remote instance: {}",
+                            event.getNotificationId(),
+                            targetInstanceId);
+                } catch (Exception e) {
+                    log.error("Failed to publish message to Redis for remote instance delivery", e);
+                }
             }
         } else {
-            System.out.println(
-                    "User "
-                            + event.getUserId()
-                            + " is offline. Notification "
-                            + event.getNotificationId()
-                            + " saved as PENDING.");
+            log.info(
+                    "User {} is offline. Notification {} saved as PENDING.",
+                    event.getUserId(),
+                    event.getNotificationId());
         }
     }
 
-    private void sendNotificationToUser(Notification notification) {
-        String destination =
-                "/queue/notifications"; // STOMP /user/{userId}/queue/notifications translates to
-        // this
-        // Convert and send to user
-        messagingTemplate.convertAndSendToUser(
-                notification.getUserId(), // SimplePrincipal name (email)
-                destination,
-                notification);
-
-        // 3. Update status to DELIVERED
-        notification.setStatus(NotificationStatus.DELIVERED);
-        notificationRepository.save(notification);
-    }
-
-    private void sendPendingNotification(String userId,  List<Notification> notifications) {
+    private void sendPendingNotification(String userId, List<Notification> notifications) {
         String destination =
                 "/queue/notifications"; // STOMP /user/{userId}/queue/notifications translates to
         // this

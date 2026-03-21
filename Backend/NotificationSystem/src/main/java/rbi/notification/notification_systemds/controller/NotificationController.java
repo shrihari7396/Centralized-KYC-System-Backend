@@ -1,11 +1,13 @@
 package rbi.notification.notification_systemds.controller;
 
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import rbi.notification.notification_systemds.service.NotificationService;
 
+@Slf4j
 @Controller
 public class NotificationController {
 
@@ -20,7 +22,7 @@ public class NotificationController {
         String notificationId = payload.get("notificationId");
         if (notificationId != null) {
             notificationService.acknowledgeNotification(notificationId);
-            System.out.println("Notification acknowledged: " + notificationId);
+            log.info("Notification acknowledged: {}", notificationId);
         }
     }
 }
