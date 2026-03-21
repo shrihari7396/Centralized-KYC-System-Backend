@@ -43,7 +43,6 @@ public class KycController {
     }
 
     /** ----------------- User Frontend Transparency Dashboard APIs ----------------- */
-
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable String userId) {
         try {
@@ -55,7 +54,8 @@ public class KycController {
     }
 
     @GetMapping("/{userId}/documents")
-    public ResponseEntity<List<DocumentProofResponseDto>> getDocumentProofs(@PathVariable String userId) {
+    public ResponseEntity<List<DocumentProofResponseDto>> getDocumentProofs(
+            @PathVariable String userId) {
         try {
             List<DocumentProofResponseDto> proofs = kycService.getDocumentProofs(userId);
             return ResponseEntity.ok(proofs);

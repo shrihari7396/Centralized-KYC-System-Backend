@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface KycRecordRepository extends JpaRepository<KycRecord, Long> {
     Optional<KycRecord> findByMobileNumber(String mobileNumber);
+
     Optional<KycRecord> findByAadharNumber(String aadharNumber);
 }
