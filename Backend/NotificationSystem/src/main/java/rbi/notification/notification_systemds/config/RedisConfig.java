@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import rbi.notification.notification_systemds.redis.RedisNotificationSubscriber;
 import rbi.notification.notification_systemds.service.impl.RedisSessionRegistry;
 
@@ -24,8 +23,8 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
-                                                        RedisNotificationSubscriber subscriber) {
+    public RedisMessageListenerContainer redisContainer(
+            RedisConnectionFactory connectionFactory, RedisNotificationSubscriber subscriber) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(subscriber, topic());

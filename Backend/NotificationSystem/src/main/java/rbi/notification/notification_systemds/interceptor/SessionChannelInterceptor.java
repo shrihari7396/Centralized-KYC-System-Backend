@@ -1,5 +1,7 @@
 package rbi.notification.notification_systemds.interceptor;
 
+import java.security.Principal;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -7,46 +9,57 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
+import rbi.notification.notification_systemds.security.JWTService;
+import rbi.notification.notification_systemds.security.UserPrincipal;
+import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
-
-import java.security.Principal;
 
 @Component
 public class SessionChannelInterceptor implements ChannelInterceptor {
 
     private final SessionRegistry sessionRegistry;
-    private final rbi.notification.notification_systemds.service.NotificationService notificationService;
+    private final NotificationService notificationService;
+    private final JWTService jwtService;
 
-    public SessionChannelInterceptor(SessionRegistry sessionRegistry, @org.springframework.context.annotation.Lazy rbi.notification.notification_systemds.service.NotificationService notificationService) {
+    public SessionChannelInterceptor(
+            SessionRegistry sessionRegistry,
+            @Lazy NotificationService notificationService,
+            JWTService jwtService) {
         this.sessionRegistry = sessionRegistry;
         this.notificationService = notificationService;
+        this.jwtService = jwtService;
     }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Assume userId is passed in a header like "X-User-Id" or "userId"
-            String userId = accessor.getFirstNativeHeader("X-User-Id");
-            if (userId == null) {
-                userId = accessor.getFirstNativeHeader("userId");
+
+            String authHeader = accessor.getFirstNativeHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("Missing or invalid Authorization header");
             }
 
-            if (userId != null) {
-                final String finalUserId = userId;
-                accessor.setUser(() -> finalUserId); // Set Principal
-                
-                String sessionId = accessor.getSessionId();
-                sessionRegistry.registerSession(finalUserId, sessionId);
-                
-                // Fetch and send offline notifications
-                notificationService.sendOfflineNotifications(finalUserId);
-                
-                System.out.println("Registered session: " + sessionId + " for user: " + finalUserId);
-            } else {
-                throw new IllegalArgumentException("Missing User Identity (X-User-Id)");
+            String token = authHeader.substring(7);
+            if (!jwtService.validateToken(token)) {
+                throw new IllegalArgumentException("Invalid JWT Token");
             }
+
+            String userId = jwtService.extractUserId(token);
+            accessor.setUser(new UserPrincipal(userId));
+
+            String sessionId = accessor.getSessionId();
+            if (sessionId != null) {
+                sessionRegistry.registerSession(userId, sessionId);
+            }
+
+            // Fetch and send offline notifications
+            notificationService.sendOfflineNotifications(userId);
+
+            System.out.println(
+                    "Registered authenticated session: " + sessionId + " for user: " + userId);
         }
 
         if (accessor != null && StompCommand.DISCONNECT.equals(accessor.getCommand())) {
@@ -54,7 +67,8 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
             Principal user = accessor.getUser();
             if (sessionId != null && user != null) {
                 sessionRegistry.unregisterSession(user.getName(), sessionId);
-                System.out.println("Unregistered session: " + sessionId + " for user: " + user.getName());
+                System.out.println(
+                        "Unregistered session: " + sessionId + " for user: " + user.getName());
             }
         }
 

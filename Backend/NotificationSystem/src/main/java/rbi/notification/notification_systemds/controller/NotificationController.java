@@ -1,11 +1,10 @@
 package rbi.notification.notification_systemds.controller;
 
+import java.util.Map;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import rbi.notification.notification_systemds.service.NotificationService;
-
-import java.util.Map;
 
 @Controller
 public class NotificationController {

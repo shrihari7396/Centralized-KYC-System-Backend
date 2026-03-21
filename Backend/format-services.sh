@@ -26,6 +26,7 @@ format_service DigilockerService
 format_service EmailService
 format_service KycManagementService
 format_service UserService
+format_service NotificationSystem
 
 echo "----------------------------------------"
 echo "All services formatted!"

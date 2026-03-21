@@ -2,13 +2,12 @@ package rbi.notification.notification_systemds.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import rbi.notification.notification_systemds.model.Notification;
 import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
-
-import org.springframework.data.redis.connection.MessageListener;
 
 @Component
 public class RedisNotificationSubscriber implements MessageListener {
@@ -18,10 +17,11 @@ public class RedisNotificationSubscriber implements MessageListener {
     private final NotificationService notificationService;
     private final SessionRegistry sessionRegistry;
 
-    public RedisNotificationSubscriber(SimpMessagingTemplate messagingTemplate, 
-                                       ObjectMapper objectMapper,
-                                       NotificationService notificationService,
-                                       SessionRegistry sessionRegistry) {
+    public RedisNotificationSubscriber(
+            SimpMessagingTemplate messagingTemplate,
+            ObjectMapper objectMapper,
+            NotificationService notificationService,
+            SessionRegistry sessionRegistry) {
         this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper;
         this.notificationService = notificationService;
@@ -40,20 +40,27 @@ public class RedisNotificationSubscriber implements MessageListener {
                 if (notificationService.claimNotificationForSending(notification.getId())) {
                     try {
                         String destination = "/queue/notifications";
-                        messagingTemplate.convertAndSendToUser(
-                                userId,
-                                destination,
-                                notification
-                        );
-                        System.out.println("Successfully sent notification " + notification.getId() + " online to user " + userId);
+                        messagingTemplate.convertAndSendToUser(userId, destination, notification);
+                        System.out.println(
+                                "Successfully sent notification "
+                                        + notification.getId()
+                                        + " online to user "
+                                        + userId);
                     } catch (Exception e) {
-                        // 3. Failure Handling: Rollback to PENDING so it can be retried or delivered on reconnect
-                        System.err.println("Failed to send notification " + notification.getId() + ". Rolling back to PENDING.");
+                        // 3. Failure Handling: Rollback to PENDING so it can be retried or
+                        // delivered on reconnect
+                        System.err.println(
+                                "Failed to send notification "
+                                        + notification.getId()
+                                        + ". Rolling back to PENDING.");
                         notificationService.rollbackToPending(notification.getId());
                         throw e;
                     }
                 } else {
-                    System.out.println("Notification " + notification.getId() + " already claimed by another node.");
+                    System.out.println(
+                            "Notification "
+                                    + notification.getId()
+                                    + " already claimed by another node.");
                 }
             }
         } catch (Exception e) {

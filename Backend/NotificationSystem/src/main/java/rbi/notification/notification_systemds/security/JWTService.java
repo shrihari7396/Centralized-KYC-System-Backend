@@ -18,7 +18,8 @@ public interface JWTService {
 
     boolean validateToken(String token);
 
-    <T> T extractClaim(String token, java.util.function.Function<io.jsonwebtoken.Claims, T> claimsResolver);
+    <T> T extractClaim(
+            String token, java.util.function.Function<io.jsonwebtoken.Claims, T> claimsResolver);
 
     Claims extractAllClaims(String token);
 
