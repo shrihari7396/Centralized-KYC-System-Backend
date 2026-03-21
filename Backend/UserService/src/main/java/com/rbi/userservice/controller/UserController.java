@@ -38,7 +38,7 @@ public class UserController {
         }
         if (userService.sendOtp(otpRequestDtp)) {
             logProducer.info(
-                    "OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
+                    "OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));;
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
         } else {
             logProducer.warning(

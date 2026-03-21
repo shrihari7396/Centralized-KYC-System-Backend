@@ -39,8 +39,6 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-    @Column(name = "password_hash", nullable = true)
-    private String passwordHash;
 
     private LocalDateTime lastLoginAt;
 
