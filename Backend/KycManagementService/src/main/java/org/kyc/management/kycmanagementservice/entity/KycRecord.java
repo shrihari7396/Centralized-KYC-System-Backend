@@ -4,12 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kyc.management.kycmanagementservice.security.StringCryptoConverter;
 
 @Entity
 @Table(name = "kyc_records")

@@ -1,9 +1,7 @@
 package org.kyc.digilockerService.event;
 
-
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Data

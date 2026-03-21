@@ -16,7 +16,6 @@ public interface KycFeignClient {
             @RequestBody KycSubmissionDto submissionDto,
             @RequestHeader("Authorization") String token);
 
-
     @GetMapping("/bank/documents")
     Map<String, Object> fetchKycData(@RequestHeader("Authorization") String consentToken);
 }

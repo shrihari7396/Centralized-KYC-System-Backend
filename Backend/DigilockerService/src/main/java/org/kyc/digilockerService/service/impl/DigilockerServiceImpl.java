@@ -74,13 +74,14 @@ public class DigilockerServiceImpl implements DigilockerService {
         log.info("Processing verification for email: {}", email);
         kafkaLogProducer.logInfo(
                 "DIGILOCKER_VERIFICATION_STARTED", java.util.Map.of("email", email));
-        Address address = Address.builder()
-                .state("Maharashtra")
-                .city("Pune")
-                .street("FC Road")
-                .country("India")
-                .zipCode("411043")
-                .build();
+        Address address =
+                Address.builder()
+                        .state("Maharashtra")
+                        .city("Pune")
+                        .street("FC Road")
+                        .country("India")
+                        .zipCode("411043")
+                        .build();
         // Generate dummy data
         DigiLockerDataFetchedEvent event =
                 DigiLockerDataFetchedEvent.builder()

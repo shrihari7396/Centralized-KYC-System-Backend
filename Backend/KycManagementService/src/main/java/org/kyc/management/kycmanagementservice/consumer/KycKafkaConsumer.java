@@ -1,5 +1,6 @@
 package org.kyc.management.kycmanagementservice.consumer;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.kycmanagementservice.configs.KafkaConstants;
@@ -11,8 +12,6 @@ import org.kyc.management.kycmanagementservice.repository.KycRecordRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,16 +32,11 @@ public class KycKafkaConsumer {
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
         log.info("Consumed DigiLocker data for mobile: {}", event.getMobileNumber());
         kafkaLogProducer.logInfo(
-                "KYC_PROCESSING_STARTED",
-                Map.of("mobileNumber", event.getMobileNumber()));
+                "KYC_PROCESSING_STARTED", Map.of("mobileNumber", event.getMobileNumber()));
 
         // Map and save to DB
 
-
-        KycRecord record = KycRecord.builder()
-                .dob()
-
-                .build();
+        KycRecord record = KycRecord.builder().dob().build();
 
         kycRecordRepository.save(record);
         log.info("KycRecord saved to DB for mobile: {}", event.getMobileNumber());
