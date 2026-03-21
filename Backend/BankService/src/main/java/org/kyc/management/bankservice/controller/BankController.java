@@ -1,6 +1,7 @@
 package org.kyc.management.bankservice.controller;
 
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BankKycSubmissionRequest;
@@ -79,7 +80,7 @@ public class BankController {
     }
 
     @PostMapping("/fetch/{userId}")
-    public ResponseEntity<java.util.Map<String, Object>> fetchCustomerData(
+    public ResponseEntity<Map<String, Object>> fetchCustomerData(
             @PathVariable("userId") String userId) {
         return ResponseEntity.ok(bankSvc.fetchKycData(userId));
     }

@@ -61,15 +61,11 @@ public class DigilockerController {
         }
 
         try {
-            Map<String, String> verificationRequest =
-                    Map.of(
-                            "otp", request.getOtp(),
-                            "email", request.getEmail());
 
             Boolean response = digilockerService.verifyOtp(request.getOtp(), request.getEmail());
 
             if (response) {
-                digilockerService.processVerification(request.getEmail());
+                digilockerService.processVerification(request.getUserId(), request.getEmail());
                 logProducer.info("OTP_VERIFICATION_SUCCESS", Map.of("email", request.getEmail()));
                 return ResponseEntity.ok(
                         Map.of("message", "Verification successful. Data is being processed."));

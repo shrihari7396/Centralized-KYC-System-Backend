@@ -7,8 +7,9 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.digilockerService.config.KafkaTopicNameConstants;
+import org.kyc.digilockerService.config.KafkaConstants;
 import org.kyc.digilockerService.dto.OtpGenerateRequest;
+import org.kyc.digilockerService.event.Address;
 import org.kyc.digilockerService.event.DigiLockerDataFetchedEvent;
 import org.kyc.digilockerService.exceptions.InValidOtpException;
 import org.kyc.digilockerService.kafka.CreateOtpEvent;
@@ -42,7 +43,7 @@ public class DigilockerServiceImpl implements DigilockerService {
                         .build();
 
         saveOtp(finalotp, event.getEmail());
-        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event.getEmail(), event);
+        kafkaTemplate.send(KafkaConstants.OTP_CREATED_TOPIC, event.getEmail(), event);
 
         kafkaLogProducer.logInfo(
                 "OTP_SENT", java.util.Map.of("email", otpGenerateRequest.getEmail()));
@@ -69,14 +70,21 @@ public class DigilockerServiceImpl implements DigilockerService {
         return result;
     }
 
-    public void processVerification(String email) {
+    public void processVerification(String userId, String email) {
         log.info("Processing verification for email: {}", email);
         kafkaLogProducer.logInfo(
                 "DIGILOCKER_VERIFICATION_STARTED", java.util.Map.of("email", email));
-
+        Address address = Address.builder()
+                .state("Maharashtra")
+                .city("Pune")
+                .street("FC Road")
+                .country("India")
+                .zipCode("411043")
+                .build();
         // Generate dummy data
         DigiLockerDataFetchedEvent event =
                 DigiLockerDataFetchedEvent.builder()
+                        .userId(userId)
                         .email(email)
                         .aadharNumber(UUID.randomUUID().toString())
                         .panNumber(UUID.randomUUID().toString())
@@ -84,16 +92,16 @@ public class DigilockerServiceImpl implements DigilockerService {
                         .lastName("Doe")
                         .middleName("Quincy")
                         .dob(RandomDate.generateRandomDOB())
-                        .address(UUID.randomUUID().toString())
+                        .address(address)
                         .additionalDetails(
                                 new HashMap<>(Map.of("requestId", UUID.randomUUID().toString())))
                         .build();
 
-        kafkaTemplate.send(KafkaTopicNameConstants.DIGILOCKER_DATA_FETCHED_TOPIC, email, event);
+        kafkaTemplate.send(KafkaConstants.DIGILOCKER_DATA_FETCHED_TOPIC, email, event);
 
         kafkaLogProducer.logInfo(
                 "DIGILOCKER_DATA_FETCHED",
-                java.util.Map.of(
+                Map.of(
                         "email", email,
                         "aadharNumber", event.getAadharNumber(),
                         "panNumber", event.getPanNumber()));

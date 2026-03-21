@@ -3,7 +3,6 @@ package com.rbi.consent.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rbi.consent.client.BankFeignClient;
 import com.rbi.consent.client.UserFeignClient;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
@@ -12,6 +11,7 @@ import com.rbi.consent.entity.ConsentRecord;
 import com.rbi.consent.enums.ConsentDocumentType;
 import com.rbi.consent.enums.ConsentStatus;
 import com.rbi.consent.event.ConsentApprovedEvent;
+import com.rbi.consent.event.NotificationEvent;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
 import com.rbi.consent.exception.ConsentRejectedException;
@@ -19,7 +19,6 @@ import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
 import com.rbi.consent.security.JwtService;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -226,6 +225,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .userId(updated.getUserId())
                         .bankId(updated.getBankId())
                         .jwtToken(jwt)
+                        .status("APPROVED")
                         .build();
         consentKafkaProducer.sendConsentApprovedEvent(event);
 
@@ -300,8 +300,8 @@ public class ConsentServiceImpl implements ConsentService {
                 record.getBankId(), "Consent Rejected for user " + record.getUserId());
 
         // Emit Universal Notification to the Bank
-        com.rbi.consent.event.NotificationEvent bankNotif =
-                com.rbi.consent.event.NotificationEvent.builder()
+        NotificationEvent bankNotif =
+                NotificationEvent.builder()
                         .notificationId(record.getBankId() + "_" + record.getId() + "_rejected")
                         .targetId(record.getBankId().toString())
                         .type("BANK_CONSENT_REJECTED")
@@ -309,6 +309,17 @@ public class ConsentServiceImpl implements ConsentService {
                         .timestamp(System.currentTimeMillis())
                         .build();
         kafkaTemplate.send("notification-events-topic", bankNotif);
+
+        // Notify Bank via Kafka Event for Rejection
+        ConsentApprovedEvent event =
+                ConsentApprovedEvent.builder()
+                        .consentId(record.getId())
+                        .userId(record.getUserId())
+                        .bankId(record.getBankId())
+                        .jwtToken(null)
+                        .status("REJECTED")
+                        .build();
+        consentKafkaProducer.sendConsentApprovedEvent(event);
 
         kafkaLogProducer.logWarning(
                 "CONSENT_REJECTED",

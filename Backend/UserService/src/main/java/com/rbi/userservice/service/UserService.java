@@ -1,6 +1,7 @@
 package com.rbi.userservice.service;
 
 import com.rbi.userservice.DTO.*;
+import com.rbi.userservice.Model.UserStatus;
 
 public interface UserService {
     Boolean sendOtp(OtpRequestDto otpRequestDto);
@@ -22,4 +23,6 @@ public interface UserService {
     UserDto getUserDetails(String email);
 
     Boolean logout(String token);
+
+    UserStatus getUserStatusByEmail(String email);
 }

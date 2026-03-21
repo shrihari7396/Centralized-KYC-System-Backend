@@ -1,9 +1,12 @@
 package com.rbi.userservice.Repository;
 
 import com.rbi.userservice.Model.UserEntity;
+import com.rbi.userservice.Model.UserStatus;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
+
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +22,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     int updateLastLogin(@Param("email") String email);
 
     Optional<UserEntity> findByEmail(String email);
+
+    UserStatus findUserStatusByEmail(String email);
 }

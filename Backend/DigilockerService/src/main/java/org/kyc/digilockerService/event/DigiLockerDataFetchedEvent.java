@@ -1,5 +1,6 @@
 package org.kyc.digilockerService.event;
 
+import java.time.LocalDate;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class DigiLockerDataFetchedEvent {
+    private String userId;
+    private String mobileNumber;
     private String email;
     private String aadharNumber;
     private String panNumber;
     private String firstName;
     private String lastName;
     private String middleName;
-    private java.time.LocalDate dob;
-    private String address;
+    private LocalDate dob;
+    private Address address;
     private Map<String, String> additionalDetails;
 }

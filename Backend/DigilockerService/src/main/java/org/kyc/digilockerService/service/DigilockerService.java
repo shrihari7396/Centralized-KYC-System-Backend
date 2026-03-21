@@ -8,5 +8,5 @@ public interface DigilockerService {
 
     Boolean verifyOtp(String otp, String key);
 
-    void processVerification(String email);
+    void processVerification(String userId, String email);
 }

@@ -15,4 +15,5 @@ public class ConsentApprovedEvent {
     private String userId;
     private UUID bankId;
     private String jwtToken;
+    private String status;
 }
