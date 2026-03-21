@@ -24,7 +24,8 @@ public class ConsentKafkaConsumer {
                 event.getBankId());
 
         Optional<BankCustomer> customerOpt =
-                bankCustomerRepository.findByUserIdAndBankId(event.getUserId(), event.getBankId());
+                bankCustomerRepository.findByUserIdAndBankId(
+                        event.getUserId(), event.getBankId().toString());
 
         if (customerOpt.isPresent()) {
             BankCustomer customer = customerOpt.get();

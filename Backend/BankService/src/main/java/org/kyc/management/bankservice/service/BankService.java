@@ -22,4 +22,8 @@ public interface BankService {
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
 
     Boolean logout(String token);
+
+    java.util.List<BankCustomer> getApprovedConsents();
+
+    java.util.Map<String, Object> fetchKycData(String userId);
 }

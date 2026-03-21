@@ -18,8 +18,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "users")
 public class UserEntity {
     @Id
-    @Column(nullable = false)
-    private String email; // email is the userId / primary key
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36, updatable = false, nullable = false)
+    private String id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
 
     @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false, columnDefinition = "TEXT")

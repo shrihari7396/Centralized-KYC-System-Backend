@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class NotificationEvent {
     private String notificationId;
-    private String userId; // This is email in our system
+    private String targetId; // Global UUID (User or Bank)
     private String email;
     private String type;
     private String message;

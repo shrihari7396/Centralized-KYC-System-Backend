@@ -1,32 +1,23 @@
 package org.kyc.management.bankservice.entity;
 
-import jakarta.persistence.*;
-import java.sql.Timestamp;
-import java.util.UUID;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Entity
-@Table(name = "banks")
+@Document(collection = "banks")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bank {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Id private String id;
 
     private String name;
     private String code;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-    }
+    private LocalDateTime createdAt;
 }

@@ -4,13 +4,13 @@ import java.util.Set;
 
 public interface SessionRegistry {
 
-    void registerSession(String userId, String sessionId);
+    void registerSession(String targetId, String sessionId);
 
-    void unregisterSession(String userId, String sessionId);
+    void unregisterSession(String targetId, String sessionId);
 
-    String getInstanceForUser(String userId);
+    String getInstanceForUser(String targetId);
 
-    boolean isUserOnline(String userId);
+    boolean isUserOnline(String targetId);
 
-    Set<String> getLocalSessionsForUser(String userId);
+    Set<String> getLocalSessionsForUser(String targetId);
 }

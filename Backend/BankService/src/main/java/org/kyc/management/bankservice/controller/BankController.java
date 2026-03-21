@@ -72,4 +72,15 @@ public class BankController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Logout failed");
         }
     }
+
+    @GetMapping("/consents/approved")
+    public ResponseEntity<java.util.List<BankCustomer>> listApprovedConsents() {
+        return ResponseEntity.ok(bankSvc.getApprovedConsents());
+    }
+
+    @PostMapping("/fetch/{userId}")
+    public ResponseEntity<java.util.Map<String, Object>> fetchCustomerData(
+            @PathVariable("userId") String userId) {
+        return ResponseEntity.ok(bankSvc.fetchKycData(userId));
+    }
 }

@@ -195,6 +195,7 @@ public class UserServiceImpl implements UserService {
                         .orElseThrow(
                                 () -> new RuntimeException("User not found with email: " + email));
         return UserDto.builder()
+                .userId(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())

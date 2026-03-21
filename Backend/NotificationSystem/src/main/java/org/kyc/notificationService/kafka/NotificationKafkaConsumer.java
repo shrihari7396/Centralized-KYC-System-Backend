@@ -1,5 +1,7 @@
 package org.kyc.notificationService.kafka;
 
+import org.kyc.notificationService.dto.NotificationEvent;
+import org.kyc.notificationService.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -7,8 +9,6 @@ import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.retrytopic.DltStrategy;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
-import org.kyc.notificationService.dto.NotificationEvent;
-import org.kyc.notificationService.service.NotificationService;
 
 @Service
 public class NotificationKafkaConsumer {
@@ -27,7 +27,7 @@ public class NotificationKafkaConsumer {
             dltStrategy = DltStrategy.FAIL_ON_ERROR)
     @KafkaListener(topics = "notifications", groupId = "notification-group")
     public void consume(NotificationEvent event) {
-        log.info("Consumed notification event for user: {}", event.getUserId());
+        log.info("Consumed notification event for target: {}", event.getTargetId());
         notificationService.processNotification(event);
     }
 }

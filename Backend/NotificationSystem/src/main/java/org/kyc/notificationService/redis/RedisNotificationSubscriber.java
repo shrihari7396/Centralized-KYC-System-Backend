@@ -2,13 +2,13 @@ package org.kyc.notificationService.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.kyc.notificationService.model.Notification;
+import org.kyc.notificationService.service.NotificationService;
+import org.kyc.notificationService.service.SessionRegistry;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import org.kyc.notificationService.model.Notification;
-import org.kyc.notificationService.service.NotificationService;
-import org.kyc.notificationService.service.SessionRegistry;
 
 @Slf4j
 @Component
@@ -34,19 +34,19 @@ public class RedisNotificationSubscriber implements MessageListener {
         try {
             String json = new String(message.getBody());
             Notification notification = objectMapper.readValue(json, Notification.class);
-            String userId = notification.getUserId();
+            String targetId = notification.getTargetId();
 
             // 1. Check if this instance has active sessions for the user
-            if (sessionRegistry.isUserOnline(userId)) {
+            if (sessionRegistry.isUserOnline(targetId)) {
                 // 2. Atomic lock: claim the notification for sending
                 if (notificationService.claimNotificationForSending(notification.getId())) {
                     try {
                         String destination = "/queue/notifications";
-                        messagingTemplate.convertAndSendToUser(userId, destination, notification);
+                        messagingTemplate.convertAndSendToUser(targetId, destination, notification);
                         log.info(
                                 "Successfully sent notification {} online to user {}",
                                 notification.getId(),
-                                userId);
+                                targetId);
                     } catch (Exception e) {
                         // 3. Failure Handling: Rollback to PENDING so it can be retried or
                         // delivered on reconnect

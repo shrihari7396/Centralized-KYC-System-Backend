@@ -2,11 +2,11 @@ package org.kyc.notificationService.redis; // Or listener package
 
 import java.security.Principal;
 import lombok.extern.slf4j.Slf4j;
+import org.kyc.notificationService.service.NotificationService;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
-import org.kyc.notificationService.service.NotificationService;
 
 @Slf4j
 @Component
@@ -27,11 +27,11 @@ public class WebSocketEventListener {
         if (destination != null && destination.endsWith("/queue/notifications")) {
             Principal principal = accessor.getUser();
             if (principal != null) {
-                String userId = principal.getName(); // This is email
-                log.info("User subscribed: {}. Sending offline notifications.", userId);
+                String targetId = principal.getName(); // This is the Global UUID
+                log.info("Target subscribed: {}. Sending offline notifications.", targetId);
 
                 // Trigger sending offline notifications
-                notificationService.sendOfflineNotifications(userId);
+                notificationService.sendOfflineNotifications(targetId);
             }
         }
     }

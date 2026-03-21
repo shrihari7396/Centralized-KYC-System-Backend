@@ -17,4 +17,7 @@ public class BankKycInitiateRequest {
 
     @NotNull(message = "Requested documents are required")
     private java.util.List<String> requestedDocuments;
+
+    @NotNull(message = "User email is required")
+    private String email;
 }
