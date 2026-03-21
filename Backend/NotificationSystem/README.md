@@ -7,13 +7,13 @@ The Notification Service is a robust, highly-scalable, event-driven microservice
 ## 🚀 Key Features and Code References
 
 - **Fully Stateless Application Layer**: Connection mappings are externalized. 
-  - 📄 *Reference:* [`RedisSessionRegistry.java`](src/main/java/rbi/notification/notification_systemds/service/impl/RedisSessionRegistry.java)
+  - 📄 *Reference:* [`RedisSessionRegistry.java`](src/main/java/org/kyc/notificationService/service/impl/RedisSessionRegistry.java)
 - **Dynamic Pub/Sub Routing**: Uses Redis to perform targeted message delivery, eliminating broadcast overhead.
-  - 📄 *Reference:* [`RedisNotificationSubscriber.java`](src/main/java/rbi/notification/notification_systemds/redis/RedisNotificationSubscriber.java) and [`RedisConfig.java`](src/main/java/rbi/notification/notification_systemds/config/RedisConfig.java)
+  - 📄 *Reference:* [`RedisNotificationSubscriber.java`](src/main/java/org/kyc/notificationService/redis/RedisNotificationSubscriber.java) and [`RedisConfig.java`](src/main/java/org/kyc/notificationService/config/RedisConfig.java)
 - **Reliability & Idempotency**: Leverages Kafka `@RetryableTopic` for automated Dead Letter Queue (DLQ) support and database constraints for exact-once event processing.
-  - 📄 *Reference:* [`NotificationKafkaConsumer.java`](src/main/java/rbi/notification/notification_systemds/kafka/NotificationKafkaConsumer.java)
+  - 📄 *Reference:* [`NotificationKafkaConsumer.java`](src/main/java/org/kyc/notificationService/kafka/NotificationKafkaConsumer.java)
 - **Guaranteed Offline Delivery**: Catches PENDING notifications when a user is disconnected and instantly flushes them to the client upon their next `STOMP CONNECT`.
-  - 📄 *Reference:* [`SessionChannelInterceptor.java`](src/main/java/rbi/notification/notification_systemds/interceptor/SessionChannelInterceptor.java) and [`NotificationServiceImpl.java`](src/main/java/rbi/notification/notification_systemds/service/impl/NotificationServiceImpl.java)
+  - 📄 *Reference:* [`SessionChannelInterceptor.java`](src/main/java/org/kyc/notificationService/interceptor/SessionChannelInterceptor.java) and [`NotificationServiceImpl.java`](src/main/java/org/kyc/notificationService/service/impl/NotificationServiceImpl.java)
 - **Zero-Configuration Observability**: Fully instrumented with Spring Boot Actuator and Micrometer for native Prometheus/Grafana metric scraping.
   - 📄 *Reference:* [`pom.xml`](pom.xml)
 
