@@ -1,11 +1,21 @@
 package org.kyc.management.kycmanagementservice.service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.kyc.management.kycmanagementservice.dto.DigilockerDataRequest;
+import org.kyc.management.kycmanagementservice.dto.DocumentProofResponseDto;
+import org.kyc.management.kycmanagementservice.dto.KycTokenResponseDto;
+import org.kyc.management.kycmanagementservice.dto.UserProfileResponseDto;
+import org.kyc.management.kycmanagementservice.dto.VerifiedIdentity;
 import org.kyc.management.kycmanagementservice.entity.KycEntity;
+import org.kyc.management.kycmanagementservice.entity.KycRecord;
+import org.kyc.management.kycmanagementservice.repository.KycRecordRepository;
 import org.kyc.management.kycmanagementservice.repository.KycRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +24,10 @@ import org.springframework.stereotype.Service;
 public class KycService {
 
     @Autowired private KycRepository kycRepository;
+
+    @Autowired private KycRecordRepository kycRecordRepository;
+
+    @Autowired private KycTokenRedisService kycTokenRedisService;
 
     @Autowired private JwtParserUtil jwtParserUtil;
 
@@ -113,5 +127,90 @@ public class KycService {
         responseMap.put("status", entity.getStatus());
 
         return responseMap;
+    }
+
+    public UserProfileResponseDto getUserProfile(String userId) {
+        KycEntity kycEntity = kycRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("KYC Entity not found for user: " + userId));
+
+        VerifiedIdentity identity = new VerifiedIdentity();
+        identity.setGender("Not Available"); // Not available in current schema
+
+        if (kycEntity.getAadhaarNo() != null) {
+            Optional<KycRecord> recordOpt = kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
+            if (recordOpt.isPresent()) {
+                identity.setFullName(recordOpt.get().getFullName());
+                identity.setDob(recordOpt.get().getDob());
+            }
+        }
+
+        return UserProfileResponseDto.builder()
+            .status(kycEntity.getStatus())
+            .identity(identity)
+            .address(kycEntity.getAddress())
+            .build();
+    }
+
+    public List<DocumentProofResponseDto> getDocumentProofs(String userId) {
+        KycEntity kycEntity = kycRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("KYC Entity not found for user: " + userId));
+
+        LocalDateTime verifiedAt = null;
+        if (kycEntity.getAadhaarNo() != null) {
+            Optional<KycRecord> recordOpt = kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
+            if (recordOpt.isPresent()) {
+                verifiedAt = recordOpt.get().getUpdatedAt();
+            }
+        }
+        if (verifiedAt == null) verifiedAt = LocalDateTime.now(); // Fallback
+
+        List<DocumentProofResponseDto> proofs = new ArrayList<>();
+
+        if (kycEntity.getAadhaarNo() != null) {
+            String maskedId = maskId(kycEntity.getAadhaarNo());
+            proofs.add(new DocumentProofResponseDto("AADHAAR", "UIDAI", maskedId, verifiedAt));
+        }
+
+        if (kycEntity.getPan() != null) {
+            String maskedId = maskId(kycEntity.getPan());
+            proofs.add(new DocumentProofResponseDto("PAN", "ITD", maskedId, verifiedAt));
+        }
+
+        if (kycEntity.getDrivingLicense() != null) {
+            String maskedId = maskId(kycEntity.getDrivingLicense());
+            proofs.add(new DocumentProofResponseDto("DRIVING_LICENSE", "RTO", maskedId, verifiedAt));
+        }
+
+        return proofs;
+    }
+
+    private String maskId(String id) {
+        if (id == null || id.length() <= 4) return id;
+        String last4 = id.substring(id.length() - 4);
+        return "XXXX-XXXX-" + last4;
+    }
+
+    public KycTokenResponseDto getKycToken(String userId) {
+        // Attempt to fetch existing token from Redis
+        Optional<KycTokenResponseDto> existingToken = kycTokenRedisService.getToken(userId);
+        if (existingToken.isPresent()) {
+            return existingToken.get();
+        }
+
+        // Generate a new token if not present
+        KycTokenResponseDto newToken = KycTokenResponseDto.builder()
+            .tokenId(UUID.randomUUID().toString())
+            .allowedData(Arrays.asList("NAME", "DOB", "ADDRESS"))
+            .issuedAt(LocalDateTime.now())
+            .expiresAt(LocalDateTime.now().plusYears(1))
+            .status("ACTIVE")
+            .build();
+
+        kycTokenRedisService.saveToken(userId, newToken);
+        return newToken;
+    }
+
+    public void revokeKycToken(String userId) {
+        kycTokenRedisService.revokeToken(userId);
     }
 }
