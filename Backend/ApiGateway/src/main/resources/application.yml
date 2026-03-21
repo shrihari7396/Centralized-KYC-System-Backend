@@ -60,9 +60,9 @@ spring:
             - Path=/api/digilocker/**
 
         - id: AI_SERVICE
-          uri: lb://AI-SERVICE
+          uri: lb://AISERVICE
           predicates:
-            - Path=/api/ai/**
+            - Path=/ai/api/**
           filters:
             - PrefixPath=/ai-service
 

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
-@RequestMapping("/user")
+@RequestMapping("/ai")
 @RestController
 public class GroqController {
     @Autowired
