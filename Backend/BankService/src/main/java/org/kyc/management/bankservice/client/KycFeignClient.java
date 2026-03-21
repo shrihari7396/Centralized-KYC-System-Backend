@@ -13,4 +13,7 @@ public interface KycFeignClient {
     KycResponseDto submitKyc(
             @RequestBody KycSubmissionDto submissionDto,
             @RequestHeader("Authorization") String token);
+
+    @org.springframework.web.bind.annotation.GetMapping("/bank/documents")
+    java.util.Map<String, Object> fetchKycData(@RequestHeader("Authorization") String consentToken);
 }

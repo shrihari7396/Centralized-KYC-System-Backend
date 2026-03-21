@@ -19,8 +19,8 @@ public class Notification {
     @Column(length = 36, unique = true)
     private String id;
 
-    @Column(name = "user_id")
-    private String userId;
+    @Column(name = "target_id")
+    private String targetId;
 
     private String email;
 

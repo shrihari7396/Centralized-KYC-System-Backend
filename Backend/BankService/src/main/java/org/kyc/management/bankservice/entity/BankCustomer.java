@@ -1,50 +1,31 @@
 package org.kyc.management.bankservice.entity;
 
-import jakarta.persistence.*;
-import java.sql.Timestamp;
-import java.util.UUID;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kyc.management.bankservice.security.StringCryptoConverter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Entity
-@Table(name = "bank_customers")
+@Document(collection = "bank_customers")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankCustomer {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Id private String id;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String userId;
-
-    @Column(nullable = false)
-    private UUID bankId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    private String userId; // Encrypted before save if needed
+    private String bankId;
     private KycStatus kycStatus;
 
     private Long kycRequestId;
     private String riskLevel;
     private String overrideReason;
-    private Timestamp verifiedAt;
+    private LocalDateTime verifiedAt;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private String consentToken; // JWT token from ConsentService
+    private String consentToken;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Timestamp createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-    }
+    private LocalDateTime createdAt;
 }

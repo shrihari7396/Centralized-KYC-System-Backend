@@ -1,10 +1,6 @@
 package org.kyc.management.bankservice.service;
 
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.kyc.management.bankservice.client.ConsentFeignClient;
 import org.kyc.management.bankservice.client.KycFeignClient;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BankKycSubmissionRequest;
@@ -12,32 +8,47 @@ import org.kyc.management.bankservice.dto.KycResponseDto;
 import org.kyc.management.bankservice.dto.KycSubmissionDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.KycStatus;
+import org.kyc.management.bankservice.event.ConsentRequestEvent;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class KycOrchestrationService {
 
-    private final ConsentFeignClient consentClient;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KycFeignClient kycClient;
     private final BankCustomerRepository bankCustomerRepository;
+    private final org.kyc.management.bankservice.logging.KafkaLogProducer kafkaLogProducer;
+    private final org.kyc.management.bankservice.client.UserFeignClient userFeignClient;
 
     public BankCustomer initiateKyc(BankKycInitiateRequest req) {
-        Map<String, Object> consentMap = new HashMap<>();
-        consentMap.put("userId", req.getUserId());
-        consentMap.put("bankId", req.getBankId());
-        consentMap.put("requestedDocuments", req.getRequestedDocuments());
+        kafkaLogProducer.logInfo(
+                "KYC_INITIATED",
+                java.util.Map.of("userId", req.getUserId(), "bankId", req.getBankId()));
 
-        consentClient.requestConsent(consentMap);
+        // Resolve immutable Global User ID instead of volatile email
+        String userGlobalId = userFeignClient.getUserDetails(req.getUserId()).getUserId();
+
+        ConsentRequestEvent event =
+                ConsentRequestEvent.builder()
+                        .userId(userGlobalId)
+                        .email(req.getEmail())
+                        .bankId(req.getBankId().toString())
+                        .requestedDocuments(req.getRequestedDocuments())
+                        .build();
+
+        // Publish async consent request event
+        kafkaTemplate.send("consent-request-topic", event);
 
         BankCustomer customer =
                 bankCustomerRepository
-                        .findByUserIdAndBankId(req.getUserId(), req.getBankId())
+                        .findByUserIdAndBankId(userGlobalId, req.getBankId().toString())
                         .orElse(new BankCustomer());
 
-        customer.setUserId(req.getUserId());
-        customer.setBankId(req.getBankId());
+        customer.setUserId(userGlobalId);
+        customer.setBankId(req.getBankId().toString());
         customer.setKycStatus(KycStatus.CONSENT_PENDING);
 
         return bankCustomerRepository.save(customer);
@@ -55,7 +66,7 @@ public class KycOrchestrationService {
 
         if ("VERIFIED".equals(response.getStatus())) {
             customer.setKycStatus(KycStatus.VERIFIED);
-            customer.setVerifiedAt(new Timestamp(System.currentTimeMillis()));
+            customer.setVerifiedAt(java.time.LocalDateTime.now());
         } else {
             customer.setKycStatus(KycStatus.REJECTED);
         }

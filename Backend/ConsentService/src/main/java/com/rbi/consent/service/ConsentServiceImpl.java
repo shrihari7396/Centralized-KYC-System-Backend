@@ -19,12 +19,16 @@ import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
 import com.rbi.consent.security.JwtService;
+
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,16 +39,16 @@ public class ConsentServiceImpl implements ConsentService {
     private final ConsentRepository consentRepository;
     private final JwtService jwtService;
     private final WebSocketPublisher webSocketPublisher;
-    private final BankFeignClient bankFeignClient;
     private final UserFeignClient userFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
     private final KafkaLogProducer kafkaLogProducer;
     private final ObjectMapper objectMapper;
-    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
-    private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SecureRandom secureRandom;
 
     private static final String OTP_KEY_PREFIX = "consent_otp:";
-    private static final long OTP_EXPIRY_MINUTES = 5;
+    private static final long OTP_EXPIRY_MINUTES = 10;
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
@@ -84,8 +88,29 @@ public class ConsentServiceImpl implements ConsentService {
                         "consentId",
                         saved.getId()));
 
-        // Notify Frontend WebSocket
-        webSocketPublisher.publishConsentRequested(requestDto.getUserId(), saved);
+        // Trigger Global Notification Event via Kafka
+        String nId = requestDto.getUserId() + "_" + requestDto.getBankId() + "_" + saved.getId();
+        com.rbi.consent.event.NotificationEvent notifEvent =
+                com.rbi.consent.event.NotificationEvent.builder()
+                        .notificationId(nId)
+                        .targetId(requestDto.getUserId())
+                        .email(requestDto.getUserId())
+                        .type("CONSENT_REQUEST")
+                        .message(
+                                "A new KYC Consent request was initiated by a Bank. Action URL: http://localhost:3000/consent/"
+                                        + saved.getId())
+                        .timestamp(System.currentTimeMillis())
+                        .actionUrl("http://localhost:3000/consent/" + saved.getId())
+                        .metadata(
+                                java.util.Map.of(
+                                        "consentId",
+                                        saved.getId(),
+                                        "bankId",
+                                        requestDto.getBankId()))
+                        .build();
+
+        kafkaTemplate.send("notification-events-topic", notifEvent);
+        log.info("Published universal NotificationEvent to Kafka for consent: {}", saved.getId());
     }
 
     @Override
@@ -122,7 +147,7 @@ public class ConsentServiceImpl implements ConsentService {
         }
 
         // Generate 6-digit OTP
-        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        String otp = String.format("%06d", secureRandom.nextInt(1000000));
 
         // Store in Redis with TTL
         String redisKey = OTP_KEY_PREFIX + consentId;
@@ -154,14 +179,14 @@ public class ConsentServiceImpl implements ConsentService {
         if (storedOtp == null) {
             kafkaLogProducer.logWarning(
                     "OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
-            throw new RuntimeException("OTP expired or not requested.");
+            throw new com.rbi.consent.exception.InValidOtpException("Expired or invalid OTP");
         }
 
         if (!storedOtp.equals(otpInput)) {
             kafkaLogProducer.logWarning(
                     "OTP_VERIFICATION_FAILED",
                     java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
-            throw new RuntimeException("Invalid OTP provided.");
+            throw new com.rbi.consent.exception.InValidOtpException("Invalid OTP");
         }
 
         // Delete OTP after successful verification
@@ -207,6 +232,17 @@ public class ConsentServiceImpl implements ConsentService {
         // Notify WS success
         webSocketPublisher.publishConsentApproved(
                 record.getBankId(), "Consent Approved for " + record.getUserId());
+
+        // Emit Universal Notification to the Bank
+        com.rbi.consent.event.NotificationEvent bankNotif =
+                com.rbi.consent.event.NotificationEvent.builder()
+                        .notificationId(updated.getBankId() + "_" + updated.getId() + "_approved")
+                        .targetId(updated.getBankId().toString())
+                        .type("BANK_CONSENT_APPROVED")
+                        .message("Consent Approved for " + updated.getUserId())
+                        .timestamp(System.currentTimeMillis())
+                        .build();
+        kafkaTemplate.send("notification-events-topic", bankNotif);
 
         kafkaLogProducer.logInfo(
                 "CONSENT_APPROVED",
@@ -262,6 +298,17 @@ public class ConsentServiceImpl implements ConsentService {
         // Notify Bank
         webSocketPublisher.publishConsentRejected(
                 record.getBankId(), "Consent Rejected for user " + record.getUserId());
+
+        // Emit Universal Notification to the Bank
+        com.rbi.consent.event.NotificationEvent bankNotif =
+                com.rbi.consent.event.NotificationEvent.builder()
+                        .notificationId(record.getBankId() + "_" + record.getId() + "_rejected")
+                        .targetId(record.getBankId().toString())
+                        .type("BANK_CONSENT_REJECTED")
+                        .message("Consent Rejected for user " + record.getUserId())
+                        .timestamp(System.currentTimeMillis())
+                        .build();
+        kafkaTemplate.send("notification-events-topic", bankNotif);
 
         kafkaLogProducer.logWarning(
                 "CONSENT_REJECTED",

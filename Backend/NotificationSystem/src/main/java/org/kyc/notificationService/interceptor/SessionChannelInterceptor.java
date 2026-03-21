@@ -2,6 +2,10 @@ package org.kyc.notificationService.interceptor;
 
 import java.security.Principal;
 import lombok.extern.slf4j.Slf4j;
+import org.kyc.notificationService.security.JWTService;
+import org.kyc.notificationService.security.UserPrincipal;
+import org.kyc.notificationService.service.NotificationService;
+import org.kyc.notificationService.service.SessionRegistry;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -10,10 +14,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.kyc.notificationService.security.JWTService;
-import org.kyc.notificationService.security.UserPrincipal;
-import org.kyc.notificationService.service.NotificationService;
-import org.kyc.notificationService.service.SessionRegistry;
 
 @Slf4j
 @Component

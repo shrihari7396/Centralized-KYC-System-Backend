@@ -4,10 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.kyc.notificationService.dto.NotificationEvent;
 import org.kyc.notificationService.model.Notification;
 import org.kyc.notificationService.model.NotificationStatus;
@@ -15,6 +11,10 @@ import org.kyc.notificationService.repository.NotificationRepository;
 import org.kyc.notificationService.service.NotificationService;
 import org.kyc.notificationService.service.SessionRegistry;
 import org.kyc.notificationService.utility.InstanceId;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification =
                 Notification.builder()
                         .id(event.getNotificationId())
-                        .userId(event.getUserId())
+                        .targetId(event.getTargetId())
                         .email(event.getEmail())
                         .message(event.getMessage())
                         .type(event.getType())
@@ -46,16 +46,16 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(notification);
 
-        // 2. Look up the target instance of the user
-        String targetInstanceId = sessionRegistry.getInstanceForUser(event.getUserId());
+        // 2. Look up the target instance of the target
+        String targetInstanceId = sessionRegistry.getInstanceForUser(event.getTargetId());
         if (targetInstanceId != null) {
             if (targetInstanceId.equals(instanceId.getInstanceId())) {
                 log.info(
-                        "User {} is on the local instance. Bypassing Redis serialization.",
-                        event.getUserId());
+                        "Target {} is on the local instance. Bypassing Redis serialization.",
+                        event.getTargetId());
                 String destination = "/queue/notifications";
                 messagingTemplate.convertAndSendToUser(
-                        event.getUserId(), destination, notification);
+                        event.getTargetId(), destination, notification);
                 notification.setStatus(NotificationStatus.DELIVERED);
                 notificationRepository.save(notification);
             } else {
@@ -72,19 +72,19 @@ public class NotificationServiceImpl implements NotificationService {
             }
         } else {
             log.info(
-                    "User {} is offline. Notification {} saved as PENDING.",
-                    event.getUserId(),
+                    "Target {} is offline. Notification {} saved as PENDING.",
+                    event.getTargetId(),
                     event.getNotificationId());
         }
     }
 
-    private void sendPendingNotification(String userId, List<Notification> notifications) {
+    private void sendPendingNotification(String targetId, List<Notification> notifications) {
         String destination =
-                "/queue/notifications"; // STOMP /user/{userId}/queue/notifications translates to
+                "/queue/notifications"; // STOMP /user/{targetId}/queue/notifications translates to
         // this
         // Convert and send to user
         messagingTemplate.convertAndSendToUser(
-                userId, // SimplePrincipal name (email)
+                targetId, // SimplePrincipal name (Global ID)
                 destination,
                 notifications);
 
@@ -95,10 +95,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public void sendOfflineNotifications(String userId) {
+    public void sendOfflineNotifications(String targetId) {
         List<Notification> pendingNotifications =
-                notificationRepository.findByUserIdAndStatus(userId, NotificationStatus.PENDING);
-        sendPendingNotification(userId, pendingNotifications);
+                notificationRepository.findByTargetIdAndStatus(
+                        targetId, NotificationStatus.PENDING);
+        sendPendingNotification(targetId, pendingNotifications);
     }
 
     @Override
@@ -139,7 +140,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<Notification> getUnreadNotifications(String userId) {
-        return notificationRepository.findByUserIdAndStatus(userId, NotificationStatus.PENDING);
+    public List<Notification> getUnreadNotifications(String targetId) {
+        return notificationRepository.findByTargetIdAndStatus(targetId, NotificationStatus.PENDING);
     }
 }

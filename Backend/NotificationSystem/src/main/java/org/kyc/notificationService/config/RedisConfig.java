@@ -1,13 +1,13 @@
 package org.kyc.notificationService.config;
 
 import lombok.RequiredArgsConstructor;
+import org.kyc.notificationService.redis.RedisNotificationSubscriber;
+import org.kyc.notificationService.service.impl.RedisSessionRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.kyc.notificationService.redis.RedisNotificationSubscriber;
-import org.kyc.notificationService.service.impl.RedisSessionRegistry;
 
 @Configuration
 @RequiredArgsConstructor
