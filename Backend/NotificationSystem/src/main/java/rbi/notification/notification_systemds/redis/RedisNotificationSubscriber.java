@@ -8,8 +8,10 @@ import rbi.notification.notification_systemds.model.Notification;
 import rbi.notification.notification_systemds.service.NotificationService;
 import rbi.notification.notification_systemds.service.SessionRegistry;
 
+import org.springframework.data.redis.connection.MessageListener;
+
 @Component
-public class RedisNotificationSubscriber {
+public class RedisNotificationSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;

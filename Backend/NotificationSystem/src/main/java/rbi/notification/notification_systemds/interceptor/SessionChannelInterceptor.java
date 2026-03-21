@@ -17,7 +17,7 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
     private final SessionRegistry sessionRegistry;
     private final rbi.notification.notification_systemds.service.NotificationService notificationService;
 
-    public SessionChannelInterceptor(SessionRegistry sessionRegistry, rbi.notification.notification_systemds.service.NotificationService notificationService) {
+    public SessionChannelInterceptor(SessionRegistry sessionRegistry, @org.springframework.context.annotation.Lazy rbi.notification.notification_systemds.service.NotificationService notificationService) {
         this.sessionRegistry = sessionRegistry;
         this.notificationService = notificationService;
     }

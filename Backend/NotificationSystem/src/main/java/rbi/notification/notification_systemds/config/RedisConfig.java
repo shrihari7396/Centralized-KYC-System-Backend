@@ -25,16 +25,10 @@ public class RedisConfig {
 
     @Bean
     public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
-                                                        MessageListenerAdapter listenerAdapter) {
+                                                        RedisNotificationSubscriber subscriber) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, topic());
+        container.addMessageListener(subscriber, topic());
         return container;
-    }
-
-    @Bean
-    public MessageListenerAdapter listenerAdapter(RedisNotificationSubscriber subscriber) {
-        // "onMessage" is the method name in RedisNotificationSubscriber
-        return new MessageListenerAdapter(subscriber, "onMessage");
     }
 }
