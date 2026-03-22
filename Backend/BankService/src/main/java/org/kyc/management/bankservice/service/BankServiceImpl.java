@@ -2,16 +2,24 @@ package org.kyc.management.bankservice.service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.kyc.management.bankservice.client.KycFeignClient;
+import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
+import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.CreateOtpEvent;
 import org.kyc.management.bankservice.exception.InValidOtpException;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
+import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.security.JwtValidator;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,14 +36,14 @@ public class BankServiceImpl implements BankService {
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final SecureRandom secureRandom;
     private final JwtValidator jwtValidator;
-    private final org.kyc.management.bankservice.client.KycFeignClient kycClient;
-    private final org.kyc.management.bankservice.repository.BankCustomerMongoRepository mongoRepo;
-    private final org.kyc.management.bankservice.client.UserFeignClient userFeignClient;
+    private final KycFeignClient kycClient;
+    private final BankCustomerMongoRepository mongoRepo;
+    private final UserFeignClient userFeignClient;
 
     @Override
     public BankCustomer getCustomerStatus(String userId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
-        kafkaLogProducer.logInfo("GET_CUSTOMER_STATUS", java.util.Map.of("userId", globalId));
+        kafkaLogProducer.logInfo("GET_CUSTOMER_STATUS", Map.of("userId", globalId));
         return repo.findByUserId(globalId)
                 .orElseThrow(
                         () -> {
@@ -65,17 +73,16 @@ public class BankServiceImpl implements BankService {
         if ("HIGH_RISK".equalsIgnoreCase(c.getRiskLevel())) {
             kafkaLogProducer.logWarning(
                     "BYPASS_KYC_REJECTED",
-                    java.util.Map.of(
-                            "userId", req.getUserId(), "reason", "HIGH RISK override attempted"));
+                    Map.of("userId", req.getUserId(), "reason", "HIGH RISK override attempted"));
             throw new RuntimeException("Cannot bypass KYC for HIGH_RISK user");
         }
 
         c.setKycStatus(KycStatus.VERIFIED_OVERRIDE);
         c.setOverrideReason(req.getReason());
-        c.setVerifiedAt(java.time.LocalDateTime.now());
+        c.setVerifiedAt(LocalDateTime.now());
         kafkaLogProducer.logInfo(
                 "BYPASS_KYC_SUCCESS",
-                java.util.Map.of("userId", req.getUserId(), "overrideReason", req.getReason()));
+                Map.of("userId", req.getUserId(), "overrideReason", req.getReason()));
         return repo.save(c);
     }
 
@@ -84,7 +91,7 @@ public class BankServiceImpl implements BankService {
         if (!repo.existsByUserId(otpRequestDto.getEmail())) {
             kafkaLogProducer.logError(
                     "LOGIN_REJECTED",
-                    java.util.Map.of(
+                    Map.of(
                             "email",
                             otpRequestDto.getEmail(),
                             "reason",
@@ -172,13 +179,12 @@ public class BankServiceImpl implements BankService {
 
         if (response == null) {
             kafkaLogProducer.logWarning(
-                    "LOGIN_FAILED", java.util.Map.of("email", otpVerificationDto.getEmail()));
+                    "LOGIN_FAILED", Map.of("email", otpVerificationDto.getEmail()));
             throw new InValidOtpException("Invalid OTP");
         }
 
         kafkaLogProducer.logInfo(
-                "USER_LOGGED_IN",
-                java.util.Map.of("email", response.getEmail(), "role", response.getRole()));
+                "USER_LOGGED_IN", Map.of("email", response.getEmail(), "role", response.getRole()));
         return response;
     }
 
@@ -203,17 +209,17 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public java.util.List<BankCustomer> getApprovedConsents() {
+    public List<BankCustomer> getApprovedConsents() {
         kafkaLogProducer.logInfo(
                 "GET_APPROVED_CONSENTS",
                 java.util.Map.of("action", "Listing users with jwt tokens"));
         return repo.findAll().stream()
                 .filter(c -> c.getConsentToken() != null)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override
-    public java.util.Map<String, Object> fetchKycData(String userId) {
+    public Map<String, Object> fetchKycData(String userId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
         BankCustomer customer =
                 repo.findByUserId(globalId)
@@ -227,10 +233,8 @@ public class BankServiceImpl implements BankService {
         }
 
         kafkaLogProducer.logInfo("FETCHING_KYC_DATA", java.util.Map.of("userId", userId));
-        java.util.Map<String, Object> data =
-                kycClient.fetchKycData("Bearer " + customer.getConsentToken());
-
-        org.kyc.management.bankservice.entity.BankCustomerKycData mongoDoc =
+        Map<String, Object> data = kycClient.fetchKycData("Bearer " + customer.getConsentToken());
+        BankCustomerKycData mongoDoc =
                 org.kyc.management.bankservice.entity.BankCustomerKycData.builder()
                         .consentId(customer.getId().toString())
                         .bankCustomerEmail(globalId)

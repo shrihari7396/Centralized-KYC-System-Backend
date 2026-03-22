@@ -38,7 +38,8 @@ public class UserController {
         }
         if (userService.sendOtp(otpRequestDtp)) {
             logProducer.info(
-                    "OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));;
+                    "OTP_REQUEST_EMAIL_SUCCESS", Map.of("email", otpRequestDtp.getEmail()));
+            ;
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
         } else {
             logProducer.warning(
@@ -69,5 +70,10 @@ public class UserController {
     @GetMapping("/details")
     public ResponseEntity<?> getUserDetails(@RequestParam String email) {
         return ResponseEntity.ok(userService.getUserDetails(email));
+    }
+
+    @GetMapping("/get-kyc-status/{email}")
+    public ResponseEntity<?> getStatusByEmail(@PathVariable String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserStatusByEmail(email));
     }
 }

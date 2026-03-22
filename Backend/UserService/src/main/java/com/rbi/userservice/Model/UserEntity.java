@@ -43,7 +43,6 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-
     private LocalDateTime lastLoginAt;
 
     @CreationTimestamp private LocalDateTime createdAt;

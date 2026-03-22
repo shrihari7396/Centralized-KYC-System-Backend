@@ -1,8 +1,10 @@
 package org.kyc.management.bankservice.client;
 
+import java.util.Map;
 import org.kyc.management.bankservice.dto.KycResponseDto;
 import org.kyc.management.bankservice.dto.KycSubmissionDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,6 +16,6 @@ public interface KycFeignClient {
             @RequestBody KycSubmissionDto submissionDto,
             @RequestHeader("Authorization") String token);
 
-    @org.springframework.web.bind.annotation.GetMapping("/bank/documents")
-    java.util.Map<String, Object> fetchKycData(@RequestHeader("Authorization") String consentToken);
+    @GetMapping("/bank/documents")
+    Map<String, Object> fetchKycData(@RequestHeader("Authorization") String consentToken);
 }

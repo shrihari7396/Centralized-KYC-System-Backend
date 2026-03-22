@@ -1,5 +1,7 @@
 package org.kyc.management.bankservice.service;
 
+import java.util.List;
+import java.util.Map;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
@@ -23,7 +25,7 @@ public interface BankService {
 
     Boolean logout(String token);
 
-    java.util.List<BankCustomer> getApprovedConsents();
+    List<BankCustomer> getApprovedConsents();
 
-    java.util.Map<String, Object> fetchKycData(String userId);
+    Map<String, Object> fetchKycData(String userId);
 }

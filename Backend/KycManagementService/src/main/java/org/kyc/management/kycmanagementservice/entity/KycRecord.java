@@ -3,11 +3,11 @@ package org.kyc.management.kycmanagementservice.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kyc.management.kycmanagementservice.security.StringCryptoConverter;
 
 @Entity
 @Table(name = "kyc_records")
@@ -18,28 +18,23 @@ import org.kyc.management.kycmanagementservice.security.StringCryptoConverter;
 public class KycRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID kycId;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
     private String mobileNumber;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
     private String aadharNumber;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
     private String panNumber;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private String fullName;
+    private String firstName;
+
+    private String lastName;
+
+    private String middleName;
 
     private LocalDate dob;
 
-    @Convert(converter = StringCryptoConverter.class)
     @Column(columnDefinition = "TEXT")
     private String address;
 

@@ -1,8 +1,9 @@
 package org.kyc.management.kycmanagementservice.consumer;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.kycmanagementservice.configs.AppConstants;
+import org.kyc.management.kycmanagementservice.configs.KafkaConstants;
 import org.kyc.management.kycmanagementservice.entity.KycRecord;
 import org.kyc.management.kycmanagementservice.event.DigiLockerDataFetchedEvent;
 import org.kyc.management.kycmanagementservice.event.KycVerificationSuccessEvent;
@@ -23,39 +24,19 @@ public class KycKafkaConsumer {
 
     private final KafkaLogProducer kafkaLogProducer;
 
-    private static final String FETCHED_TOPIC = AppConstants.DIGILOCKER_DATA_FETCHED_TOPIC;
-    private static final String SUCCESS_TOPIC = AppConstants.SUCCESS_TOPIC;
-    private static final String KAFKA_GROUP_ID = AppConstants.KAFKA_GROUP_ID;
+    private static final String FETCHED_TOPIC = KafkaConstants.DIGILOCKER_DATA_FETCHED_TOPIC;
+    private static final String SUCCESS_TOPIC = KafkaConstants.SUCCESS_TOPIC;
+    private static final String KAFKA_GROUP_ID = KafkaConstants.KAFKA_GROUP_ID;
 
     @KafkaListener(topics = FETCHED_TOPIC, groupId = KAFKA_GROUP_ID)
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
         log.info("Consumed DigiLocker data for mobile: {}", event.getMobileNumber());
         kafkaLogProducer.logInfo(
-                "KYC_PROCESSING_STARTED",
-                java.util.Map.of("mobileNumber", event.getMobileNumber()));
+                "KYC_PROCESSING_STARTED", Map.of("mobileNumber", event.getMobileNumber()));
 
         // Map and save to DB
-        KycRecord record =
-                kycRecordRepository
-                        .findByMobileNumber(event.getMobileNumber())
-                        .orElse(new KycRecord());
 
-        String fullName =
-                String.format(
-                                "%s %s %s",
-                                event.getFirstName(),
-                                event.getMiddleName() != null ? event.getMiddleName() : "",
-                                event.getLastName())
-                        .replaceAll("\\s+", " ")
-                        .trim();
-
-        record.setMobileNumber(event.getMobileNumber());
-        record.setAadharNumber(event.getAadharNumber());
-        record.setPanNumber(event.getPanNumber());
-        record.setFullName(fullName);
-        record.setDob(event.getDob());
-        record.setAddress(event.getAddress());
-        record.setStatus("VERIFIED");
+        KycRecord record = KycRecord.builder().dob().build();
 
         kycRecordRepository.save(record);
         log.info("KycRecord saved to DB for mobile: {}", event.getMobileNumber());

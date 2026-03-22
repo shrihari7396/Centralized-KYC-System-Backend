@@ -1,7 +1,9 @@
 package org.kyc.management.bankservice.service;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.client.KycFeignClient;
+import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BankKycSubmissionRequest;
 import org.kyc.management.bankservice.dto.KycResponseDto;
@@ -9,6 +11,7 @@ import org.kyc.management.bankservice.dto.KycSubmissionDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentRequestEvent;
+import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -20,13 +23,12 @@ public class KycOrchestrationService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KycFeignClient kycClient;
     private final BankCustomerRepository bankCustomerRepository;
-    private final org.kyc.management.bankservice.logging.KafkaLogProducer kafkaLogProducer;
-    private final org.kyc.management.bankservice.client.UserFeignClient userFeignClient;
+    private final KafkaLogProducer kafkaLogProducer;
+    private final UserFeignClient userFeignClient;
 
     public BankCustomer initiateKyc(BankKycInitiateRequest req) {
         kafkaLogProducer.logInfo(
-                "KYC_INITIATED",
-                java.util.Map.of("userId", req.getUserId(), "bankId", req.getBankId()));
+                "KYC_INITIATED", Map.of("userId", req.getUserId(), "bankId", req.getBankId()));
 
         // Resolve immutable Global User ID instead of volatile email
         String userGlobalId = userFeignClient.getUserDetails(req.getUserId()).getUserId();

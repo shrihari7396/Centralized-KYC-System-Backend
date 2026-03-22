@@ -29,11 +29,21 @@ public class ConsentKafkaConsumer {
 
         if (customerOpt.isPresent()) {
             BankCustomer customer = customerOpt.get();
-            customer.setConsentToken(event.getJwtToken());
+            if ("REJECTED".equalsIgnoreCase(event.getStatus())) {
+                customer.setKycStatus(org.kyc.management.bankservice.entity.KycStatus.REJECTED);
+                log.info(
+                        "Consent was REJECTED for userId: {} and bankId: {}",
+                        event.getUserId(),
+                        event.getBankId());
+            } else {
+                customer.setKycStatus(org.kyc.management.bankservice.entity.KycStatus.KYC_PENDING);
+                customer.setConsentToken(event.getJwtToken());
+                log.info(
+                        "Successfully updated consentToken and status for BankCustomer record with id: {}",
+                        customer.getId());
+            }
+
             bankCustomerRepository.save(customer);
-            log.info(
-                    "Successfully updated consentToken for BankCustomer record with id: {}",
-                    customer.getId());
         } else {
             log.warn(
                     "BankCustomer record not found for userId: {} and bankId: {}",
