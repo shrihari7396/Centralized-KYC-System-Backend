@@ -360,7 +360,7 @@ class BankServiceImplTest {
                         .id("customer-456")
                         .userId("global-user-456")
                         .bankId("bank-456")
-                        .kycStatus(KycStatus.CONSENT_PENDING)
+                        // .kycStatus(KycStatus.CONSENT_PENDING)
                         .build();
 
         when(repo.findAll()).thenReturn(List.of(customerWithConsent, customerWithoutConsent));
