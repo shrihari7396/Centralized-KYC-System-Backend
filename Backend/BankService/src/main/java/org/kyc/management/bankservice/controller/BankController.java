@@ -4,9 +4,7 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
-import org.kyc.management.bankservice.dto.BankKycSubmissionRequest;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
-import org.kyc.management.bankservice.dto.KycResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
@@ -29,11 +27,6 @@ public class BankController {
         return ResponseEntity.ok(orchestrator.initiateKyc(req));
     }
 
-    @PostMapping("/submit")
-    public ResponseEntity<KycResponseDto> submitData(
-            @RequestBody @Valid BankKycSubmissionRequest req) {
-        return ResponseEntity.ok(orchestrator.submitKycData(req));
-    }
 
     @GetMapping("/status/{userId}")
     public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") String userId) {

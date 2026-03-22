@@ -1,6 +1,6 @@
-package org.kyc.management.bankservice.dto;
+package org.kyc.management.bankservice.event;
 
-import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KycSubmissionDto {
+public class KycDataEvent {
     private String userId;
-    private KycIdentityDto identity;
-    private List<KycDocumentDto> documents;
+    private String bankId;
+    private String consentId;
+    private Map<String, Object> kycData;
 }

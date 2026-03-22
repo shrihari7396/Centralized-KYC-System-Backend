@@ -5,13 +5,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbi.userservice.DTO.LoginResponseDto;
 import com.rbi.userservice.DTO.OtpRequestDto;
 import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.DTO.UserDto;
-import com.rbi.userservice.DTO.LoginResponseDto;
 import com.rbi.userservice.Model.UserStatus;
-import com.rbi.userservice.exception.UserNotFoundException;
 import com.rbi.userservice.kafkaEvents.LogProducer;
 import com.rbi.userservice.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -21,8 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Map;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false) // Disable security filters for unit tests
@@ -77,7 +74,9 @@ public class UserControllerTest {
                         post("/user/request-otp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isNotFound()); // UserNotFoundException should be handled or throw 404 depending on Advice
+                .andExpect(
+                        status().isNotFound()); // UserNotFoundException should be handled or throw
+        // 404 depending on Advice
     }
 
     @Test
@@ -86,10 +85,8 @@ public class UserControllerTest {
         dto.setOtp("123456");
         dto.setEmail("john@example.com");
 
-        LoginResponseDto responseDto = LoginResponseDto.builder()
-                .email("john@example.com")
-                .token("valid_token")
-                .build();
+        LoginResponseDto responseDto =
+                LoginResponseDto.builder().email("john@example.com").token("valid_token").build();
 
         when(userService.getLoginResponseDto(any(OtpVerificationDto.class)))
                 .thenReturn(responseDto);
@@ -120,14 +117,15 @@ public class UserControllerTest {
 
     @Test
     void testGetUserDetails_Success() throws Exception {
-        UserDto userDto = UserDto.builder()
-                .userId("uuid-123")
-                .firstName("John")
-                .lastName("Doe")
-                .email("john@example.com")
-                .phone("1234567890")
-                .status(UserStatus.KYC_PENDING)
-                .build();
+        UserDto userDto =
+                UserDto.builder()
+                        .userId("uuid-123")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .email("john@example.com")
+                        .phone("1234567890")
+                        .status(UserStatus.KYC_PENDING)
+                        .build();
 
         when(userService.getUserDetails("john@example.com")).thenReturn(userDto);
 

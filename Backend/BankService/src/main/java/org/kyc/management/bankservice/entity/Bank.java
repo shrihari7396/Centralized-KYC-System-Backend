@@ -18,6 +18,7 @@ public class Bank {
 
     private String name;
     private String code;
+    private String username;
 
     private LocalDateTime createdAt;
 }

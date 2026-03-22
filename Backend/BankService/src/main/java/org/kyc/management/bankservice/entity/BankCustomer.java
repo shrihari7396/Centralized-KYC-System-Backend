@@ -18,14 +18,13 @@ public class BankCustomer {
 
     private String userId; // Encrypted before save if needed
     private String bankId;
-    private KycStatus kycStatus;
+    private String consentId;
 
     private Long kycRequestId;
     private String riskLevel;
     private String overrideReason;
     private LocalDateTime verifiedAt;
 
-    private String consentToken;
-
     private LocalDateTime createdAt;
+// public BankCustomer(String id, String userId, String bankId, String consentId, Long kycRequestId, String riskLevel, String overrideReason, LocalDateTime verifiedAt, LocalDateTime createdAt) { this.id = id; this.userId = userId; this.bankId = bankId; this.consentId = consentId; this.kycRequestId = kycRequestId; this.riskLevel = riskLevel; this.overrideReason = overrideReason; this.verifiedAt = verifiedAt; this.createdAt = createdAt; }
 }

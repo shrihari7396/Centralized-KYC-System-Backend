@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.kyc.management.bankservice.client.KycFeignClient;
 import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
@@ -21,6 +20,9 @@ import org.kyc.management.bankservice.exception.InValidOtpException;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
+import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.repository.BankRepository;
+import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.kyc.management.bankservice.security.JwtValidator;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -36,9 +38,10 @@ public class BankServiceImpl implements BankService {
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final SecureRandom secureRandom;
     private final JwtValidator jwtValidator;
-    private final KycFeignClient kycClient;
     private final BankCustomerMongoRepository mongoRepo;
     private final UserFeignClient userFeignClient;
+    private final BankRepository bankRepo;
+    private final ConsentRepository consentRepo;
 
     @Override
     public BankCustomer getCustomerStatus(String userId) {
@@ -77,7 +80,11 @@ public class BankServiceImpl implements BankService {
             throw new RuntimeException("Cannot bypass KYC for HIGH_RISK user");
         }
 
-        c.setKycStatus(KycStatus.VERIFIED_OVERRIDE);
+        Consent consent = consentRepo.findById(c.getConsentId())
+                .orElseThrow(() -> new RuntimeException("Consent not found"));
+        consent.setStatus(KycStatus.VERIFIED_OVERRIDE);
+        consentRepo.save(consent);
+
         c.setOverrideReason(req.getReason());
         c.setVerifiedAt(LocalDateTime.now());
         kafkaLogProducer.logInfo(
@@ -88,15 +95,15 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
-        if (!repo.existsByUserId(otpRequestDto.getEmail())) {
+        if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
             kafkaLogProducer.logError(
                     "LOGIN_REJECTED",
                     Map.of(
-                            "email",
+                            "username",
                             otpRequestDto.getEmail(),
                             "reason",
-                            "Email does not exist in Bank Customer DB"));
-            throw new RuntimeException("Email address is not registered with the Bank");
+                            "Username does not exist in Bank DB"));
+            throw new RuntimeException("Username is not registered with the Bank");
         }
 
         return generateAndSendOtp(
@@ -212,9 +219,17 @@ public class BankServiceImpl implements BankService {
     public List<BankCustomer> getApprovedConsents() {
         kafkaLogProducer.logInfo(
                 "GET_APPROVED_CONSENTS",
-                java.util.Map.of("action", "Listing users with jwt tokens"));
+                java.util.Map.of("action", "Listing users with approved consents"));
+        
+        java.util.List<Consent> approvedConsents = new java.util.ArrayList<>(consentRepo.findByStatus(KycStatus.VERIFIED));
+        approvedConsents.addAll(consentRepo.findByStatus(KycStatus.VERIFIED_OVERRIDE));
+
+        java.util.List<String> userIds = approvedConsents.stream()
+                .map(Consent::getUserId)
+                .collect(Collectors.toList());
+
         return repo.findAll().stream()
-                .filter(c -> c.getConsentToken() != null)
+                .filter(c -> userIds.contains(c.getUserId()))
                 .collect(Collectors.toList());
     }
 
@@ -225,35 +240,11 @@ public class BankServiceImpl implements BankService {
                 repo.findByUserId(globalId)
                         .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (customer.getConsentToken() == null) {
-            kafkaLogProducer.logError(
-                    "FETCH_KYC_FAILED",
-                    java.util.Map.of("userId", userId, "reason", "No Consent Token"));
-            throw new RuntimeException("No approved consent token available for this user.");
-        }
+        kafkaLogProducer.logInfo("FETCHING_KYC_DATA_LOCAL", java.util.Map.of("userId", userId));
+        
+        BankCustomerKycData mongoDoc = mongoRepo.findByUserIdAndBankId(globalId, customer.getBankId())
+                .orElseThrow(() -> new RuntimeException("KYC data not found in local DB yet."));
 
-        kafkaLogProducer.logInfo("FETCHING_KYC_DATA", java.util.Map.of("userId", userId));
-        Map<String, Object> data = kycClient.fetchKycData("Bearer " + customer.getConsentToken());
-        BankCustomerKycData mongoDoc =
-                org.kyc.management.bankservice.entity.BankCustomerKycData.builder()
-                        .consentId(customer.getId().toString())
-                        .bankCustomerEmail(globalId)
-                        .kycData(data)
-                        .fetchedAt(java.time.LocalDateTime.now())
-                        .build();
-
-        mongoRepo.save(mongoDoc);
-        kafkaLogProducer.logInfo(
-                "SAVED_KYC_MONGO",
-                java.util.Map.of(
-                        "userId",
-                        userId,
-                        "mongoId",
-                        mongoDoc.getId() != null ? mongoDoc.getId() : "generated"));
-
-        customer.setKycStatus(KycStatus.VERIFIED);
-        repo.save(customer);
-
-        return data;
+        return mongoDoc.getKycData();
     }
 }

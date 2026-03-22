@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface BankCustomerMongoRepository extends MongoRepository<BankCustomerKycData, String> {
 
     Optional<BankCustomerKycData> findByConsentId(String consentId);
+
+    Optional<BankCustomerKycData> findByUserIdAndBankId(String userId, String bankId);
 }

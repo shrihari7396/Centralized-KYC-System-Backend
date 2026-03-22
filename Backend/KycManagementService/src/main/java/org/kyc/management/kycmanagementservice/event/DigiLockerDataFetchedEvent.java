@@ -3,6 +3,7 @@ package org.kyc.management.kycmanagementservice.event;
 import java.time.LocalDate;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kyc.management.kycmanagementservice.entity.Address;
@@ -10,6 +11,7 @@ import org.kyc.management.kycmanagementservice.entity.Address;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class DigiLockerDataFetchedEvent {
     private String userId;
     private String mobileNumber;

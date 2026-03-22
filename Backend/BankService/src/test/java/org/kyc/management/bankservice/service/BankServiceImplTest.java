@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +24,9 @@ import org.kyc.management.bankservice.exception.InValidOtpException;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
+import org.kyc.management.bankservice.repository.BankRepository;
+import org.kyc.management.bankservice.repository.ConsentRepository;
+import org.kyc.management.bankservice.entity.Consent;
 import org.kyc.management.bankservice.security.JwtValidator;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -36,55 +38,52 @@ import org.springframework.kafka.core.KafkaTemplate;
 @ExtendWith(MockitoExtension.class)
 class BankServiceImplTest {
 
-    @Mock
-    private BankCustomerRepository repo;
+    @Mock private BankCustomerRepository repo;
 
-    @Mock
-    private KafkaLogProducer kafkaLogProducer;
+    @Mock private KafkaLogProducer kafkaLogProducer;
 
-    @Mock
-    private RedisTemplate<String, String> redisTemplate;
+    @Mock private RedisTemplate<String, String> redisTemplate;
 
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    @Mock private ValueOperations<String, String> valueOperations;
 
-    @Mock
-    private KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
+    @Mock private KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
 
-    @Mock
-    private SecureRandom secureRandom;
+    @Mock private SecureRandom secureRandom;
 
-    @Mock
-    private JwtValidator jwtValidator;
+    @Mock private JwtValidator jwtValidator;
 
-    @Mock
-    private KycFeignClient kycClient;
+    @Mock private KycFeignClient kycClient;
 
-    @Mock
-    private BankCustomerMongoRepository mongoRepo;
+    @Mock private BankCustomerMongoRepository mongoRepo;
 
-    @Mock
-    private UserFeignClient userFeignClient;
+    @Mock private UserFeignClient userFeignClient;
+    @Mock private BankRepository bankRepo;
+    @Mock private ConsentRepository consentRepo;
 
-    @InjectMocks
-    private BankServiceImpl bankService;
+    @InjectMocks private BankServiceImpl bankService;
 
     private BankCustomer testCustomer;
     private UserDto testUserDto;
 
     @BeforeEach
     void setUp() {
-        testUserDto = new UserDto("global-user-123", "John", "Doe", "test@example.com", "1234567890", Arrays.asList("CUSTOMER"), "ACTIVE");
+        testUserDto =
+                new UserDto(
+                        "global-user-123",
+                        "John",
+                        "Doe",
+                        "test@example.com",
+                        "1234567890",
+                        Arrays.asList("CUSTOMER"),
+                        "ACTIVE");
 
-        testCustomer = BankCustomer.builder()
-                .id("customer-123")
-                .userId("global-user-123")
-                .bankId("bank-456")
-                .kycStatus(KycStatus.CONSENT_PENDING)
-                .riskLevel("LOW")
-                .consentToken("consent-token-123")
-                .createdAt(LocalDateTime.now())
-                .build();
+        testCustomer = new BankCustomer();
+        testCustomer.setId("customer-123");
+        testCustomer.setUserId("global-user-123");
+        testCustomer.setBankId("bank-456");
+        testCustomer.setConsentId("consent-123");
+        testCustomer.setRiskLevel("LOW");
+        testCustomer.setCreatedAt(LocalDateTime.now());
 
         // Setup Redis mock
         // Removed global Redis mock to avoid unnecessary stubbing
@@ -114,8 +113,8 @@ class BankServiceImplTest {
         when(repo.findByUserId(testUserDto.getUserId())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> bankService.getCustomerStatus(userId));
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> bankService.getCustomerStatus(userId));
         assertEquals("Customer not found", exception.getMessage());
         verify(kafkaLogProducer).logError(eq("CUSTOMER_NOT_FOUND"), any());
     }
@@ -123,10 +122,11 @@ class BankServiceImplTest {
     @Test
     void bypassKyc_ShouldUpdateStatus_WhenValidRequest() {
         // Arrange
-        BypassRequestDto request = BypassRequestDto.builder()
-                .userId("user-123")
-                .reason("Administrative override")
-                .build();
+        BypassRequestDto request =
+                BypassRequestDto.builder()
+                        .userId("user-123")
+                        .reason("Administrative override")
+                        .build();
 
         when(userFeignClient.getUserDetails(request.getUserId())).thenReturn(testUserDto);
         when(repo.findByUserId(testUserDto.getUserId())).thenReturn(Optional.of(testCustomer));
@@ -146,17 +146,18 @@ class BankServiceImplTest {
     void bypassKyc_ShouldThrowException_WhenHighRiskUser() {
         // Arrange
         testCustomer.setRiskLevel("HIGH_RISK");
-        BypassRequestDto request = BypassRequestDto.builder()
-                .userId("user-123")
-                .reason("Administrative override")
-                .build();
+        BypassRequestDto request =
+                BypassRequestDto.builder()
+                        .userId("user-123")
+                        .reason("Administrative override")
+                        .build();
 
         when(userFeignClient.getUserDetails(request.getUserId())).thenReturn(testUserDto);
         when(repo.findByUserId(testUserDto.getUserId())).thenReturn(Optional.of(testCustomer));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> bankService.bypassKyc(request));
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> bankService.bypassKyc(request));
         assertEquals("Cannot bypass KYC for HIGH_RISK user", exception.getMessage());
         verify(kafkaLogProducer).logWarning(eq("BYPASS_KYC_REJECTED"), any());
     }
@@ -164,13 +165,15 @@ class BankServiceImplTest {
     @Test
     void sendOtp_ShouldSendOtp_WhenValidRequest() {
         // Arrange
-        OtpRequestDto request = OtpRequestDto.builder()
-                .email("test@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        OtpRequestDto request =
+                OtpRequestDto.builder()
+                        .email("test@example.com")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .build();
 
-        when(repo.existsByUserId(request.getEmail())).thenReturn(true);
+        when(userFeignClient.getUserDetails(request.getEmail())).thenReturn(testUserDto);
+        when(repo.existsByUserId(testUserDto.getUserId())).thenReturn(true);
         when(secureRandom.nextInt(1_000_000)).thenReturn(123456);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
@@ -187,17 +190,23 @@ class BankServiceImplTest {
     @Test
     void sendOtp_ShouldThrowException_WhenEmailNotRegistered() {
         // Arrange
-        OtpRequestDto request = OtpRequestDto.builder()
-                .email("nonexistent@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        OtpRequestDto request =
+                OtpRequestDto.builder()
+                        .email("nonexistent@example.com")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .build();
 
-        when(repo.existsByUserId(request.getEmail())).thenReturn(false);
+        // Update testUserDto to match the email for consistency in stubbing if needed, 
+        // or just use a generic UserDto. We'll use a local one for clarity if needed, 
+        // but testUserDto with a mock response is fine.
+        UserDto anonymousUser = UserDto.builder().userId("anon-123").email(request.getEmail()).build();
+        when(userFeignClient.getUserDetails(request.getEmail())).thenReturn(anonymousUser);
+        when(repo.existsByUserId(anonymousUser.getUserId())).thenReturn(false);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> bankService.sendOtp(request));
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> bankService.sendOtp(request));
         assertEquals("Email address is not registered with the Bank", exception.getMessage());
         verify(kafkaLogProducer).logError(eq("LOGIN_REJECTED"), any());
     }
@@ -230,8 +239,8 @@ class BankServiceImplTest {
         when(valueOperations.get(key)).thenReturn(null);
 
         // Act & Assert
-        InValidOtpException exception = assertThrows(InValidOtpException.class,
-                () -> bankService.verifyOtp(otp, key));
+        InValidOtpException exception =
+                assertThrows(InValidOtpException.class, () -> bankService.verifyOtp(otp, key));
         assertEquals("Expired or invalid OTP", exception.getMessage());
         verify(kafkaLogProducer).logWarning(eq("OTP_VERIFICATION_FAILED_EXPIRED"), any());
     }
@@ -246,8 +255,8 @@ class BankServiceImplTest {
         when(valueOperations.get(key)).thenReturn("654321");
 
         // Act & Assert
-        InValidOtpException exception = assertThrows(InValidOtpException.class,
-                () -> bankService.verifyOtp(otp, key));
+        InValidOtpException exception =
+                assertThrows(InValidOtpException.class, () -> bankService.verifyOtp(otp, key));
         assertEquals("Invalid OTP", exception.getMessage());
         verify(kafkaLogProducer).logWarning(eq("OTP_VERIFICATION_FAILED_INVALID"), any());
     }
@@ -255,17 +264,19 @@ class BankServiceImplTest {
     @Test
     void getLoginResponseDto_ShouldReturnResponse_WhenOtpValid() {
         // Arrange
-        OtpVerificationDto request = OtpVerificationDto.builder()
-                .otp("123456")
-                .email("test@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .role("CUSTOMER")
-                .build();
+        OtpVerificationDto request =
+                OtpVerificationDto.builder()
+                        .otp("123456")
+                        .email("test@example.com")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .role("CUSTOMER")
+                        .build();
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(request.getEmail())).thenReturn(request.getOtp());
-        when(jwtValidator.generateToken(request.getEmail(), request.getRole())).thenReturn("jwt-token-123");
+        when(jwtValidator.generateToken(request.getEmail(), request.getRole()))
+                .thenReturn("jwt-token-123");
 
         // Act
         LoginResponseDto result = bankService.getLoginResponseDto(request);
@@ -281,20 +292,22 @@ class BankServiceImplTest {
     @Test
     void getLoginResponseDto_ShouldThrowException_WhenOtpInvalid() {
         // Arrange
-        OtpVerificationDto request = OtpVerificationDto.builder()
-                .otp("123456")
-                .email("test@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .role("CUSTOMER")
-                .build();
+        OtpVerificationDto request =
+                OtpVerificationDto.builder()
+                        .otp("123456")
+                        .email("test@example.com")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .role("CUSTOMER")
+                        .build();
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(request.getEmail())).thenReturn("654321");
 
         // Act & Assert
-        InValidOtpException exception = assertThrows(InValidOtpException.class,
-                () -> bankService.getLoginResponseDto(request));
+        InValidOtpException exception =
+                assertThrows(
+                        InValidOtpException.class, () -> bankService.getLoginResponseDto(request));
         assertEquals("Invalid OTP", exception.getMessage());
         verify(kafkaLogProducer).logWarning(eq("OTP_VERIFICATION_FAILED_INVALID"), any());
     }
@@ -306,7 +319,8 @@ class BankServiceImplTest {
         String jti = "jti-123";
 
         when(jwtValidator.getJtiFromToken(token)).thenReturn(jti);
-        when(jwtValidator.getExpirationFromToken(token)).thenReturn(new java.util.Date(System.currentTimeMillis() + 3600000));
+        when(jwtValidator.getExpirationFromToken(token))
+                .thenReturn(new java.util.Date(System.currentTimeMillis() + 3600000));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Act
@@ -324,7 +338,8 @@ class BankServiceImplTest {
         String jti = "jti-123";
 
         when(jwtValidator.getJtiFromToken(token)).thenReturn(jti);
-        when(jwtValidator.getExpirationFromToken(token)).thenReturn(new java.util.Date(System.currentTimeMillis() - 1000));
+        when(jwtValidator.getExpirationFromToken(token))
+                .thenReturn(new java.util.Date(System.currentTimeMillis() - 1000));
 
         // Act
         Boolean result = bankService.logout(token);
@@ -337,12 +352,13 @@ class BankServiceImplTest {
     void getApprovedConsents_ShouldReturnCustomersWithConsentTokens() {
         // Arrange
         BankCustomer customerWithConsent = testCustomer;
-        BankCustomer customerWithoutConsent = BankCustomer.builder()
-                .id("customer-456")
-                .userId("global-user-456")
-                .bankId("bank-456")
-                .kycStatus(KycStatus.CONSENT_PENDING)
-                .build();
+        BankCustomer customerWithoutConsent =
+                BankCustomer.builder()
+                        .id("customer-456")
+                        .userId("global-user-456")
+                        .bankId("bank-456")
+                        .kycStatus(KycStatus.CONSENT_PENDING)
+                        .build();
 
         when(repo.findAll()).thenReturn(List.of(customerWithConsent, customerWithoutConsent));
 
@@ -359,11 +375,13 @@ class BankServiceImplTest {
     void fetchKycData_ShouldReturnData_WhenConsentAvailable() {
         // Arrange
         String userId = "user-123";
-        Map<String, Object> kycData = Map.of("identity", Map.of("name", "John Doe"), "documents", List.of("passport"));
+        Map<String, Object> kycData =
+                Map.of("identity", Map.of("name", "John Doe"), "documents", List.of("passport"));
 
         when(userFeignClient.getUserDetails(userId)).thenReturn(testUserDto);
         when(repo.findByUserId(testUserDto.getUserId())).thenReturn(Optional.of(testCustomer));
-        when(kycClient.fetchKycData("Bearer " + testCustomer.getConsentToken())).thenReturn(kycData);
+        when(kycClient.fetchKycData("Bearer " + testCustomer.getConsentToken()))
+                .thenReturn(kycData);
         when(mongoRepo.save(any())).thenReturn(null);
 
         // Act
@@ -386,8 +404,8 @@ class BankServiceImplTest {
         when(repo.findByUserId(testUserDto.getUserId())).thenReturn(Optional.of(testCustomer));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> bankService.fetchKycData(userId));
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> bankService.fetchKycData(userId));
         assertEquals("No approved consent token available for this user.", exception.getMessage());
         verify(kafkaLogProducer).logError(eq("FETCH_KYC_FAILED"), any());
     }

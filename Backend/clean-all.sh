@@ -45,6 +45,8 @@ SERVICES=(
     "EmailService"
     "KycManagementService"
     "UserService"
+    "AiService"
+    "NotificationSystem"
 )
 
 # Iterate and clean

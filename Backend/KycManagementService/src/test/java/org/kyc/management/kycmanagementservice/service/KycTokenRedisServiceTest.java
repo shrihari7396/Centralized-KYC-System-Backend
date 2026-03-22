@@ -53,7 +53,11 @@ class KycTokenRedisServiceTest {
 
         ArgumentCaptor<Long> ttlCaptor = ArgumentCaptor.forClass(Long.class);
         verify(valueOperations)
-                .set(eq("KYC_TOKEN:user-1"), any(String.class), ttlCaptor.capture(), eq(TimeUnit.DAYS));
+                .set(
+                        eq("KYC_TOKEN:user-1"),
+                        any(String.class),
+                        ttlCaptor.capture(),
+                        eq(TimeUnit.DAYS));
 
         assertThat(ttlCaptor.getValue()).isGreaterThanOrEqualTo(1);
     }

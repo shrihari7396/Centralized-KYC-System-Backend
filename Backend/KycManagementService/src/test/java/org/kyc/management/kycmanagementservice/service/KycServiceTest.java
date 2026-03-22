@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -105,10 +104,7 @@ class KycServiceTest {
         when(kycRepository.findById("user-1"))
                 .thenReturn(
                         Optional.of(
-                                KycEntity.builder()
-                                        .userId("user-1")
-                                        .status("PENDING")
-                                        .build()));
+                                KycEntity.builder().userId("user-1").status("PENDING").build()));
 
         assertThatThrownBy(() -> kycService.getVerifiedDataForBank("token"))
                 .isInstanceOf(RuntimeException.class)
@@ -151,9 +147,14 @@ class KycServiceTest {
 
     @Test
     void getUserProfile_shouldIncludeVerifiedIdentityWhenRecordExists() {
-        KycEntity entity = KycEntity.builder().userId("user-1").aadhaarNo("AAD").status("OK").build();
+        KycEntity entity =
+                KycEntity.builder().userId("user-1").aadhaarNo("AAD").status("OK").build();
         KycRecord record =
-                KycRecord.builder().firstName("Alex").lastName("Doe").dob(LocalDate.of(1990, 1, 1)).build();
+                KycRecord.builder()
+                        .firstName("Alex")
+                        .lastName("Doe")
+                        .dob(LocalDate.of(1990, 1, 1))
+                        .build();
 
         when(kycRepository.findById("user-1")).thenReturn(Optional.of(entity));
         when(kycRecordRepository.findByAadharNumber("AAD")).thenReturn(Optional.of(record));
@@ -175,7 +176,8 @@ class KycServiceTest {
                         .pan("ABCDE1234F")
                         .drivingLicense("DL-987654")
                         .build();
-        KycRecord record = KycRecord.builder().updatedAt(LocalDateTime.of(2024, 1, 1, 10, 0)).build();
+        KycRecord record =
+                KycRecord.builder().updatedAt(LocalDateTime.of(2024, 1, 1, 10, 0)).build();
 
         when(kycRepository.findById("user-1")).thenReturn(Optional.of(entity));
         when(kycRecordRepository.findByAadharNumber("123456789012"))

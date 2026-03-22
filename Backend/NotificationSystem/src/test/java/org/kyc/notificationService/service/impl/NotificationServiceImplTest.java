@@ -1,9 +1,11 @@
 package org.kyc.notificationService.service.impl;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,10 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceImplTest {
@@ -40,13 +38,14 @@ public class NotificationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        event = NotificationEvent.builder()
-                .notificationId("notify-123")
-                .targetId("user-456")
-                .email("user@example.com")
-                .message("Test message")
-                .type("INFO")
-                .build();
+        event =
+                NotificationEvent.builder()
+                        .notificationId("notify-123")
+                        .targetId("user-456")
+                        .email("user@example.com")
+                        .message("Test message")
+                        .type("INFO")
+                        .build();
     }
 
     @Test
@@ -56,8 +55,11 @@ public class NotificationServiceImplTest {
 
         notificationService.processNotification(event);
 
-        verify(notificationRepository, times(2)).save(any(Notification.class)); // 1st PENDING, 2nd DELIVERED
-        verify(messagingTemplate).convertAndSendToUser(eq("user-456"), eq("/queue/notifications"), any(Notification.class));
+        verify(notificationRepository, times(2))
+                .save(any(Notification.class)); // 1st PENDING, 2nd DELIVERED
+        verify(messagingTemplate)
+                .convertAndSendToUser(
+                        eq("user-456"), eq("/queue/notifications"), any(Notification.class));
     }
 
     @Test
@@ -85,19 +87,22 @@ public class NotificationServiceImplTest {
 
     @Test
     void testSendOfflineNotifications_Success() {
-        Notification pending = Notification.builder().id("1").status(NotificationStatus.PENDING).build();
+        Notification pending =
+                Notification.builder().id("1").status(NotificationStatus.PENDING).build();
         when(notificationRepository.findByTargetIdAndStatus("user-456", NotificationStatus.PENDING))
                 .thenReturn(Collections.singletonList(pending));
 
         notificationService.sendOfflineNotifications("user-456");
 
-        verify(messagingTemplate).convertAndSendToUser(eq("user-456"), eq("/queue/notifications"), anyList());
+        verify(messagingTemplate)
+                .convertAndSendToUser(eq("user-456"), eq("/queue/notifications"), anyList());
         verify(notificationRepository).saveAll(anyList());
     }
 
     @Test
     void testUpdateStatus() {
-        Notification notification = Notification.builder().id("1").status(NotificationStatus.PENDING).build();
+        Notification notification =
+                Notification.builder().id("1").status(NotificationStatus.PENDING).build();
         when(notificationRepository.findById("1")).thenReturn(Optional.of(notification));
 
         notificationService.updateStatus("1", NotificationStatus.DELIVERED);
@@ -117,7 +122,8 @@ public class NotificationServiceImplTest {
 
     @Test
     void testRollbackToPending() {
-        Notification notification = Notification.builder().id("1").status(NotificationStatus.SENT).build();
+        Notification notification =
+                Notification.builder().id("1").status(NotificationStatus.SENT).build();
         when(notificationRepository.findById("1")).thenReturn(Optional.of(notification));
 
         notificationService.rollbackToPending("1");

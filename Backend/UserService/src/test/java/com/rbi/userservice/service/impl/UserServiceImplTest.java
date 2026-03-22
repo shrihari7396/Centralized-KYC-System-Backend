@@ -3,11 +3,11 @@ package com.rbi.userservice.service.impl;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.rbi.userservice.DTO.LoginResponseDto;
 import com.rbi.userservice.DTO.OtpRequestDto;
+import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.DTO.RegisterDTO;
 import com.rbi.userservice.DTO.UserDto;
-import com.rbi.userservice.DTO.LoginResponseDto;
-import com.rbi.userservice.DTO.OtpVerificationDto;
 import com.rbi.userservice.Model.Role;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
@@ -169,7 +169,8 @@ public class UserServiceImplTest {
 
     @Test
     void testGetUserStatusByEmail_Success() {
-        when(userRepository.findUserStatusByEmail("john@example.com")).thenReturn(UserStatus.KYC_PENDING);
+        when(userRepository.findUserStatusByEmail("john@example.com"))
+                .thenReturn(UserStatus.KYC_PENDING);
 
         UserStatus result = userService.getUserStatusByEmail("john@example.com");
 
@@ -196,14 +197,15 @@ public class UserServiceImplTest {
 
     @Test
     void testGetUserDetails_Success() {
-        UserEntity user = UserEntity.builder()
-                .id("uuid-123")
-                .firstName("John")
-                .lastName("Doe")
-                .email("john@example.com")
-                .phone("1234567890")
-                .status(UserStatus.KYC_PENDING)
-                .build();
+        UserEntity user =
+                UserEntity.builder()
+                        .id("uuid-123")
+                        .firstName("John")
+                        .lastName("Doe")
+                        .email("john@example.com")
+                        .phone("1234567890")
+                        .status(UserStatus.KYC_PENDING)
+                        .build();
 
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
 

@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BankRepository extends MongoRepository<Bank, String> {
     Optional<Bank> findByCode(String code);
+    Optional<Bank> findByUsername(String username);
+    boolean existsByUsername(String username);
 }

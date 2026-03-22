@@ -19,10 +19,8 @@ public class NotificationKafkaConsumerTest {
 
     @Test
     void testConsume_Success() {
-        NotificationEvent event = NotificationEvent.builder()
-                .notificationId("1")
-                .targetId("user-123")
-                .build();
+        NotificationEvent event =
+                NotificationEvent.builder().notificationId("1").targetId("user-123").build();
 
         consumer.consume(event);
 
