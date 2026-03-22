@@ -1,107 +1,149 @@
-// package com.rbi.userservice.controller;
+package com.rbi.userservice.controller;
 
-// import static org.mockito.Mockito.*;
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import com.rbi.userservice.DTO.OtpRequestDto;
-// import com.rbi.userservice.DTO.OtpVerificationDto;
-// import com.rbi.userservice.DTO.RegisterDTO;
-// import com.rbi.userservice.DTO.UserProfileDto;
-// import com.rbi.userservice.kafkaEvents.LogProducer;
-// import com.rbi.userservice.service.UserService;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-// import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-// import org.springframework.boot.test.mock.mockito.MockBean;
-// import org.springframework.http.MediaType;
-// import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbi.userservice.DTO.OtpRequestDto;
+import com.rbi.userservice.DTO.OtpVerificationDto;
+import com.rbi.userservice.DTO.RegisterDTO;
+import com.rbi.userservice.DTO.UserDto;
+import com.rbi.userservice.DTO.LoginResponseDto;
+import com.rbi.userservice.Model.UserStatus;
+import com.rbi.userservice.exception.UserNotFoundException;
+import com.rbi.userservice.kafkaEvents.LogProducer;
+import com.rbi.userservice.service.UserService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-// @WebMvcTest(UserController.class)
-// @AutoConfigureMockMvc(addFilters = false) // Disable security filters for unit tests
-// public class UserControllerTest {
+import java.util.Map;
 
-//     @Autowired private MockMvc mockMvc;
-//     @Autowired private ObjectMapper objectMapper;
+@WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false) // Disable security filters for unit tests
+public class UserControllerTest {
 
-//     @MockBean private UserService userService;
-//     @MockBean private LogProducer logProducer;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
-//     @Test
-//     void testRegisterUser_Success() throws Exception {
-//         RegisterDTO dto = new RegisterDTO();
-//         dto.setFirstName("John");
-//         dto.setEmail("john@example.com");
+    @MockBean private UserService userService;
+    @MockBean private LogProducer logProducer;
 
-//         when(userService.registerUser(any(RegisterDTO.class))).thenReturn(true);
+    @Test
+    void testRegisterUser_Success() throws Exception {
+        RegisterDTO dto = new RegisterDTO();
+        dto.setFirstName("John");
+        dto.setEmail("john@example.com");
 
-//         mockMvc.perform(
-//                         post("/user/register")
-//                                 .contentType(MediaType.APPLICATION_JSON)
-//                                 .content(objectMapper.writeValueAsString(dto)))
-//                 .andExpect(status().isCreated())
-//                 .andExpect(content().string("User registered successfully ..."));
-//     }
+        when(userService.registerUser(any(RegisterDTO.class))).thenReturn(true);
 
-//     @Test
-//     void testRequestOTP_Success() throws Exception {
-//         OtpRequestDto req = new OtpRequestDto();
-//         req.setEmail("john@example.com");
+        mockMvc.perform(
+                        post("/user/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().string("User registered successfully ..."));
+    }
 
-//         when(userService.isExistByEmail("john@example.com")).thenReturn(true);
-//         when(userService.sendOtp(any(OtpRequestDto.class))).thenReturn(true);
+    @Test
+    void testRequestOTP_Success() throws Exception {
+        OtpRequestDto req = new OtpRequestDto();
+        req.setEmail("john@example.com");
 
-//         mockMvc.perform(
-//                         post("/user/request-otp")
-//                                 .contentType(MediaType.APPLICATION_JSON)
-//                                 .content(objectMapper.writeValueAsString(req)))
-//                 .andExpect(status().isCreated())
-//                 .andExpect(content().string("OTP Sent successfully ..."));
-//     }
+        when(userService.isExistByEmail("john@example.com")).thenReturn(true);
+        when(userService.sendOtp(any(OtpRequestDto.class))).thenReturn(true);
 
-//     @Test
-//     void testRequestOTPByPhone_Success() throws Exception {
-//         when(userService.sendOtpByPhone("1234567890")).thenReturn(true);
+        mockMvc.perform(
+                        post("/user/request-otp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(content().string("OTP Sent successfully ..."));
+    }
 
-//         mockMvc.perform(post("/user/request-otp-phone").param("phone", "1234567890"))
-//                 .andExpect(status().isCreated())
-//                 .andExpect(content().string("OTP Sent successfully to 1234567890"));
-//     }
+    @Test
+    void testRequestOTP_UserNotFound() throws Exception {
+        OtpRequestDto req = new OtpRequestDto();
+        req.setEmail("unknown@example.com");
 
-//     @Test
-//     void testOtpVerification_Success() throws Exception {
-//         OtpVerificationDto dto = new OtpVerificationDto();
-//         dto.setOtp("123456");
+        when(userService.isExistByEmail("unknown@example.com")).thenReturn(false);
 
-//         UserProfileDto responseDto =
-//                 new UserProfileDto(); // Using any suitable DTO structure that UserProfile
-// returns
-//         // getLoginResponseDto returns LoginResponseDto, let's adjust mock
-//         when(userService.getLoginResponseDto(any(OtpVerificationDto.class)))
-//                 .thenReturn(null); // Just verify binds
+        mockMvc.perform(
+                        post("/user/request-otp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isNotFound()); // UserNotFoundException should be handled or throw 404 depending on Advice
+    }
 
-//         mockMvc.perform(
-//                         post("/user/otp-verification")
-//                                 .contentType(MediaType.APPLICATION_JSON)
-//                                 .content(objectMapper.writeValueAsString(dto)))
-//                 .andExpect(status().isCreated());
-//     }
+    @Test
+    void testOtpVerification_Success() throws Exception {
+        OtpVerificationDto dto = new OtpVerificationDto();
+        dto.setOtp("123456");
+        dto.setEmail("john@example.com");
 
-//     @Test
-//     void testLogout_Success() throws Exception {
-//         when(userService.logout("valid_token")).thenReturn(true);
+        LoginResponseDto responseDto = LoginResponseDto.builder()
+                .email("john@example.com")
+                .token("valid_token")
+                .build();
 
-//         mockMvc.perform(post("/user/logout").header("Authorization", "Bearer valid_token"))
-//                 .andExpect(status().isOk())
-//                 .andExpect(content().string("Logged out successfully"));
-//     }
+        when(userService.getLoginResponseDto(any(OtpVerificationDto.class)))
+                .thenReturn(responseDto);
 
-//     @Test
-//     void testLogout_InvalidHeader() throws Exception {
-//         mockMvc.perform(post("/user/logout").header("Authorization", "invalid_header"))
-//                 .andExpect(status().isBadRequest())
-//                 .andExpect(content().string("Invalid Authorization header"));
-//     }
-// }
+        mockMvc.perform(
+                        post("/user/otp-verification")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.token").value("valid_token"));
+    }
+
+    @Test
+    void testLogout_Success() throws Exception {
+        when(userService.logout("valid_token")).thenReturn(true);
+
+        mockMvc.perform(post("/user/logout").header("Authorization", "Bearer valid_token"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Logged out successfully"));
+    }
+
+    @Test
+    void testLogout_InvalidHeader() throws Exception {
+        mockMvc.perform(post("/user/logout").header("Authorization", "invalid_header"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid Authorization header"));
+    }
+
+    @Test
+    void testGetUserDetails_Success() throws Exception {
+        UserDto userDto = UserDto.builder()
+                .userId("uuid-123")
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .phone("1234567890")
+                .status(UserStatus.KYC_PENDING)
+                .build();
+
+        when(userService.getUserDetails("john@example.com")).thenReturn(userDto);
+
+        mockMvc.perform(get("/user/details").param("email", "john@example.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.firstName").value("John"));
+    }
+
+    @Test
+    void testGetStatusByEmail_Success() throws Exception {
+        when(userService.getUserStatusByEmail("john@example.com"))
+                .thenReturn(UserStatus.KYC_PENDING);
+
+        mockMvc.perform(get("/user/get-kyc-status/john@example.com"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("\"KYC_PENDING\""));
+    }
+}

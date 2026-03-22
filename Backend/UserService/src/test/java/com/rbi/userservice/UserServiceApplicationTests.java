@@ -1,11 +1,11 @@
-// package com.rbi.userservice;
+package com.rbi.userservice;
 
-// import org.junit.jupiter.api.Test;
-// import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-// @SpringBootTest
-// class UserServiceApplicationTests {
+@SpringBootTest
+class UserServiceApplicationTests {
 
-//     @Test
-//     void contextLoads() {}
-// }
+    @Test
+    void contextLoads() {}
+}
