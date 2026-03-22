@@ -1,6 +1,5 @@
 package org.kyc.management.kycmanagementservice.consumer;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.kycmanagementservice.configs.KafkaConstants;
@@ -32,11 +31,33 @@ public class KycKafkaConsumer {
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
         log.info("Consumed DigiLocker data for mobile: {}", event.getMobileNumber());
         kafkaLogProducer.logInfo(
-                "KYC_PROCESSING_STARTED", Map.of("mobileNumber", event.getMobileNumber()));
+                "KYC_PROCESSING_STARTED",
+                java.util.Map.of("mobileNumber", event.getMobileNumber()));
 
         // Map and save to DB
+        KycRecord record =
+                kycRecordRepository
+                        .findByMobileNumber(event.getMobileNumber())
+                        .orElse(new KycRecord());
 
-        KycRecord record = KycRecord.builder().dob().build();
+        String fullName =
+                String.format(
+                                "%s %s %s",
+                                event.getFirstName(),
+                                event.getMiddleName() != null ? event.getMiddleName() : "",
+                                event.getLastName())
+                        .replaceAll("\\s+", " ")
+                        .trim();
+
+        record.setMobileNumber(event.getMobileNumber());
+        record.setAadharNumber(event.getAadharNumber());
+        record.setPanNumber(event.getPanNumber());
+        record.setFirstName(event.getFirstName());
+        record.setMiddleName(event.getMiddleName());
+        record.setLastName(event.getLastName());
+        record.setDob(event.getDob());
+        record.setAddress(event.getAddress() != null ? event.getAddress().toString() : null);
+        record.setStatus("VERIFIED");
 
         kycRecordRepository.save(record);
         log.info("KycRecord saved to DB for mobile: {}", event.getMobileNumber());
