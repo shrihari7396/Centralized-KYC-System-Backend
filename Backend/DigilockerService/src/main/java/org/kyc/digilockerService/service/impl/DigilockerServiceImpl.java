@@ -16,7 +16,7 @@ import org.kyc.digilockerService.kafka.CreateOtpEvent;
 import org.kyc.digilockerService.logging.KafkaLogProducer;
 import org.kyc.digilockerService.service.DigilockerService;
 import org.kyc.digilockerService.util.RandomDate;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DigilockerServiceImpl implements DigilockerService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final KafkaLogProducer kafkaLogProducer;
     private final SecureRandom secureRandom;
 

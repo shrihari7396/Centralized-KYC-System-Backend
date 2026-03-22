@@ -22,7 +22,7 @@ import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.security.JwtValidator;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class BankServiceImpl implements BankService {
 
     private final BankCustomerRepository repo;
     private final KafkaLogProducer kafkaLogProducer;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
     private final SecureRandom secureRandom;
     private final JwtValidator jwtValidator;

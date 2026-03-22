@@ -66,13 +66,12 @@ class KycOrchestrationServiceTest {
         submissionRequest = BankKycSubmissionRequest.builder()
                 .userId("user-123")
                 .identity(KycIdentityDto.builder()
-                        .firstName("John")
-                        .lastName("Doe")
-                        .dateOfBirth("1990-01-01")
+                        .type("abc")
+                        .number("1234567890")
                         .build())
                 .documents(List.of(KycDocumentDto.builder()
                         .type("passport")
-                        .url("http://example.com/passport.jpg")
+                        .content("http://example.com/passport.jpg")
                         .build()))
                 .build();
 

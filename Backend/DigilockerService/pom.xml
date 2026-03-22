@@ -117,6 +117,11 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Spring Boot Data Redis for OTP storage -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
 		<!-- Spring Session Data Redis for distributed session management -->
 		<dependency>
 			<groupId>org.springframework.session</groupId>
