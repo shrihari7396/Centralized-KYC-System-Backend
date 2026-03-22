@@ -1,7 +1,7 @@
 package com.rbi.consent.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbi.consent.client.UserFeignClient;
 import com.rbi.consent.dto.ConsentRequestDto;
@@ -18,7 +18,7 @@ import com.rbi.consent.exception.ConsentRejectedException;
 import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
-import com.rbi.consent.security.JwtService;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,6 @@ import org.springframework.stereotype.Service;
 public class ConsentServiceImpl implements ConsentService {
 
     private final ConsentRepository consentRepository;
-    private final JwtService jwtService;
-    private final WebSocketPublisher webSocketPublisher;
     private final UserFeignClient userFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
     private final KafkaLogProducer kafkaLogProducer;
@@ -45,6 +44,9 @@ public class ConsentServiceImpl implements ConsentService {
     private final StringRedisTemplate redisTemplate;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SecureRandom secureRandom;
+
+    @Value("${app.consent-url}")
+    private String consentBaseUrl;
 
     private static final String OTP_KEY_PREFIX = "consent_otp:";
     private static final long OTP_EXPIRY_MINUTES = 10;
@@ -89,17 +91,24 @@ public class ConsentServiceImpl implements ConsentService {
 
         // Trigger Global Notification Event via Kafka
         String nId = requestDto.getUserId() + "_" + requestDto.getBankId() + "_" + saved.getId();
-        com.rbi.consent.event.NotificationEvent notifEvent =
+        NotificationEvent notifEvent =
                 com.rbi.consent.event.NotificationEvent.builder()
                         .notificationId(nId)
                         .targetId(requestDto.getUserId())
                         .email(requestDto.getUserId())
                         .type("CONSENT_REQUEST")
                         .message(
-                                "A new KYC Consent request was initiated by a Bank. Action URL: http://localhost:3000/consent/"
-                                        + saved.getId())
+                                "A new KYC Consent request was initiated by a Bank. Action URL: "
+                                        + consentBaseUrl
+                                        + "/"
+                                        + saved.getId()
+                                        + "/status?Accept or Decline")
                         .timestamp(System.currentTimeMillis())
-                        .actionUrl("http://localhost:3000/consent/" + saved.getId())
+                        .actionUrl(
+                                consentBaseUrl
+                                        + "/"
+                                        + saved.getId()
+                                        + "/status?Accept or Decline")
                         .metadata(
                                 java.util.Map.of(
                                         "consentId",
@@ -110,6 +119,9 @@ public class ConsentServiceImpl implements ConsentService {
 
         kafkaTemplate.send("notification-events-topic", notifEvent);
         log.info("Published universal NotificationEvent to Kafka for consent: {}", saved.getId());
+
+        // Automatically trigger OTP generation and email-out for the target user-identifier
+        sendConsentOtp(saved.getId());
     }
 
     @Override
@@ -205,16 +217,13 @@ public class ConsentServiceImpl implements ConsentService {
             throw new IllegalArgumentException("Consent is not in PENDING state.");
         }
 
-        List<ConsentDocumentType> documents = fromJson(record.getConsentDocuments());
-        String jwt =
-                jwtService.generateConsentToken(
-                        record.getUserId(), record.getBankId(), record.getId(), documents);
+
 
         record.setConsentStatus(ConsentStatus.APPROVED);
         record.setApprovedAt(LocalDateTime.now());
         record.setExpiryAt(LocalDateTime.now().plusDays(2));
         record.setActive(true);
-        record.setJwtToken(jwt);
+
 
         ConsentRecord updated = consentRepository.save(record);
 
@@ -224,14 +233,11 @@ public class ConsentServiceImpl implements ConsentService {
                         .consentId(updated.getId())
                         .userId(updated.getUserId())
                         .bankId(updated.getBankId())
-                        .jwtToken(jwt)
-                        .status("APPROVED")
+                        .status(ConsentStatus.APPROVED)
                         .build();
         consentKafkaProducer.sendConsentApprovedEvent(event);
 
-        // Notify WS success
-        webSocketPublisher.publishConsentApproved(
-                record.getBankId(), "Consent Approved for " + record.getUserId());
+
 
         // Emit Universal Notification to the Bank
         com.rbi.consent.event.NotificationEvent bankNotif =
@@ -258,7 +264,6 @@ public class ConsentServiceImpl implements ConsentService {
                 .consentId(updated.getId())
                 .bankId(updated.getBankId())
                 .status(updated.getConsentStatus())
-                .jwtToken(updated.getJwtToken())
                 .expiryAt(updated.getExpiryAt())
                 .build();
     }
@@ -272,7 +277,6 @@ public class ConsentServiceImpl implements ConsentService {
                                         .consentId(record.getId())
                                         .bankId(record.getBankId())
                                         .status(record.getConsentStatus())
-                                        .jwtToken(record.getJwtToken())
                                         .expiryAt(record.getExpiryAt())
                                         .build())
                 .collect(java.util.stream.Collectors.toList());
@@ -295,9 +299,7 @@ public class ConsentServiceImpl implements ConsentService {
         record.setActive(false);
         consentRepository.save(record);
 
-        // Notify Bank
-        webSocketPublisher.publishConsentRejected(
-                record.getBankId(), "Consent Rejected for user " + record.getUserId());
+
 
         // Emit Universal Notification to the Bank
         NotificationEvent bankNotif =
@@ -316,8 +318,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .consentId(record.getId())
                         .userId(record.getUserId())
                         .bankId(record.getBankId())
-                        .jwtToken(null)
-                        .status("REJECTED")
+                        .status(ConsentStatus.REJECTED)
                         .build();
         consentKafkaProducer.sendConsentApprovedEvent(event);
 
@@ -359,7 +360,6 @@ public class ConsentServiceImpl implements ConsentService {
                 .consentId(record.getId())
                 .bankId(record.getBankId())
                 .status(record.getConsentStatus())
-                .jwtToken(record.getJwtToken())
                 .expiryAt(record.getExpiryAt())
                 .build();
     }
@@ -372,11 +372,5 @@ public class ConsentServiceImpl implements ConsentService {
         }
     }
 
-    private List<ConsentDocumentType> fromJson(String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<ConsentDocumentType>>() {});
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to deserialize documents.");
-        }
-    }
+
 }

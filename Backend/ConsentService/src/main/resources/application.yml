@@ -27,6 +27,18 @@ spring:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: "*"
+            value:
+              default:
+                type: com.rbi.consent.event.ConsentRequestEvent
 
 eureka:
   client:
@@ -37,10 +49,7 @@ eureka:
   instance:
     prefer-ip-address: true
 
-jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  expiration: 86400000 # Access token validity used system-wide (e.g. 1 day limit for standard auth)
-  consent-expiration: 172800000 # 2 days = 48 * 60 * 60 * 1000
+
 
 logging:
   level:
@@ -48,3 +57,6 @@ logging:
 
 encryption:
   secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+app:
+  consent-url: "http://localhost:3000/consent"

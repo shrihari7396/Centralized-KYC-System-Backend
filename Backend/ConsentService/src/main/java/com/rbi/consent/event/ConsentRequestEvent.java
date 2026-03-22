@@ -1,5 +1,6 @@
 package com.rbi.consent.event;
 
+import com.rbi.consent.enums.ConsentDocumentType;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,5 +15,6 @@ public class ConsentRequestEvent {
     private String userId;
     private String email;
     private String bankId;
-    private List<String> requestedDocuments;
+    private String consentId;
+    private List<ConsentDocumentType> requestedDocuments;
 }

@@ -2,7 +2,7 @@ package com.rbi.consent.controller;
 
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
-import com.rbi.consent.kafka.LogProducer;
+import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.service.ConsentService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -11,7 +11,13 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/consents")
@@ -19,12 +25,12 @@ import org.springframework.web.bind.annotation.*;
 public class ConsentController {
 
     private final ConsentService consentService;
-    private final LogProducer logProducer;
+    private final KafkaLogProducer logProducer;
 
     @PostMapping("/request")
     public ResponseEntity<Void> requestConsent(@Valid @RequestBody ConsentRequestDto requestDto) {
         consentService.requestConsent(requestDto);
-        logProducer.info(
+        logProducer.logInfo(
                 "CONSENT_REQUEST_RECEIVED",
                 Map.of(
                         "userId",
@@ -37,7 +43,7 @@ public class ConsentController {
     @PostMapping("/send-otp/{consentId}")
     public ResponseEntity<Void> sendOtp(@PathVariable UUID consentId) {
         consentService.sendConsentOtp(consentId);
-        logProducer.info("CONSENT_OTP_SENT", Map.of("consentId", consentId.toString()));
+        logProducer.logInfo("CONSENT_OTP_SENT", Map.of("consentId", consentId.toString()));
         return ResponseEntity.ok().build();
     }
 
@@ -45,7 +51,7 @@ public class ConsentController {
     public ResponseEntity<ConsentResponseDto> approveConsent(
             @PathVariable UUID consentId, @RequestParam String otp) {
         ConsentResponseDto response = consentService.approveConsent(consentId, otp);
-        logProducer.info("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
+        logProducer.logInfo("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
         return ResponseEntity.ok(response);
     }
 
@@ -53,7 +59,22 @@ public class ConsentController {
     public ResponseEntity<Void> rejectConsent(
             @PathVariable UUID consentId, @RequestParam String otp) {
         consentService.rejectConsent(consentId, otp);
-        logProducer.info("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
+        logProducer.logInfo("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{consentId}/status")
+    public ResponseEntity<Void> handleConsentStatus(
+            @PathVariable UUID consentId, @RequestParam String action, @RequestParam String otp) {
+        if ("Accept".equalsIgnoreCase(action)) {
+            consentService.approveConsent(consentId, otp);
+            logProducer.logInfo("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
+        } else if ("Decline".equalsIgnoreCase(action) || "Reject".equalsIgnoreCase(action)) {
+            consentService.rejectConsent(consentId, otp);
+            logProducer.logInfo("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok().build();
     }
 

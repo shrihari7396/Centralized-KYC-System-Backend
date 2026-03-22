@@ -14,6 +14,7 @@ import com.rbi.userservice.service.JWTService;
 import com.rbi.userservice.service.UserService;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
                         .orElseThrow(
                                 () -> {
                                     kafkaLogProducer.logError(
-                                            "USER_NOT_FOUND", java.util.Map.of("phone", phone));
+                                            "USER_NOT_FOUND", Map.of("phone", phone));
                                     return new RuntimeException(
                                             "User not found with phone: " + phone);
                                 });
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
         saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
 
-        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email, "key", key));
+        kafkaLogProducer.logInfo("OTP_SENT", Map.of("email", email, "key", key));
 
         return true;
     }
@@ -87,17 +88,16 @@ public class UserServiceImpl implements UserService {
                         .lastName(user.getLastName())
                         .email(user.getEmail())
                         .status(UserStatus.KYC_PENDING)
-                        .phone(user.getMobileNumber()) // Fixed field name
+                        .phone(user.getMobileNumber())
                         .build();
 
         UserEntity saved = userRepository.save(u);
         if (saved != null) {
             kafkaLogProducer.logInfo(
                     "USER_REGISTERED",
-                    java.util.Map.of("email", saved.getEmail(), "phone", saved.getPhone()));
+                    Map.of("email", saved.getEmail(), "phone", saved.getPhone()));
         } else {
-            kafkaLogProducer.logError(
-                    "USER_REGISTRATION_FAILED", java.util.Map.of("email", user.getEmail()));
+            kafkaLogProducer.logError("USER_REGISTRATION_FAILED", Map.of("email", user.getEmail()));
         }
         return saved != null;
     }
@@ -106,18 +106,16 @@ public class UserServiceImpl implements UserService {
     public Boolean verifyOtp(String otp, String key) {
         String StoredOtp = redisTemplate.opsForValue().get(key);
         if (StoredOtp == null) {
-            kafkaLogProducer.logWarning(
-                    "OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", key));
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_EXPIRED", Map.of("key", key));
             throw new InValidOtpException("Expired or invalid OTP");
         }
         boolean result = StoredOtp.equals(otp);
         if (!result) {
-            kafkaLogProducer.logWarning(
-                    "OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", key));
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_INVALID", Map.of("key", key));
             throw new InValidOtpException("Invalid OTP");
         }
 
-        kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", key));
+        kafkaLogProducer.logInfo("OTP_VERIFIED", Map.of("key", key));
         deleteOtp(key);
         return result;
     }
@@ -157,13 +155,12 @@ public class UserServiceImpl implements UserService {
 
         if (response == null) {
             kafkaLogProducer.logWarning(
-                    "LOGIN_FAILED", java.util.Map.of("email", otpVerificationDto.getEmail()));
+                    "LOGIN_FAILED", Map.of("email", otpVerificationDto.getEmail()));
             throw new InValidOtpException("Invalid OTP");
         }
 
         kafkaLogProducer.logInfo(
-                "USER_LOGGED_IN",
-                java.util.Map.of("email", response.getEmail(), "role", response.getRole()));
+                "USER_LOGGED_IN", Map.of("email", response.getEmail(), "role", response.getRole()));
         return response;
     }
 
@@ -181,8 +178,7 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             kafkaLogProducer.logError(
                     "LOGOUT_FAILED",
-                    java.util.Map.of(
-                            "token_snippet", token.substring(0, Math.min(token.length(), 10))));
+                    Map.of("token_snippet", token.substring(0, Math.min(token.length(), 10))));
         }
         return false;
     }

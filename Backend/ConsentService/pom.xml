@@ -42,12 +42,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		<!-- WebSockets -->
-		<!-- Spring Boot Starter WebSocket for real-time communication -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
-		</dependency>
 		<!-- Validation -->
 		<!-- Spring Boot Starter Validation for input validation -->
 		<dependency>
@@ -64,27 +58,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
-		</dependency>
-		<!-- JWT -->
-		<!-- JJWT API for JSON Web Token support -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>0.11.5</version>
-		</dependency>
-		<!-- JJWT Implementation -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>0.11.5</version>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- JJWT Jackson support for JSON binding -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-			<version>0.11.5</version>
-			<scope>runtime</scope>
 		</dependency>
 		<!-- Lombok -->
 		<!-- Lombok to reduce boilerplate code (getters, setters, etc.) -->

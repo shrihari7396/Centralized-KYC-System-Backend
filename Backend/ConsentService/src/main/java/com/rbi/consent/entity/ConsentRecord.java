@@ -1,15 +1,20 @@
 package com.rbi.consent.entity;
 
 import com.rbi.consent.enums.ConsentStatus;
-import com.rbi.consent.security.StringCryptoConverter;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Data
@@ -23,20 +28,16 @@ public class ConsentRecord {
 
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Convert(converter = StringCryptoConverter.class)
+    // @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String userId;
 
     @Column(nullable = false)
     private UUID bankId;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private String jwtToken;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,5 +52,5 @@ public class ConsentRecord {
     private boolean active;
 
     @Column(columnDefinition = "TEXT")
-    private String consentDocuments; // JSON representation of requested documents
+    private String consentDocuments;
 }

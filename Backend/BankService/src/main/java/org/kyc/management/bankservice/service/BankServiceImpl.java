@@ -90,7 +90,7 @@ public class BankServiceImpl implements BankService {
         }
         String latestConsentId = c.getConsentIds().get(c.getConsentIds().size() - 1);
         Consent consent =
-                      consentRepo
+                consentRepo
                         .findById(latestConsentId)
                         .orElseThrow(() -> new ConsentNotFoundException("Consent not found"));
         consent.setStatus(KycStatus.ACTIVE_OVERRIDE);

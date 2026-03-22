@@ -1,5 +1,6 @@
 package com.rbi.consent.event;
 
+import com.rbi.consent.enums.ConsentStatus;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,5 @@ public class ConsentApprovedEvent {
     private UUID consentId;
     private String userId;
     private UUID bankId;
-    private String jwtToken;
-    private String status;
+    private ConsentStatus status;
 }

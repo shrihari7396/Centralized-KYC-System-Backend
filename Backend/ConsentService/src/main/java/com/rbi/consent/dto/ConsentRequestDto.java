@@ -21,6 +21,8 @@ public class ConsentRequestDto {
     @NotNull(message = "Bank ID is required")
     private UUID bankId;
 
+    private String consentId;
+
     @NotNull(message = "Requested documents are required")
     private List<ConsentDocumentType> requestedDocuments;
 }
