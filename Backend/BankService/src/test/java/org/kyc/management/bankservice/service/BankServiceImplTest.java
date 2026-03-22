@@ -90,7 +90,7 @@ class BankServiceImplTest {
                 testCustomer.setId("customer-123");
                 testCustomer.setUserId("global-user-123");
                 testCustomer.setBankId("bank-456");
-                testCustomer.setConsentId("consent-123");
+                testCustomer.setConsentIds(new java.util.ArrayList<>(List.of("consent-123")));
                 testCustomer.setRiskLevel("LOW");
                 testCustomer.setCreatedAt(LocalDateTime.now());
 

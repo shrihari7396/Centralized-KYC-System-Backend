@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.*;
 import org.kyc.management.bankservice.entity.BankCustomer;
+import org.kyc.management.bankservice.entity.DocumentType;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentRequestEvent;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
@@ -53,10 +54,9 @@ class KycOrchestrationServiceTest {
         @BeforeEach
         void setUp() {
                 UUID bankId = UUID.randomUUID();
-                List<String> requestedDocuments = List.of("passport", "utility_bill");
-
+                List<DocumentType> requestedDocuments = List.of(DocumentType.AADHAAR, DocumentType.PAN);
                 initiateRequest = new BankKycInitiateRequest(
-                                "user-123", bankId, requestedDocuments, "test@example.com");
+                                bankId, requestedDocuments, "test@example.com");
 
                 testUserDto = new UserDto(
                                 "global-user-123",
@@ -71,7 +71,7 @@ class KycOrchestrationServiceTest {
                 testCustomer.setId("customer-123");
                 testCustomer.setUserId("global-user-123");
                 testCustomer.setBankId(bankId.toString());
-                testCustomer.setConsentId("consent-123");
+                testCustomer.setConsentIds(new java.util.ArrayList<>(List.of("consent-123")));
         }
 
         @Test
@@ -90,7 +90,8 @@ class KycOrchestrationServiceTest {
                 assertNotNull(result);
                 assertEquals(testUserDto.getUserId(), result.getUserId());
                 assertEquals(initiateRequest.getBankId().toString(), result.getBankId());
-                assertNotNull(result.getConsentId());
+                assertNotNull(result.getConsentIds());
+                assertFalse(result.getConsentIds().isEmpty());
                 verify(consentRepository).save(argThat(consent -> consent.getStatus() == KycStatus.CONSENT_PENDING));
                 verify(kafkaTemplate).send(eq("consent-request-topic"), any(ConsentRequestEvent.class));
                 verify(kafkaLogProducer).logInfo(eq("KYC_INITIATED"), any());
@@ -110,7 +111,8 @@ class KycOrchestrationServiceTest {
 
                 // Assert
                 assertNotNull(result);
-                assertNotNull(result.getConsentId());
+                assertNotNull(result.getConsentIds());
+                assertFalse(result.getConsentIds().isEmpty());
                 verify(consentRepository).save(argThat(consent -> consent.getStatus() == KycStatus.CONSENT_PENDING));
                 verify(kafkaTemplate).send(eq("consent-request-topic"), any(ConsentRequestEvent.class));
                 verify(kafkaLogProducer).logInfo(eq("KYC_INITIATED"), any());

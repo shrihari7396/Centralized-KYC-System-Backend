@@ -1,5 +1,7 @@
 package org.kyc.management.bankservice.entity;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +19,8 @@ public class Consent {
 
     private String bankId;
     private String userId;
-    private String consentId;
     private KycStatus status;
+    private List<DocumentType> requestedDocuments;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

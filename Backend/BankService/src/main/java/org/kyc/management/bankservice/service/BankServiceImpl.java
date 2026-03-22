@@ -86,9 +86,14 @@ public class BankServiceImpl implements BankService {
             throw new RuntimeException("Cannot bypass KYC for HIGH_RISK user");
         }
 
-        Consent consent = consentRepo.findById(c.getConsentId())
+        if (c.getConsentIds() == null || c.getConsentIds().isEmpty()) {
+            throw new ConsentNotFoundException("No consents found for customer");
+        }
+        String latestConsentId = c.getConsentIds().get(c.getConsentIds().size() - 1);
+        Consent consent = consentRepo.findById(latestConsentId)
                 .orElseThrow(() -> new ConsentNotFoundException("Consent not found"));
         consent.setStatus(KycStatus.ACTIVE_OVERRIDE);
+        consent.setUpdatedAt(LocalDateTime.now());
         consentRepo.save(consent);
 
         c.setOverrideReason(req.getReason());

@@ -3,6 +3,7 @@ package org.kyc.management.bankservice.kafka;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kyc.management.bankservice.config.KafkaConstants;
 import org.kyc.management.bankservice.entity.Consent;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentApprovedEvent;
@@ -17,7 +18,7 @@ public class ConsentKafkaConsumer {
 
     private final ConsentRepository consentRepository;
 
-    @KafkaListener(topics = { "consent-approved-topic", "consent-accepted-topic" }, groupId = "bank-service-group")
+    @KafkaListener(topics = KafkaConstants.CONSENT_RESPONSE_TOPIC, groupId = "bank-service-group")
     public void consumeConsentApprovedEvent(ConsentApprovedEvent event) {
         log.info(
                 "Received ConsentApprovedEvent for userId: {} and bankId: {}",
@@ -44,6 +45,7 @@ public class ConsentKafkaConsumer {
                         event.getBankId());
             }
 
+            consent.setUpdatedAt(java.time.LocalDateTime.now());
             consentRepository.save(consent);
         } else {
             log.warn(

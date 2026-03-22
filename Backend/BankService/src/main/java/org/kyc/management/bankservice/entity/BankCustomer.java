@@ -1,6 +1,7 @@
 package org.kyc.management.bankservice.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class BankCustomer {
 
     private String userId;
     private String bankId;
-    private String consentId;
+    private List<String> consentIds;
 
     private Long kycRequestId;
     private String riskLevel;

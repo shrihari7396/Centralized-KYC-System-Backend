@@ -1,5 +1,7 @@
 package org.kyc.management.bankservice.service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.client.UserFeignClient;
@@ -9,6 +11,8 @@ import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentRequestEvent;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
+import org.kyc.management.bankservice.config.KafkaConstants;
+import org.kyc.management.bankservice.exception.AlreadyVerifiedException;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.kyc.management.bankservice.entity.Consent;
@@ -30,19 +34,32 @@ public class KycOrchestrationService {
 
     public BankCustomer initiateKyc(BankKycInitiateRequest req) {
         kafkaLogProducer.logInfo(
-                "KYC_INITIATED", Map.of("userId", req.getUserId(), "bankId", req.getBankId()));
+                "KYC_INITIATED", Map.of("email", req.getEmail(), "bankId", req.getBankId()));
 
         // Resolve immutable Global User ID instead of volatile email
         UserDto userDto;
         String userGlobalId;
         try {
             userDto = userFeignClient.getUserDetails(req.getEmail());
+            if(userDto == null) throw new UserNotFoundException("User not found in system. Consent cannot be accepted.");
             userGlobalId = userDto.getUserId();
         } catch (Exception e) {
             kafkaLogProducer.logError(
                     "INITIATE_KYC_FAILED",
                     Map.of("email", req.getEmail(), "bankId", req.getBankId() != null ? req.getBankId().toString() : "null", "reason", "User not found"));
             throw new UserNotFoundException("User not found in system. Consent cannot be accepted.");
+        }
+
+        BankCustomer customer = bankCustomerRepository.findByUserIdAndBankId(userGlobalId, req.getBankId().toString())
+                .orElse(new BankCustomer());
+
+        if (customer.getId() != null && customer.getConsentIds() != null && !customer.getConsentIds().isEmpty()) {
+            String latestConsentId = customer.getConsentIds().get(customer.getConsentIds().size() - 1);
+            consentRepository.findById(latestConsentId).ifPresent(c -> {
+                if (c.getStatus() == KycStatus.ACTIVE || c.getStatus() == KycStatus.ACTIVE_OVERRIDE) {
+                    throw new AlreadyVerifiedException("KYC is already verified and active for this customer");
+                }
+            });
         }
 
         if (!"ACTIVE".equalsIgnoreCase(userDto.getStatus())) {
@@ -55,33 +72,39 @@ public class KycOrchestrationService {
             throw new KycNotVerifiedException("Consent cannot be created. User KYC are not Verified in User Service.");
         }
 
-        ConsentRequestEvent event =
-                ConsentRequestEvent.builder()
-                        .userId(userGlobalId)
-                        .email(req.getEmail())
-                        .bankId(req.getBankId().toString())
-                        .requestedDocuments(req.getRequestedDocuments())
-                        .build();
-
-        // Publish async consent request event
-        kafkaTemplate.send("consent-request-topic", event);
-
         // Create Consent record in CONSENT_PENDING state
         Consent consent = Consent.builder()
                 .bankId(req.getBankId().toString())
                 .userId(userGlobalId)
                 .status(KycStatus.CONSENT_PENDING)
+                .requestedDocuments(req.getRequestedDocuments())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
         consentRepository.save(consent);
 
-        BankCustomer customer =
-                bankCustomerRepository
-                        .findByUserIdAndBankId(userGlobalId, req.getBankId().toString())
-                        .orElse(new BankCustomer());
+        ConsentRequestEvent event =
+                ConsentRequestEvent.builder()
+                        .userId(userGlobalId)
+                        .email(req.getEmail())
+                        .bankId(req.getBankId().toString())
+                        .consentId(consent.getId())
+                        .requestedDocuments(req.getRequestedDocuments())
+                        .build();
+
+        // Publish async consent request event
+        kafkaTemplate.send(KafkaConstants.CONSENT_REQUEST_TOPIC, event);
+
+        // reuse customer fetched above
 
         customer.setUserId(userGlobalId);
         customer.setBankId(req.getBankId().toString());
-        customer.setConsentId(consent.getId());
+        if (customer.getConsentIds() == null) {
+            customer.setConsentIds(new ArrayList<>());
+        }
+        if (!customer.getConsentIds().contains(consent.getId())) {
+            customer.getConsentIds().add(consent.getId());
+        }
 
         return bankCustomerRepository.save(customer);
     }

@@ -6,19 +6,17 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.kyc.management.bankservice.entity.DocumentType;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankKycInitiateRequest {
-    @NotNull(message = "User ID is required")
-    private String userId;
-
     @NotNull(message = "Bank ID is required")
     private UUID bankId;
 
     @NotNull(message = "Requested documents are required")
-    private List<String> requestedDocuments;
+    private List<DocumentType> requestedDocuments;
 
     @NotNull(message = "User email is required")
     private String email;
