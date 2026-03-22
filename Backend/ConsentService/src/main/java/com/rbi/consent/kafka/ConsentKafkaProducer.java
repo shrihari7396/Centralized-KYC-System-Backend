@@ -1,6 +1,6 @@
 package com.rbi.consent.kafka;
 
-import com.rbi.consent.event.ConsentApprovedEvent;
+import com.rbi.consent.event.ConsentResponseEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 public class ConsentKafkaProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private static final String TOPIC = "consent-approved-topic";
+    private static final String TOPIC = "consent-response-topic";
 
-    public void sendConsentApprovedEvent(ConsentApprovedEvent event) {
+    public void sendConsentResponseEvent(ConsentResponseEvent event) {
         log.info(
-                "Sending ConsentApprovedEvent to topic {} for consentId: {}",
+                "Sending ConsentResponseEvent to topic {} for consentId: {}",
                 TOPIC,
                 event.getConsentId());
         kafkaTemplate.send(TOPIC, event);

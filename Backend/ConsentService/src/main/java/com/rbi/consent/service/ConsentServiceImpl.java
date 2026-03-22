@@ -10,7 +10,9 @@ import com.rbi.consent.dto.UserDto;
 import com.rbi.consent.entity.ConsentRecord;
 import com.rbi.consent.enums.ConsentDocumentType;
 import com.rbi.consent.enums.ConsentStatus;
-import com.rbi.consent.event.ConsentApprovedEvent;
+import com.rbi.consent.event.ConsentResponseEvent;
+import com.rbi.consent.event.DocumentType;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.rbi.consent.event.NotificationEvent;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
@@ -21,9 +23,13 @@ import com.rbi.consent.repository.ConsentRepository;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -227,21 +233,31 @@ public class ConsentServiceImpl implements ConsentService {
 
         ConsentRecord updated = consentRepository.save(record);
 
+        List<DocumentType> docs = new ArrayList<>();
+        try {
+            if (updated.getConsentDocuments() != null) {
+                docs = objectMapper.readValue(updated.getConsentDocuments(), new TypeReference<List<DocumentType>>() {});
+            }
+        } catch (Exception e) {
+            log.error("Error parsing consent documents", e);
+        }
+
         // Notify Bank via Kafka Event
-        ConsentApprovedEvent event =
-                ConsentApprovedEvent.builder()
+        ConsentResponseEvent event =
+                ConsentResponseEvent.builder()
                         .consentId(updated.getId())
                         .userId(updated.getUserId())
                         .bankId(updated.getBankId())
                         .status(ConsentStatus.APPROVED)
+                        .requestedDocuments(docs)
                         .build();
-        consentKafkaProducer.sendConsentApprovedEvent(event);
+        consentKafkaProducer.sendConsentResponseEvent(event);
 
 
 
         // Emit Universal Notification to the Bank
-        com.rbi.consent.event.NotificationEvent bankNotif =
-                com.rbi.consent.event.NotificationEvent.builder()
+        NotificationEvent bankNotif =
+                NotificationEvent.builder()
                         .notificationId(updated.getBankId() + "_" + updated.getId() + "_approved")
                         .targetId(updated.getBankId().toString())
                         .type("BANK_CONSENT_APPROVED")
@@ -252,7 +268,7 @@ public class ConsentServiceImpl implements ConsentService {
 
         kafkaLogProducer.logInfo(
                 "CONSENT_APPROVED",
-                java.util.Map.of(
+                Map.of(
                         "consentId",
                         updated.getId(),
                         "userId",
@@ -279,7 +295,7 @@ public class ConsentServiceImpl implements ConsentService {
                                         .status(record.getConsentStatus())
                                         .expiryAt(record.getExpiryAt())
                                         .build())
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -312,15 +328,25 @@ public class ConsentServiceImpl implements ConsentService {
                         .build();
         kafkaTemplate.send("notification-events-topic", bankNotif);
 
+        List<DocumentType> docs = new ArrayList<>();
+        try {
+            if (record.getConsentDocuments() != null) {
+                docs = objectMapper.readValue(record.getConsentDocuments(), new TypeReference<List<DocumentType>>() {});
+            }
+        } catch (Exception e) {
+            log.error("Error parsing consent documents", e);
+        }
+
         // Notify Bank via Kafka Event for Rejection
-        ConsentApprovedEvent event =
-                ConsentApprovedEvent.builder()
+        ConsentResponseEvent event =
+                ConsentResponseEvent.builder()
                         .consentId(record.getId())
                         .userId(record.getUserId())
                         .bankId(record.getBankId())
                         .status(ConsentStatus.REJECTED)
+                        .requestedDocuments(docs)
                         .build();
-        consentKafkaProducer.sendConsentApprovedEvent(event);
+        consentKafkaProducer.sendConsentResponseEvent(event);
 
         kafkaLogProducer.logWarning(
                 "CONSENT_REJECTED",
