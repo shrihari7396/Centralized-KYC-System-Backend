@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ConsentRepository extends MongoRepository<Consent, String> {
     Optional<Consent> findByConsentId(String consentId);
+
     Optional<Consent> findByUserIdAndBankId(String userId, String bankId);
 
     java.util.List<Consent> findByStatus(KycStatus status);

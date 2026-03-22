@@ -29,8 +29,8 @@ public class KycDataKafkaConsumer {
                 event.getUserId(),
                 event.getBankId());
 
-        Optional<Consent> consentOpt = consentRepository.findByUserIdAndBankId(
-                event.getUserId(), event.getBankId());
+        Optional<Consent> consentOpt =
+                consentRepository.findByUserIdAndBankId(event.getUserId(), event.getBankId());
 
         if (consentOpt.isPresent()) {
             Consent consent = consentOpt.get();
@@ -39,13 +39,14 @@ public class KycDataKafkaConsumer {
             consentRepository.save(consent);
             log.info("Consent status updated to ACTIVE for userId: {}", event.getUserId());
 
-            BankCustomerKycData data = BankCustomerKycData.builder()
-                    .userId(event.getUserId())
-                    .bankId(event.getBankId())
-                    .consentId(consent.getId())
-                    .kycData(event.getKycData())
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            BankCustomerKycData data =
+                    BankCustomerKycData.builder()
+                            .userId(event.getUserId())
+                            .bankId(event.getBankId())
+                            .consentId(consent.getId())
+                            .kycData(event.getKycData())
+                            .createdAt(LocalDateTime.now())
+                            .build();
             mongoRepo.save(data);
             log.info("Saved Customer KYC data for userId: {}", event.getUserId());
         } else {
