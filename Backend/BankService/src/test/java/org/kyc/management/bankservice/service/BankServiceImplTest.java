@@ -18,7 +18,6 @@ import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.*;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
-import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.CreateOtpEvent;
 import org.kyc.management.bankservice.exception.InValidOtpException;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;

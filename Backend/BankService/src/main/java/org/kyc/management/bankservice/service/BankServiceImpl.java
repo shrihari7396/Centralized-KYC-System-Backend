@@ -38,7 +38,7 @@ public class BankServiceImpl implements BankService {
     private final BankCustomerRepository repo;
     private final KafkaLogProducer kafkaLogProducer;
     private final StringRedisTemplate redisTemplate;
-    private final KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SecureRandom secureRandom;
     private final JwtValidator jwtValidator;
     private final BankCustomerMongoRepository mongoRepo;
@@ -90,7 +90,7 @@ public class BankServiceImpl implements BankService {
         }
         String latestConsentId = c.getConsentIds().get(c.getConsentIds().size() - 1);
         Consent consent =
-                consentRepo
+                      consentRepo
                         .findById(latestConsentId)
                         .orElseThrow(() -> new ConsentNotFoundException("Consent not found"));
         consent.setStatus(KycStatus.ACTIVE_OVERRIDE);
