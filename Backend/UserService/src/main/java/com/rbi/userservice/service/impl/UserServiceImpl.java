@@ -1,7 +1,5 @@
 package com.rbi.userservice.service.impl;
 
-import static java.rmi.server.LogStream.log;
-
 import com.rbi.userservice.DTO.*;
 import com.rbi.userservice.Model.UserEntity;
 import com.rbi.userservice.Model.UserStatus;
@@ -44,16 +42,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean sendOtpByPhone(String phone) {
-        UserEntity user =
-                userRepository
-                        .findByPhone(phone)
-                        .orElseThrow(
-                                () -> {
-                                    kafkaLogProducer.logError(
-                                            "USER_NOT_FOUND", Map.of("phone", phone));
-                                    return new RuntimeException(
-                                            "User not found with phone: " + phone);
-                                });
+        UserEntity user = userRepository
+                .findByPhone(phone)
+                .orElseThrow(
+                        () -> {
+                            kafkaLogProducer.logError(
+                                    "USER_NOT_FOUND", Map.of("phone", phone));
+                            return new RuntimeException(
+                                    "User not found with phone: " + phone);
+                        });
         return generateAndSendOtp(user.getFirstName(), user.getLastName(), user.getEmail(), phone);
     }
 
@@ -62,16 +59,14 @@ public class UserServiceImpl implements UserService {
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
 
-        CreateOtpEvent event =
-                CreateOtpEvent.builder()
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .email(email)
-                        .otp(finalotp)
-                        .serviceType("LOGIN")
-                        .build();
-        log(finalotp);
-        System.out.println(finalotp);
+        CreateOtpEvent event = CreateOtpEvent.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .otp(finalotp)
+                .serviceType("LOGIN")
+                .build();
+        log.info("OTP: {}", finalotp);
         saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
 
@@ -82,14 +77,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean registerUser(RegisterDTO user) {
-        UserEntity u =
-                UserEntity.builder()
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .email(user.getEmail())
-                        .status(UserStatus.KYC_PENDING)
-                        .phone(user.getMobileNumber())
-                        .build();
+        UserEntity u = UserEntity.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .status(UserStatus.KYC_PENDING)
+                .phone(user.getMobileNumber())
+                .build();
 
         UserEntity saved = userRepository.save(u);
         if (saved != null) {
@@ -140,17 +134,15 @@ public class UserServiceImpl implements UserService {
         LoginResponseDto response = null;
 
         if (verifyOtp(otpVerificationDto.getOtp(), otpVerificationDto.getEmail())) {
-            String token =
-                    jwtService.generateToken(
-                            otpVerificationDto.getEmail(), otpVerificationDto.getRole().toString());
-            response =
-                    LoginResponseDto.builder()
-                            .role(otpVerificationDto.getRole())
-                            .email(otpVerificationDto.getEmail())
-                            .firstName(otpVerificationDto.getFirstName())
-                            .lastName(otpVerificationDto.getLastName())
-                            .token(token)
-                            .build();
+            String token = jwtService.generateToken(
+                    otpVerificationDto.getEmail(), otpVerificationDto.getRole().toString());
+            response = LoginResponseDto.builder()
+                    .role(otpVerificationDto.getRole())
+                    .email(otpVerificationDto.getEmail())
+                    .firstName(otpVerificationDto.getFirstName())
+                    .lastName(otpVerificationDto.getLastName())
+                    .token(token)
+                    .build();
         }
 
         if (response == null) {
@@ -190,11 +182,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserDetails(String email) {
-        UserEntity user =
-                userRepository
-                        .findByEmail(email)
-                        .orElseThrow(
-                                () -> new RuntimeException("User not found with email: " + email));
+        UserEntity user = userRepository
+                .findByEmail(email)
+                .orElseThrow(
+                        () -> new RuntimeException("User not found with email: " + email));
         return UserDto.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
