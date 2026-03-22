@@ -1,12 +1,14 @@
 package org.kyc.digilockerService.event;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@RequiredArgsConstructor
 public class Address {
     private String street;
     private String city;
