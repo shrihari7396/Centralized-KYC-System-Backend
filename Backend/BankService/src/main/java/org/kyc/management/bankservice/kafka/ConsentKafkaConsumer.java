@@ -31,7 +31,7 @@ public class ConsentKafkaConsumer {
         if (consentOpt.isPresent()) {
             Consent consent = consentOpt.get();
             if ("REJECTED".equalsIgnoreCase(event.getStatus())) {
-                consent.setStatus(KycStatus.REJECTED);
+                consent.setStatus(KycStatus.KYC_REJECTED);
                 log.info(
                         "Consent was REJECTED for userId: {} and bankId: {}",
                         event.getUserId(),

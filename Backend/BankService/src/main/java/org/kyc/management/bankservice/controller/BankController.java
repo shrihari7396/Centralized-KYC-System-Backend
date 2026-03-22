@@ -1,6 +1,8 @@
 package org.kyc.management.bankservice.controller;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
@@ -27,10 +29,10 @@ public class BankController {
         return ResponseEntity.ok(orchestrator.initiateKyc(req));
     }
 
-
-    @GetMapping("/status/{userId}")
-    public ResponseEntity<BankCustomer> getStatus(@PathVariable("userId") String userId) {
-        return ResponseEntity.ok(bankSvc.getCustomerStatus(userId));
+    @GetMapping("/status/{userId}/{bankId}")
+    public ResponseEntity<BankCustomer> getStatus(
+            @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getCustomerStatus(userId, bankId));
     }
 
     @PostMapping("/bypass")
@@ -68,13 +70,13 @@ public class BankController {
     }
 
     @GetMapping("/consents/approved")
-    public ResponseEntity<java.util.List<BankCustomer>> listApprovedConsents() {
+    public ResponseEntity<List<BankCustomer>> listApprovedConsents() {
         return ResponseEntity.ok(bankSvc.getApprovedConsents());
     }
 
-    @PostMapping("/fetch/{userId}")
+    @PostMapping("/fetch/{userId}/{bankId}")
     public ResponseEntity<Map<String, Object>> fetchCustomerData(
-            @PathVariable("userId") String userId) {
-        return ResponseEntity.ok(bankSvc.fetchKycData(userId));
+            @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.fetchKycData(userId, bankId));
     }
 }

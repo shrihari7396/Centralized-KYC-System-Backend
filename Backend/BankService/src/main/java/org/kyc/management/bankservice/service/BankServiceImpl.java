@@ -17,6 +17,9 @@ import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.CreateOtpEvent;
 import org.kyc.management.bankservice.exception.InValidOtpException;
+import org.kyc.management.bankservice.exception.CustomerNotFoundException;
+import org.kyc.management.bankservice.exception.ConsentNotFoundException;
+import org.kyc.management.bankservice.exception.KycDataNotFoundException;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
@@ -44,15 +47,18 @@ public class BankServiceImpl implements BankService {
     private final ConsentRepository consentRepo;
 
     @Override
-    public BankCustomer getCustomerStatus(String userId) {
+    public BankCustomer getCustomerStatus(String userId, String bankId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
-        kafkaLogProducer.logInfo("GET_CUSTOMER_STATUS", Map.of("userId", globalId));
-        return repo.findByUserId(globalId)
+        kafkaLogProducer.logInfo(
+                "GET_CUSTOMER_STATUS",
+                Map.of("userId", globalId, "bankId", bankId));
+        return repo.findByUserIdAndBankId(globalId, bankId)
                 .orElseThrow(
                         () -> {
                             kafkaLogProducer.logError(
-                                    "CUSTOMER_NOT_FOUND", java.util.Map.of("userId", userId));
-                            return new RuntimeException("Customer not found");
+                                    "CUSTOMER_NOT_FOUND",
+                                    java.util.Map.of("userId", userId, "bankId", bankId));
+                            return new CustomerNotFoundException("Customer not found");
                         });
     }
 
@@ -70,7 +76,7 @@ public class BankServiceImpl implements BankService {
                                                     req.getUserId(),
                                                     "reason",
                                                     "Customer not found"));
-                                    return new RuntimeException("Customer not found");
+                                    return new CustomerNotFoundException("Customer not found");
                                 });
 
         if ("HIGH_RISK".equalsIgnoreCase(c.getRiskLevel())) {
@@ -81,8 +87,8 @@ public class BankServiceImpl implements BankService {
         }
 
         Consent consent = consentRepo.findById(c.getConsentId())
-                .orElseThrow(() -> new RuntimeException("Consent not found"));
-        consent.setStatus(KycStatus.VERIFIED_OVERRIDE);
+                .orElseThrow(() -> new ConsentNotFoundException("Consent not found"));
+        consent.setStatus(KycStatus.ACTIVE_OVERRIDE);
         consentRepo.save(consent);
 
         c.setOverrideReason(req.getReason());
@@ -221,8 +227,8 @@ public class BankServiceImpl implements BankService {
                 "GET_APPROVED_CONSENTS",
                 java.util.Map.of("action", "Listing users with approved consents"));
         
-        java.util.List<Consent> approvedConsents = new java.util.ArrayList<>(consentRepo.findByStatus(KycStatus.VERIFIED));
-        approvedConsents.addAll(consentRepo.findByStatus(KycStatus.VERIFIED_OVERRIDE));
+        java.util.List<Consent> approvedConsents = new java.util.ArrayList<>(consentRepo.findByStatus(KycStatus.ACTIVE));
+        approvedConsents.addAll(consentRepo.findByStatus(KycStatus.ACTIVE_OVERRIDE));
 
         java.util.List<String> userIds = approvedConsents.stream()
                 .map(Consent::getUserId)
@@ -234,16 +240,19 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public Map<String, Object> fetchKycData(String userId) {
+    public Map<String, Object> fetchKycData(String userId, String bankId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
-        BankCustomer customer =
-                repo.findByUserId(globalId)
-                        .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        kafkaLogProducer.logInfo("FETCHING_KYC_DATA_LOCAL", java.util.Map.of("userId", userId));
         
-        BankCustomerKycData mongoDoc = mongoRepo.findByUserIdAndBankId(globalId, customer.getBankId())
-                .orElseThrow(() -> new RuntimeException("KYC data not found in local DB yet."));
+        // Insulation: Verify customer actually belongs to this bank
+        repo.findByUserIdAndBankId(globalId, bankId)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found for this bank"));
+
+        kafkaLogProducer.logInfo(
+                "FETCHING_KYC_DATA_LOCAL",
+                java.util.Map.of("userId", userId, "bankId", bankId));
+        
+        BankCustomerKycData mongoDoc = mongoRepo.findByUserIdAndBankId(globalId, bankId)
+                .orElseThrow(() -> new KycDataNotFoundException("KYC data not found in local DB yet."));
 
         return mongoDoc.getKycData();
     }

@@ -34,9 +34,9 @@ public class KycDataKafkaConsumer {
 
         if (consentOpt.isPresent()) {
             Consent consent = consentOpt.get();
-            consent.setStatus(KycStatus.VERIFIED);
+            consent.setStatus(KycStatus.ACTIVE);
             consentRepository.save(consent);
-            log.info("Consent status updated to VERIFIED for userId: {}", event.getUserId());
+            log.info("Consent status updated to ACTIVE for userId: {}", event.getUserId());
 
             BankCustomerKycData data =
                     BankCustomerKycData.builder()

@@ -9,7 +9,7 @@ import org.kyc.management.bankservice.dto.OtpVerificationDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
 
 public interface BankService {
-    BankCustomer getCustomerStatus(String userId);
+    BankCustomer getCustomerStatus(String userId, String bankId);
 
     BankCustomer bypassKyc(BypassRequestDto bypassRequestDto);
 
@@ -27,5 +27,5 @@ public interface BankService {
 
     List<BankCustomer> getApprovedConsents();
 
-    Map<String, Object> fetchKycData(String userId);
+    Map<String, Object> fetchKycData(String userId, String bankId);
 }

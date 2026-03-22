@@ -4,6 +4,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
+import org.kyc.management.bankservice.dto.UserDto;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentRequestEvent;
@@ -11,6 +12,8 @@ import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.exception.UserNotFoundException;
+import org.kyc.management.bankservice.exception.KycNotVerifiedException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,14 +33,26 @@ public class KycOrchestrationService {
                 "KYC_INITIATED", Map.of("userId", req.getUserId(), "bankId", req.getBankId()));
 
         // Resolve immutable Global User ID instead of volatile email
+        UserDto userDto;
         String userGlobalId;
         try {
-            userGlobalId = userFeignClient.getUserDetails(req.getEmail()).getUserId();
+            userDto = userFeignClient.getUserDetails(req.getEmail());
+            userGlobalId = userDto.getUserId();
         } catch (Exception e) {
             kafkaLogProducer.logError(
                     "INITIATE_KYC_FAILED",
-                    java.util.Map.of("email", req.getEmail(), "bankId", req.getBankId() != null ? req.getBankId().toString() : "null", "reason", "User not found"));
-            throw new RuntimeException("User not found in system. Consent cannot be accepted.");
+                    Map.of("email", req.getEmail(), "bankId", req.getBankId() != null ? req.getBankId().toString() : "null", "reason", "User not found"));
+            throw new UserNotFoundException("User not found in system. Consent cannot be accepted.");
+        }
+
+        if (!"ACTIVE".equalsIgnoreCase(userDto.getStatus())) {
+            kafkaLogProducer.logError(
+                    "INITIATE_KYC_FAILED",
+                    Map.of(
+                            "email", req.getEmail(),
+                            "bankId", req.getBankId() != null ? req.getBankId().toString() : "null",
+                            "reason", "User KYC not verified"));
+            throw new KycNotVerifiedException("Consent cannot be created. User KYC are not Verified in User Service.");
         }
 
         ConsentRequestEvent event =
