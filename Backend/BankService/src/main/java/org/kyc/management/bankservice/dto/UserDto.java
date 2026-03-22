@@ -18,15 +18,4 @@ public class UserDto {
     private String phone;
     private List<String> roles;
     private String status;
-
-    // Explicit constructor for testing
-    public UserDto(String userId, String firstName, String lastName, String email, String phone, List<String> roles, String status) {
-        this.userId = userId;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.roles = roles;
-        this.status = status;
-    }
 }

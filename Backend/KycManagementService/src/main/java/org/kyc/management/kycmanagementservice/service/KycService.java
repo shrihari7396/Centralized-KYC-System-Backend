@@ -145,8 +145,12 @@ public class KycService {
             Optional<KycRecord> recordOpt =
                     kycRecordRepository.findByAadharNumber(kycEntity.getAadhaarNo());
             if (recordOpt.isPresent()) {
-                identity.setFullName(recordOpt.get().getFullName());
-                identity.setDob(recordOpt.get().getDob());
+                KycRecord record = recordOpt.get();
+                String fullName = (record.getFirstName() != null ? record.getFirstName() : "") + " " +
+                        (record.getMiddleName() != null ? record.getMiddleName() : "") + " " +
+                        (record.getLastName() != null ? record.getLastName() : "");
+                identity.setFullName(fullName.replaceAll("\\s+", " ").trim());
+                identity.setDob(record.getDob());
             }
         }
 
