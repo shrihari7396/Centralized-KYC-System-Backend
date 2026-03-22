@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +44,9 @@ class BankServiceImplTest {
 
     @Mock
     private RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     @Mock
     private KafkaTemplate<String, CreateOtpEvent> kafkaTemplate;
@@ -80,6 +85,9 @@ class BankServiceImplTest {
                 .consentToken("consent-token-123")
                 .createdAt(LocalDateTime.now())
                 .build();
+
+        // Setup Redis mock
+        // Removed global Redis mock to avoid unnecessary stubbing
     }
 
     @Test
@@ -164,6 +172,7 @@ class BankServiceImplTest {
 
         when(repo.existsByUserId(request.getEmail())).thenReturn(true);
         when(secureRandom.nextInt(1_000_000)).thenReturn(123456);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Act
         Boolean result = bankService.sendOtp(request);
@@ -171,7 +180,7 @@ class BankServiceImplTest {
         // Assert
         assertTrue(result);
         verify(kafkaTemplate).send(eq("OTP_CREATED_TOPIC"), any(CreateOtpEvent.class));
-        verify(redisTemplate).opsForValue().set(eq(request.getEmail()), eq("123456"), any());
+        verify(valueOperations).set(eq(request.getEmail()), eq("123456"), any(Duration.class));
         verify(kafkaLogProducer).logInfo(eq("OTP_SENT"), any());
     }
 
@@ -199,7 +208,8 @@ class BankServiceImplTest {
         String otp = "123456";
         String key = "test@example.com";
 
-        when(redisTemplate.opsForValue().get(key)).thenReturn(otp);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(key)).thenReturn(otp);
 
         // Act
         Boolean result = bankService.verifyOtp(otp, key);
@@ -216,7 +226,8 @@ class BankServiceImplTest {
         String otp = "123456";
         String key = "test@example.com";
 
-        when(redisTemplate.opsForValue().get(key)).thenReturn(null);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(key)).thenReturn(null);
 
         // Act & Assert
         InValidOtpException exception = assertThrows(InValidOtpException.class,
@@ -231,7 +242,8 @@ class BankServiceImplTest {
         String otp = "123456";
         String key = "test@example.com";
 
-        when(redisTemplate.opsForValue().get(key)).thenReturn("654321");
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(key)).thenReturn("654321");
 
         // Act & Assert
         InValidOtpException exception = assertThrows(InValidOtpException.class,
@@ -251,7 +263,8 @@ class BankServiceImplTest {
                 .role("CUSTOMER")
                 .build();
 
-        when(redisTemplate.opsForValue().get(request.getEmail())).thenReturn(request.getOtp());
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(request.getEmail())).thenReturn(request.getOtp());
         when(jwtValidator.generateToken(request.getEmail(), request.getRole())).thenReturn("jwt-token-123");
 
         // Act
@@ -276,13 +289,14 @@ class BankServiceImplTest {
                 .role("CUSTOMER")
                 .build();
 
-        when(redisTemplate.opsForValue().get(request.getEmail())).thenReturn("654321");
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(request.getEmail())).thenReturn("654321");
 
         // Act & Assert
         InValidOtpException exception = assertThrows(InValidOtpException.class,
                 () -> bankService.getLoginResponseDto(request));
         assertEquals("Invalid OTP", exception.getMessage());
-        verify(kafkaLogProducer).logWarning(eq("LOGIN_FAILED"), any());
+        verify(kafkaLogProducer).logWarning(eq("OTP_VERIFICATION_FAILED_INVALID"), any());
     }
 
     @Test
@@ -293,13 +307,14 @@ class BankServiceImplTest {
 
         when(jwtValidator.getJtiFromToken(token)).thenReturn(jti);
         when(jwtValidator.getExpirationFromToken(token)).thenReturn(new java.util.Date(System.currentTimeMillis() + 3600000));
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Act
         Boolean result = bankService.logout(token);
 
         // Assert
         assertTrue(result);
-        verify(redisTemplate).opsForValue().set(eq("blacklist:" + jti), eq("true"), any());
+        verify(valueOperations).set(eq("blacklist:" + jti), eq("true"), any(Duration.class));
     }
 
     @Test
