@@ -23,7 +23,7 @@ The Notification Service is a robust, highly-scalable, event-driven microservice
 
 This architecture highlights how the system operates in a clustered, multi-instance environment without retaining local state (beyond the active physical WebSocket connection).
 
-![System Architecture](Architecture.png)
+![System Architecture](/NotificationSystem/Diagrams/Architecture.png)
 
 ---
 
@@ -31,7 +31,7 @@ This architecture highlights how the system operates in a clustered, multi-insta
 
 The following sequence details exactly how an event emitted by another microservice seamlessly makes its way across the backend topology, identifies the node holding the user, and delivers the payload instantly.
 
-![Sequence Diagram](sequence_diagram.png)
+![Sequence Diagram](/NotificationSystem/Diagrams/sequence_diagram.png)
 
 ---
 
@@ -39,7 +39,7 @@ The following sequence details exactly how an event emitted by another microserv
 
 The internal Java components interact precisely to decouple Kafka ingestion from WebSocket dispatching natively within Spring Boot.
 
-![Class Structure Diagram](classDiagram.png)
+![Class Structure Diagram](/NotificationSystem/Diagrams/classDiagram.png)
 
 ---
 
