@@ -8,6 +8,7 @@ import org.kyc.emailservice.service.EmailSenderService;
 import org.kyc.emailservice.service.template.emailTemplates.EmailTemplateFactory;
 import org.kyc.emailservice.service.template.emailTemplates.EmailTemplateStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     @Autowired private JavaMailSender mailSender;
     @Autowired private KafkaLogProducer kafkaLogProducer;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    @Value("${spring.mail.from}")
     private String fromEmail;
 
     @Autowired private EmailTemplateFactory templateFactory;
