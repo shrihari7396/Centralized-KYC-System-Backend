@@ -2,13 +2,12 @@ package org.workflow.aiservice.GenAi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class GroqApiService {
@@ -24,17 +23,19 @@ public class GroqApiService {
 
     @Value("${groq.api.model}")
     private String model;
+
     public String callGroqApi(String systemPrompt, String userMessage) {
         try {
             // Construct JSON payload using a Map
 
-            
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
-            requestBody.put("messages", new Object[]{
-                    Map.of("role", "system", "content", systemPrompt),
-                    Map.of("role", "user", "content", userMessage)
-            });
+            requestBody.put(
+                    "messages",
+                    new Object[] {
+                        Map.of("role", "system", "content", systemPrompt),
+                        Map.of("role", "user", "content", userMessage)
+                    });
 
             // Convert request body to JSON string
             String requestBodyJson = objectMapper.writeValueAsString(requestBody);
@@ -48,12 +49,12 @@ public class GroqApiService {
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBodyJson, headers);
 
             // Send POST request
-            ResponseEntity<String> response = restTemplate.exchange(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    HttpMethod.POST,
-                    requestEntity,
-                    String.class
-            );
+            ResponseEntity<String> response =
+                    restTemplate.exchange(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            HttpMethod.POST,
+                            requestEntity,
+                            String.class);
 
             // Parse JSON response to extract only content
             JsonNode rootNode = objectMapper.readTree(response.getBody());

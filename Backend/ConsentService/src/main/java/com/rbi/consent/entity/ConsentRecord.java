@@ -16,15 +16,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(
         name = "consents",
-        indexes = {
-                @Index(name = "idx_user_bank", columnList = "userId, bankId")
-        }
-)
+        indexes = {@Index(name = "idx_user_bank", columnList = "userId, bankId")})
 public class ConsentRecord {
 
-    @Id
-    @GeneratedValue
-    private UUID id;
+    @Id @GeneratedValue private UUID id;
 
     @Column(nullable = false, length = 100)
     private String userId;
