@@ -36,41 +36,43 @@ spring:
             allowCredentials: true
             maxAge: 3600
 
-      routes:
-        - id: user-service
-          uri: lb://USERSERVICE
-          predicates:
-            - Path=/user/**
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: lb://USERSERVICE
+              predicates:
+                - Path=/user/**
 
-        - id: bank-service
-          uri: lb://BANKSERVICE
-          predicates:
-            - Path=/bank/**
+            - id: bank-service
+              uri: lb://BANKSERVICE
+              predicates:
+               - Path=/bank/**
 
-        - id: consent-service
-          uri: lb://CONSENT-SERVICE
-          predicates:
-            - Path=/consents/**
+            - id: consent-service
+              uri: lb://CONSENT-SERVICE
+              predicates:
+               - Path=/consents/**
 
-        - id: kyc-management-service
-          uri: lb://KYCMANAGEMENTSERVICE
-          predicates:
-            - Path=/api/kyc/**
+            - id: kyc-management-service
+              uri: lb://KYCMANAGEMENTSERVICE
+              predicates:
+               - Path=/api/kyc/**
 
-        - id: digilocker-service
-          uri: lb://DIGILOCKERSERVICE
-          predicates:
-            - Path=/api/digilocker/**
+            - id: digilocker-service
+              uri: lb://DIGILOCKERSERVICE
+              predicates:
+               - Path=/api/digilocker/**
 
-        - id: AI_SERVICE
-          uri: lb://AISERVICE
-          predicates:
-            - Path=/ai/**
+            - id: AI_SERVICE
+              uri: lb://AISERVICE
+              predicates:
+               - Path=/ai/**
 
-        - id: notification-ws
-          uri: lb:ws://NOTIFICATION-SYSTEM
-          predicates:
-            - Path=/ws/**
+            - id: notification-ws
+              uri: lb:ws://NOTIFICATION-SYSTEM
+              predicates:
+               - Path=/ws/**
 
 # --- EUREKA CONFIG ---
 eureka:
