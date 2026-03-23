@@ -7,18 +7,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
+import org.kyc.management.bankservice.dto.DashboardStatsResponse;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
-import org.kyc.management.bankservice.dto.DashboardStatsResponse;
 import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
-import org.springframework.security.core.Authentication;
 import org.kyc.management.bankservice.service.BankService;
 import org.kyc.management.bankservice.service.KycOrchestrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -99,12 +99,14 @@ public class BankController {
     }
 
     @GetMapping("/customers/{bankId}")
-    public ResponseEntity<List<BankCustomer>> getCustomersByBank(@PathVariable("bankId") String bankId) {
+    public ResponseEntity<List<BankCustomer>> getCustomersByBank(
+            @PathVariable("bankId") String bankId) {
         return ResponseEntity.ok(bankSvc.getCustomersByBank(bankId));
     }
 
     @GetMapping("/stats/{bankId}")
-    public ResponseEntity<DashboardStatsResponse> getDashboardStats(@PathVariable("bankId") String bankId) {
+    public ResponseEntity<DashboardStatsResponse> getDashboardStats(
+            @PathVariable("bankId") String bankId) {
         return ResponseEntity.ok(bankSvc.getDashboardStats(bankId));
     }
 
@@ -114,7 +116,8 @@ public class BankController {
     }
 
     @GetMapping("/consents/all/{bankId}")
-    public ResponseEntity<List<Consent>> getAllConsentsByBank(@PathVariable("bankId") String bankId) {
+    public ResponseEntity<List<Consent>> getAllConsentsByBank(
+            @PathVariable("bankId") String bankId) {
         return ResponseEntity.ok(bankSvc.getAllConsentsByBank(bankId));
     }
 
