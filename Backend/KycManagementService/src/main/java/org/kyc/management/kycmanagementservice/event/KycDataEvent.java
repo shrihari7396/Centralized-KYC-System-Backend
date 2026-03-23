@@ -1,7 +1,7 @@
 package org.kyc.management.kycmanagementservice.event;
 
-import lombok.*;
 import java.util.Map;
+import lombok.*;
 
 @Data
 @Builder

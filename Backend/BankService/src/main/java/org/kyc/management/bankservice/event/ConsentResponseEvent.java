@@ -1,9 +1,8 @@
 package org.kyc.management.bankservice.event;
 
-import lombok.*;
-
 import java.util.List;
 import java.util.UUID;
+import lombok.*;
 
 @Data
 @Builder

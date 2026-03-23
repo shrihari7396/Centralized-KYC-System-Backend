@@ -1,10 +1,9 @@
 package org.kyc.management.kycmanagementservice.event;
 
 import java.util.List;
-
+import lombok.*;
 import org.kyc.management.kycmanagementservice.dto.DocumentType;
 import org.kyc.management.kycmanagementservice.enums.ConsentStatus;
-import lombok.*;
 
 @Data
 @Builder

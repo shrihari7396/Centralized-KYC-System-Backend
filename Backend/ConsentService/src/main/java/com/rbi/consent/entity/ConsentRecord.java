@@ -37,8 +37,6 @@ public class ConsentRecord {
     @Column(nullable = false)
     private UUID bankId;
 
-
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConsentStatus consentStatus;

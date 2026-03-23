@@ -1,7 +1,7 @@
 package com.rbi.consent.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbi.consent.client.UserFeignClient;
 import com.rbi.consent.dto.ConsentRequestDto;
@@ -12,7 +12,6 @@ import com.rbi.consent.enums.ConsentDocumentType;
 import com.rbi.consent.enums.ConsentStatus;
 import com.rbi.consent.event.ConsentResponseEvent;
 import com.rbi.consent.event.DocumentType;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.rbi.consent.event.NotificationEvent;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
@@ -20,7 +19,6 @@ import com.rbi.consent.exception.ConsentRejectedException;
 import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,10 +108,7 @@ public class ConsentServiceImpl implements ConsentService {
                                         + "/status?Accept or Decline")
                         .timestamp(System.currentTimeMillis())
                         .actionUrl(
-                                consentBaseUrl
-                                        + "/"
-                                        + saved.getId()
-                                        + "/status?Accept or Decline")
+                                consentBaseUrl + "/" + saved.getId() + "/status?Accept or Decline")
                         .metadata(
                                 java.util.Map.of(
                                         "consentId",
@@ -223,20 +217,20 @@ public class ConsentServiceImpl implements ConsentService {
             throw new IllegalArgumentException("Consent is not in PENDING state.");
         }
 
-
-
         record.setConsentStatus(ConsentStatus.APPROVED);
         record.setApprovedAt(LocalDateTime.now());
         record.setExpiryAt(LocalDateTime.now().plusDays(2));
         record.setActive(true);
-
 
         ConsentRecord updated = consentRepository.save(record);
 
         List<DocumentType> docs = new ArrayList<>();
         try {
             if (updated.getConsentDocuments() != null) {
-                docs = objectMapper.readValue(updated.getConsentDocuments(), new TypeReference<List<DocumentType>>() {});
+                docs =
+                        objectMapper.readValue(
+                                updated.getConsentDocuments(),
+                                new TypeReference<List<DocumentType>>() {});
             }
         } catch (Exception e) {
             log.error("Error parsing consent documents", e);
@@ -252,8 +246,6 @@ public class ConsentServiceImpl implements ConsentService {
                         .requestedDocuments(docs)
                         .build();
         consentKafkaProducer.sendConsentResponseEvent(event);
-
-
 
         // Emit Universal Notification to the Bank
         NotificationEvent bankNotif =
@@ -315,8 +307,6 @@ public class ConsentServiceImpl implements ConsentService {
         record.setActive(false);
         consentRepository.save(record);
 
-
-
         // Emit Universal Notification to the Bank
         NotificationEvent bankNotif =
                 NotificationEvent.builder()
@@ -331,7 +321,10 @@ public class ConsentServiceImpl implements ConsentService {
         List<DocumentType> docs = new ArrayList<>();
         try {
             if (record.getConsentDocuments() != null) {
-                docs = objectMapper.readValue(record.getConsentDocuments(), new TypeReference<List<DocumentType>>() {});
+                docs =
+                        objectMapper.readValue(
+                                record.getConsentDocuments(),
+                                new TypeReference<List<DocumentType>>() {});
             }
         } catch (Exception e) {
             log.error("Error parsing consent documents", e);
@@ -397,6 +390,4 @@ public class ConsentServiceImpl implements ConsentService {
             throw new RuntimeException("Failed to serialize documents.");
         }
     }
-
-
 }

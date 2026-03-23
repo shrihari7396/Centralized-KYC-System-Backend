@@ -1,10 +1,9 @@
 package com.rbi.consent.event;
 
 import com.rbi.consent.enums.ConsentStatus;
-import lombok.*;
-
 import java.util.List;
 import java.util.UUID;
+import lombok.*;
 
 @Data
 @Builder
