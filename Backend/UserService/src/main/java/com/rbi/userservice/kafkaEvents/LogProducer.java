@@ -1,6 +1,6 @@
 package com.rbi.userservice.kafkaEvents;
 
-import com.rbi.userservice.dto.LogEventDTO;
+import com.rbi.userservice.DTO.LogEventDTO;
 import java.time.Instant;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

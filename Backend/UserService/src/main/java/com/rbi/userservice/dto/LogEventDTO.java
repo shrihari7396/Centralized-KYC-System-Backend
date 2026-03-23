@@ -1,4 +1,4 @@
-package com.rbi.userservice.dto;
+package com.rbi.userservice.DTO;
 
 import java.time.Instant;
 import java.util.Map;

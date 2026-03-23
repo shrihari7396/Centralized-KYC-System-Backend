@@ -40,6 +40,8 @@ public class UserController {
 
     @PostMapping("/otp/request")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
+
+        System.out.println(1);
         if (!userService.isExistByEmail(otpRequestDtp.getEmail())) {
             throw new UserNotFoundException("User Not Found !!!");
         }

@@ -69,6 +69,7 @@ public class UserServiceImpl implements UserService {
                         .serviceType("LOGIN")
                         .build();
         log.info("OTP: {}", finalotp);
+        System.out.println(finalotp);
         saveOtp(finalotp, key);
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
 

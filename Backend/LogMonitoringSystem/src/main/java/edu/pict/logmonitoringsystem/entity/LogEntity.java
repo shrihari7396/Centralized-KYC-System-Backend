@@ -41,7 +41,7 @@ public class LogEntity {
 
     @PrePersist
     public void prePersist() {
-        this.id = UUID.randomUUID();
+//        this.id = UUID.randomUUID();
         this.ingestedAt = Instant.now();
     }
 }
