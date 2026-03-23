@@ -12,4 +12,10 @@ public interface ConsentRepository extends MongoRepository<Consent, String> {
     Optional<Consent> findByUserIdAndBankId(String userId, String bankId);
 
     List<Consent> findByStatus(KycStatus status);
+
+    List<Consent> findByBankId(String bankId);
+
+    List<Consent> findByBankIdAndStatus(String bankId, KycStatus status);
+
+    long countByBankIdAndStatus(String bankId, KycStatus status);
 }

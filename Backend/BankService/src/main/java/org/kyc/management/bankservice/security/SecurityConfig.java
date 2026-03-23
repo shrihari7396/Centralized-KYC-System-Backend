@@ -20,16 +20,23 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers(
-                                                "/bank/kyc/request-otp",
-                                                "/bank/kyc/otp-verification")
+                                auth.requestMatchers("/bank/kyc/otp/**", "/bank/kyc/banks")
                                         .permitAll()
-                                        .requestMatchers("/bank/kyc/initiate", "/bank/kyc/submit")
-                                        .hasAuthority("BANK")
                                         .requestMatchers("/bank/kyc/bypass")
-                                        .hasAuthority("ADMIN")
+                                        .hasRole("ADMIN")
                                         .requestMatchers("/bank/kyc/status/**")
-                                        .hasAnyAuthority("BANK", "ADMIN")
+                                        .hasAnyRole("BANK", "ADMIN")
+                                        .requestMatchers(
+                                                "/bank/kyc/initiate",
+                                                "/bank/kyc/bank/profile",
+                                                "/bank/kyc/customers/**",
+                                                "/bank/kyc/stats/**",
+                                                "/bank/kyc/consents/**",
+                                                "/bank/kyc/fetch/**",
+                                                "/bank/kyc/history/**")
+                                        .hasRole("BANK")
+                                        .requestMatchers("/bank/kyc/logout")
+                                        .authenticated()
                                         .anyRequest()
                                         .authenticated())
                 .sessionManagement(

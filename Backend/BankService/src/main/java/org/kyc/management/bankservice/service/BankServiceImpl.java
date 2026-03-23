@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
+import org.kyc.management.bankservice.dto.DashboardStatsResponse;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
+import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
@@ -33,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BankServiceImpl implements BankService {
 
     private final BankCustomerRepository repo;
@@ -107,16 +111,16 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
-        if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
-            kafkaLogProducer.logError(
-                    "LOGIN_REJECTED",
-                    Map.of(
-                            "username",
-                            otpRequestDto.getEmail(),
-                            "reason",
-                            "Username does not exist in Bank DB"));
-            throw new RuntimeException("Username is not registered with the Bank");
-        }
+//        if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
+//            kafkaLogProducer.logError(
+//                    "LOGIN_REJECTED",
+//                    Map.of(
+//                            "username",
+//                            otpRequestDto.getEmail(),
+//                            "reason",
+//                            "Username does not exist in Bank DB"));
+//            throw new RuntimeException("Username is not registered with the Bank");
+//        }
 
         return generateAndSendOtp(
                 otpRequestDto.getFirstName(),
@@ -129,7 +133,7 @@ public class BankServiceImpl implements BankService {
             String firstName, String lastName, String email, String key) {
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
-
+        log.info("Otp: {}", finalotp);
         CreateOtpEvent event =
                 CreateOtpEvent.builder()
                         .firstName(firstName)
@@ -266,5 +270,65 @@ public class BankServiceImpl implements BankService {
                                                 "KYC data not found in local DB yet."));
 
         return mongoDoc.getKycData();
+    }
+
+    @Override
+    public Bank getBankProfile(String email) {
+        return bankRepo.findByUsername(email)
+                .orElseThrow(() -> new RuntimeException("Bank not found"));
+    }
+
+    @Override
+    public List<BankCustomer> getCustomersByBank(String bankId) {
+        return repo.findByBankId(bankId);
+    }
+
+    @Override
+    public DashboardStatsResponse getDashboardStats(String bankId) {
+        long total = repo.countByBankId(bankId);
+        long approved = consentRepo.countByBankIdAndStatus(bankId, KycStatus.ACTIVE)
+                     + consentRepo.countByBankIdAndStatus(bankId, KycStatus.ACTIVE_OVERRIDE);
+        long pending = consentRepo.countByBankIdAndStatus(bankId, KycStatus.CONSENT_PENDING)
+                     + consentRepo.countByBankIdAndStatus(bankId, KycStatus.KYC_PENDING);
+        long rejected = consentRepo.countByBankIdAndStatus(bankId, KycStatus.KYC_REJECTED);
+        long override = consentRepo.countByBankIdAndStatus(bankId, KycStatus.ACTIVE_OVERRIDE);
+
+        Map<String, Long> riskDist = repo.findByBankId(bankId).stream()
+                .filter(c -> c.getRiskLevel() != null)
+                .collect(Collectors.groupingBy(BankCustomer::getRiskLevel, Collectors.counting()));
+
+        return DashboardStatsResponse.builder()
+                .totalCustomers(total)
+                .approvedCount(approved)
+                .pendingCount(pending)
+                .rejectedCount(rejected)
+                .overrideCount(override)
+                .riskDistribution(riskDist)
+                .build();
+    }
+
+    @Override
+    public List<Consent> getPendingConsents(String email) {
+        Bank bank = bankRepo.findByUsername(email)
+                .orElseThrow(() -> new RuntimeException("Bank not found"));
+        return consentRepo.findByBankIdAndStatus(bank.getId(), KycStatus.CONSENT_PENDING);
+    }
+
+    @Override
+    public List<Consent> getAllConsentsByBank(String bankId) {
+        return consentRepo.findByBankId(bankId);
+    }
+
+    @Override
+    public List<Bank> getAllBanks() {
+        return bankRepo.findAll();
+    }
+
+    @Override
+    public List<BankCustomerKycData> getKycHistory(String userId, String bankId) {
+        String globalId = userFeignClient.getUserDetails(userId).getUserId();
+        return mongoRepo.findByUserIdAndBankId(globalId, bankId)
+                .map(List::of)
+                .orElse(List.of());
     }
 }

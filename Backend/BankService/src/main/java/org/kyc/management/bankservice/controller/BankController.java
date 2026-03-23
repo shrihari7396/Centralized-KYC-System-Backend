@@ -4,11 +4,17 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
+import org.kyc.management.bankservice.dto.DashboardStatsResponse;
+import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
+import org.kyc.management.bankservice.entity.BankCustomerKycData;
+import org.kyc.management.bankservice.entity.Consent;
+import org.springframework.security.core.Authentication;
 import org.kyc.management.bankservice.service.BankService;
 import org.kyc.management.bankservice.service.KycOrchestrationService;
 import org.springframework.http.HttpStatus;
@@ -24,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/bank/kyc")
 @RequiredArgsConstructor
+@Slf4j
 public class BankController {
 
     private final KycOrchestrationService orchestrator;
@@ -47,6 +54,7 @@ public class BankController {
 
     @PostMapping("/otp/request")
     public ResponseEntity<?> requestOTP(@RequestBody @Valid OtpRequestDto otpRequestDto) {
+        log.info("Request Arrived !!!");
         if (bankSvc.sendOtp(otpRequestDto)) {
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
         } else {
@@ -83,5 +91,41 @@ public class BankController {
     public ResponseEntity<Map<String, Object>> fetchCustomerData(
             @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
         return ResponseEntity.ok(bankSvc.fetchKycData(userId, bankId));
+    }
+
+    @GetMapping("/bank/profile")
+    public ResponseEntity<Bank> getBankProfile(Authentication auth) {
+        return ResponseEntity.ok(bankSvc.getBankProfile(auth.getName()));
+    }
+
+    @GetMapping("/customers/{bankId}")
+    public ResponseEntity<List<BankCustomer>> getCustomersByBank(@PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getCustomersByBank(bankId));
+    }
+
+    @GetMapping("/stats/{bankId}")
+    public ResponseEntity<DashboardStatsResponse> getDashboardStats(@PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getDashboardStats(bankId));
+    }
+
+    @GetMapping("/consents/pending")
+    public ResponseEntity<List<Consent>> getPendingConsents(Authentication auth) {
+        return ResponseEntity.ok(bankSvc.getPendingConsents(auth.getName()));
+    }
+
+    @GetMapping("/consents/all/{bankId}")
+    public ResponseEntity<List<Consent>> getAllConsentsByBank(@PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getAllConsentsByBank(bankId));
+    }
+
+    @GetMapping("/banks")
+    public ResponseEntity<List<Bank>> getAllBanks() {
+        return ResponseEntity.ok(bankSvc.getAllBanks());
+    }
+
+    @GetMapping("/history/{userId}/{bankId}")
+    public ResponseEntity<List<BankCustomerKycData>> getKycHistory(
+            @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getKycHistory(userId, bankId));
     }
 }

@@ -1,5 +1,6 @@
 package org.kyc.management.bankservice.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -12,4 +13,8 @@ public interface BankCustomerRepository extends MongoRepository<BankCustomer, St
     Optional<BankCustomer> findByUserId(String userId);
 
     boolean existsByUserId(String userId);
+
+    List<BankCustomer> findByBankId(String bankId);
+
+    long countByBankId(String bankId);
 }
