@@ -42,5 +42,8 @@ run_service DigilockerService
 run_service EmailService
 run_service KycManagementService
 run_service UserService
+run_service NotificationSystem
+run_service AiService
+
 
 echo "All services started!"

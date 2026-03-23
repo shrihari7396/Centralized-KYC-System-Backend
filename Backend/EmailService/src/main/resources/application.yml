@@ -1,4 +1,4 @@
 server:
   servlet:
     context-path: /api/emailService/
-  port: 8082
+  port: 8092

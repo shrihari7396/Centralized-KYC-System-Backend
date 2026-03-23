@@ -27,6 +27,8 @@ format_service EmailService
 format_service KycManagementService
 format_service UserService
 format_service NotificationSystem
+format_service AiService
+
 
 echo "----------------------------------------"
 echo "All services formatted!"
