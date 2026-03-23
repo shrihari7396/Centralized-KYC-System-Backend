@@ -65,9 +65,12 @@ spring:
         - id: AI_SERVICE
           uri: lb://AISERVICE
           predicates:
-            - Path=/ai/api/**
-          filters:
-            - PrefixPath=/ai-service
+            - Path=/ai/**
+
+        - id: notification-ws
+          uri: lb:ws://NOTIFICATION-SYSTEM
+          predicates:
+            - Path=/ws/**
 
 # --- EUREKA CONFIG ---
 eureka:

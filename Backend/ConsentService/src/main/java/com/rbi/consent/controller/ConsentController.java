@@ -40,14 +40,14 @@ public class ConsentController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PostMapping("/send-otp/{consentId}")
+    @PostMapping("/{consentId}/otp")
     public ResponseEntity<Void> sendOtp(@PathVariable UUID consentId) {
         consentService.sendConsentOtp(consentId);
         logProducer.logInfo("CONSENT_OTP_SENT", Map.of("consentId", consentId.toString()));
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/approve/{consentId}")
+    @PostMapping("/{consentId}/approve")
     public ResponseEntity<ConsentResponseDto> approveConsent(
             @PathVariable UUID consentId, @RequestParam String otp) {
         ConsentResponseDto response = consentService.approveConsent(consentId, otp);
@@ -55,7 +55,7 @@ public class ConsentController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reject/{consentId}")
+    @PostMapping("/{consentId}/reject")
     public ResponseEntity<Void> rejectConsent(
             @PathVariable UUID consentId, @RequestParam String otp) {
         consentService.rejectConsent(consentId, otp);

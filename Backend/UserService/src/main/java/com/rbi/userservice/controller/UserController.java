@@ -38,7 +38,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/request-otp")
+    @PostMapping("/otp/request")
     public ResponseEntity<?> requestOTP(@RequestBody OtpRequestDto otpRequestDtp) {
         if (!userService.isExistByEmail(otpRequestDtp.getEmail())) {
             throw new UserNotFoundException("User Not Found !!!");
@@ -55,7 +55,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/otp-verification")
+    @PostMapping("/otp/verify")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userService.getLoginResponseDto(otpVerificationDto));
@@ -79,7 +79,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserDetails(email));
     }
 
-    @GetMapping("/get-kyc-status/{email}")
+    @GetMapping("/kyc-status/{email}")
     public ResponseEntity<?> getStatusByEmail(@PathVariable String email) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserStatusByEmail(email));
     }

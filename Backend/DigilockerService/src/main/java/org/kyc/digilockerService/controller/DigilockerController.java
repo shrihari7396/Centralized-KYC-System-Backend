@@ -28,7 +28,7 @@ public class DigilockerController {
                 Map.of("message", "Redirected to partner. Please enter mobile number."));
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping("/otp/request")
     public ResponseEntity<?> authenticate(@RequestBody OtpGenerateRequest request) {
         log.info("Requesting OTP generation for mobile: {}", request.getEmail());
 
@@ -50,7 +50,7 @@ public class DigilockerController {
                 .body("Some Error occurred at our end ... ");
     }
 
-    @PostMapping("/verify-otp")
+    @PostMapping("/otp/verify")
     public ResponseEntity<?> verifyOtp(@RequestBody OtpVerificationDto request) {
         log.info("Verifying OTP for email: {}", request.getEmail());
         if (!request.isConsentAccepted()) {

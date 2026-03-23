@@ -45,7 +45,7 @@ public class BankController {
         return ResponseEntity.ok(bankSvc.bypassKyc(req));
     }
 
-    @PostMapping("/request-otp")
+    @PostMapping("/otp/request")
     public ResponseEntity<?> requestOTP(@RequestBody @Valid OtpRequestDto otpRequestDto) {
         if (bankSvc.sendOtp(otpRequestDto)) {
             return ResponseEntity.status(HttpStatus.CREATED).body("OTP Sent successfully ...");
@@ -54,7 +54,7 @@ public class BankController {
         }
     }
 
-    @PostMapping("/otp-verification")
+    @PostMapping("/otp/verify")
     public ResponseEntity<?> otpVerification(
             @RequestBody @Valid OtpVerificationDto otpVerificationDto) {
         return ResponseEntity.status(HttpStatus.OK)
