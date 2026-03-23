@@ -5,29 +5,37 @@ spring:
   output:
     ansi:
       enabled: always
+
   application:
     name: CONSENT-SERVICE
+
   datasource:
     url: jdbc:mysql://localhost:3306/kyc_consent_db
     username: root
-    password: 899961 # Replace with env specific password if needed
+    password: 899961
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   data:
     redis:
       host: localhost
       port: 6379
+
   kafka:
+    bootstrap-servers: localhost:9092
     producer:
-      bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      bootstrap-servers: localhost:9092
+      group-id: consent-group
+      auto-offset-reset: earliest
+
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
       properties:
         spring:
           json:
@@ -43,10 +51,9 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
   instance:
     prefer-ip-address: true
-
-
 
 logging:
   level:

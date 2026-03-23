@@ -1,14 +1,7 @@
 package com.rbi.consent.entity;
 
 import com.rbi.consent.enums.ConsentStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -23,15 +16,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(
         name = "consents",
-        indexes = {@Index(name = "idx_user_bank", columnList = "userId, bankId")})
+        indexes = {
+                @Index(name = "idx_user_bank", columnList = "userId, bankId")
+        }
+)
 public class ConsentRecord {
 
     @Id
-    @GeneratedValue(generator = "UUID")
+    @GeneratedValue
     private UUID id;
 
-    // @Convert(converter = StringCryptoConverter.class)
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 100)
     private String userId;
 
     @Column(nullable = false)
