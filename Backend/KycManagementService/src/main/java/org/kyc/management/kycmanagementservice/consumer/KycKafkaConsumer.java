@@ -79,6 +79,7 @@ public class KycKafkaConsumer {
         // Produce success event
         KycVerificationSuccessEvent successEvent =
                 KycVerificationSuccessEvent.builder()
+                        .email(event.getEmail())
                         .mobileNumber(event.getMobileNumber())
                         .status("SUCCESS")
                         .fullName(fullName)

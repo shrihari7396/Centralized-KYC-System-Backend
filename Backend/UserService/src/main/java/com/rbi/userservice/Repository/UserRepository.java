@@ -22,4 +22,9 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     Optional<UserEntity> findByEmail(String email);
 
     UserStatus findUserStatusByEmail(String email);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserEntity u SET u.status = :status WHERE LOWER(u.email) = LOWER(:email)")
+    int updateStatusByEmail(@Param("email") String email, @Param("status") UserStatus status);
 }

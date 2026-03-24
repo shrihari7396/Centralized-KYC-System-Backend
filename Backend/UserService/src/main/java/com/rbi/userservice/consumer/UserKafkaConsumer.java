@@ -21,14 +21,29 @@ public class UserKafkaConsumer {
 
     @KafkaListener(topics = SUCCESS_TOPIC, groupId = "user-service-group")
     public void consumeKycSuccess(KycVerificationSuccessEvent event) {
-        log.info("Consumed KYC success event for email: {}", event.getEmail());
+        log.info("Consumed KYC success event: {}", event);
 
-        Optional<UserEntity> userOpt = userRepository.findByEmail(event.getEmail());
+        if (event.getEmail() == null || event.getEmail().isBlank()) {
+            log.warn(
+                    "KYC success event missing email; cannot update user status. Event: {}",
+                    event);
+            return;
+        }
+
+        int updated = userRepository.updateStatusByEmail(event.getEmail().trim(), UserStatus.ACTIVE);
+        if (updated > 0) {
+            log.info("User status updated to ACTIVE for email: {}", event.getEmail());
+            return;
+        }
+
+        Optional<UserEntity> userOpt = userRepository.findByEmail(event.getEmail().trim());
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
             user.setStatus(UserStatus.ACTIVE);
             userRepository.save(user);
-            log.info("User status updated to ACTIVE for email: {}", event.getEmail());
+            log.info(
+                    "User status updated to ACTIVE for email (save fallback): {}",
+                    event.getEmail());
         } else {
             log.warn("User not found for email: {}", event.getEmail());
         }
