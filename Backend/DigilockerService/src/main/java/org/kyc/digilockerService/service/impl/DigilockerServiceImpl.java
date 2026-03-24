@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.digilockerService.config.KafkaConstants;
 import org.kyc.digilockerService.dto.OtpGenerateRequest;
+import org.kyc.digilockerService.client.UserClient;
+import org.kyc.digilockerService.dto.UserDto;
 import org.kyc.digilockerService.event.Address;
 import org.kyc.digilockerService.event.DigiLockerDataFetchedEvent;
 import org.kyc.digilockerService.exceptions.InValidOtpException;
@@ -28,6 +30,7 @@ public class DigilockerServiceImpl implements DigilockerService {
     private final StringRedisTemplate redisTemplate;
     private final KafkaLogProducer kafkaLogProducer;
     private final SecureRandom secureRandom;
+    private final UserClient userClient;
 
     public Boolean generateAndSendOtp(OtpGenerateRequest otpGenerateRequest) {
         int otp = secureRandom.nextInt(1_000_000);
@@ -83,10 +86,24 @@ public class DigilockerServiceImpl implements DigilockerService {
                         .country("India")
                         .zipCode("411043")
                         .build();
+
+        // Fetch mobile number from User Service
+        String mobileNumber = null;
+        try {
+            UserDto userDto = userClient.getUserDetails(email);
+            if (userDto != null) {
+                mobileNumber = userDto.getPhone();
+                log.info("Fetched mobile number for email {}: {}", email, mobileNumber);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch user details for email {}: {}", email, e.getMessage());
+        }
+
         // Generate dummy data
         DigiLockerDataFetchedEvent event =
                 DigiLockerDataFetchedEvent.builder()
                         .userId(userId)
+                        .mobileNumber(mobileNumber)
                         .email(email)
                         .aadharNumber(UUID.randomUUID().toString())
                         .panNumber(UUID.randomUUID().toString())

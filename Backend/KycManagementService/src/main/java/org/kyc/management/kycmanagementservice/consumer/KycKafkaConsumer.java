@@ -12,15 +12,16 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class KycKafkaConsumer {
 
     private final KycRecordRepository kycRecordRepository;
-
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
     private final KafkaLogProducer kafkaLogProducer;
 
     private static final String FETCHED_TOPIC = KafkaConstants.DIGILOCKER_DATA_FETCHED_TOPIC;
@@ -29,26 +30,36 @@ public class KycKafkaConsumer {
 
     @KafkaListener(topics = FETCHED_TOPIC, groupId = KAFKA_GROUP_ID)
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
+
+        // 🔴 Defensive null check (critical)
+        if (event == null || event.getMobileNumber() == null) {
+            log.error("Invalid DigiLocker event received: {}", event);
+            return;
+        }
+
         log.info("Consumed DigiLocker data for mobile: {}", event.getMobileNumber());
-        kafkaLogProducer.logInfo(
-                "KYC_PROCESSING_STARTED",
-                java.util.Map.of("mobileNumber", event.getMobileNumber()));
 
-        // Map and save to DB
-        KycRecord record =
-                kycRecordRepository
-                        .findByMobileNumber(event.getMobileNumber())
-                        .orElse(new KycRecord());
+        // ✅ Safe logging map (replaced Map.of)
+        Map<String, Object> startLog = new HashMap<>();
+        startLog.put("mobileNumber", event.getMobileNumber());
 
-        String fullName =
-                String.format(
-                                "%s %s %s",
-                                event.getFirstName(),
-                                event.getMiddleName() != null ? event.getMiddleName() : "",
-                                event.getLastName())
-                        .replaceAll("\\s+", " ")
-                        .trim();
+        kafkaLogProducer.logInfo("KYC_PROCESSING_STARTED", startLog);
 
+        // Fetch or create record
+        KycRecord record = kycRecordRepository
+                .findByMobileNumber(event.getMobileNumber())
+                .orElse(new KycRecord());
+
+        // Full name construction (null-safe)
+        String fullName = String.format(
+                        "%s %s %s",
+                        event.getFirstName() != null ? event.getFirstName() : "",
+                        event.getMiddleName() != null ? event.getMiddleName() : "",
+                        event.getLastName() != null ? event.getLastName() : "")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        // Map fields
         record.setMobileNumber(event.getMobileNumber());
         record.setAadharNumber(event.getAadharNumber());
         record.setPanNumber(event.getPanNumber());
@@ -59,6 +70,7 @@ public class KycKafkaConsumer {
         record.setAddress(event.getAddress() != null ? event.getAddress().toString() : null);
         record.setStatus("VERIFIED");
 
+        // Save to DB
         kycRecordRepository.save(record);
         log.info("KycRecord saved to DB for mobile: {}", event.getMobileNumber());
 
@@ -74,10 +86,14 @@ public class KycKafkaConsumer {
                 "Sending KYC verification success event to Kafka topic {}: {}",
                 SUCCESS_TOPIC,
                 successEvent);
+
         kafkaTemplate.send(SUCCESS_TOPIC, event.getMobileNumber(), successEvent);
 
-        kafkaLogProducer.logInfo(
-                "KYC_VERIFICATION_SUCCESS",
-                java.util.Map.of("mobileNumber", event.getMobileNumber(), "status", "SUCCESS"));
+        // ✅ Safe logging map (replaced Map.of)
+        Map<String, Object> successLog = new HashMap<>();
+        successLog.put("mobileNumber", event.getMobileNumber());
+        successLog.put("status", "SUCCESS");
+
+        kafkaLogProducer.logInfo("KYC_VERIFICATION_SUCCESS", successLog);
     }
 }
