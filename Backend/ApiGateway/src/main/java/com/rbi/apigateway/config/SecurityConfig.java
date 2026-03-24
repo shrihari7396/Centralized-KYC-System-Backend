@@ -1,26 +1,15 @@
 package com.rbi.apigateway.config;
 
-import java.util.List;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+/**
+ * CORS is configured centrally via the globalcors section in application.yml.
+ * Do NOT add a CorsConfigurationSource bean here — it would cause the
+ * Access-Control-Allow-Origin header to be set twice, which browsers reject.
+ */
 @Configuration
 public class SecurityConfig {
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("*"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+    // No bean needed; CORS handled in application.yml globalcors
 }
 
 // PS C:\Users\Lenovo\Desktop\springbt\KYC\Centralized-KYC-System\Backend> div 4 DSE -> Shra K ->
