@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
+import org.kyc.management.bankservice.dto.BankRegisterRequest;
 import org.kyc.management.bankservice.dto.DashboardStatsResponse;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
@@ -130,5 +131,10 @@ public class BankController {
     public ResponseEntity<List<BankCustomerKycData>> getKycHistory(
             @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
         return ResponseEntity.ok(bankSvc.getKycHistory(userId, bankId));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Bank> registerBank(@RequestBody @Valid BankRegisterRequest req) {
+        return ResponseEntity.ok(bankSvc.registerBank(req));
     }
 }
