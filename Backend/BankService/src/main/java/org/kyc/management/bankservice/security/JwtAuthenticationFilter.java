@@ -40,15 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtValidator.validateToken(jwt)) {
                 String role = jwtValidator.getRoleFromToken(jwt);
-                // Ensure role starts with ROLE_ for Spring Security hasAuthority
-                String formattedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(formattedRole);
+                if (role != null) {
+                    // Ensure role starts with ROLE_ for Spring Security hasAuthority
+                    String formattedRole = role.startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(formattedRole);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userEmail, null, Collections.singletonList(authority));
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userEmail, null, Collections.singletonList(authority));
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         }
         filterChain.doFilter(request, response);

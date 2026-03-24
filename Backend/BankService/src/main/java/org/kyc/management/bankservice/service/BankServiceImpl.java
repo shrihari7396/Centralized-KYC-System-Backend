@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.client.UserFeignClient;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.DashboardStatsResponse;
+import org.kyc.management.bankservice.dto.BankRegisterRequest;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
@@ -20,10 +21,7 @@ import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.CreateOtpEvent;
-import org.kyc.management.bankservice.exception.ConsentNotFoundException;
-import org.kyc.management.bankservice.exception.CustomerNotFoundException;
-import org.kyc.management.bankservice.exception.InValidOtpException;
-import org.kyc.management.bankservice.exception.KycDataNotFoundException;
+import org.kyc.management.bankservice.exception.*;
 import org.kyc.management.bankservice.logging.KafkaLogProducer;
 import org.kyc.management.bankservice.repository.BankCustomerMongoRepository;
 import org.kyc.management.bankservice.repository.BankCustomerRepository;
@@ -111,26 +109,27 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
-        //        if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
-        //            kafkaLogProducer.logError(
-        //                    "LOGIN_REJECTED",
-        //                    Map.of(
-        //                            "username",
-        //                            otpRequestDto.getEmail(),
-        //                            "reason",
-        //                            "Username does not exist in Bank DB"));
-        //            throw new RuntimeException("Username is not registered with the Bank");
-        //        }
+        log.info("Comme: {}", bankRepo.findAll());
+               if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
+                   log.info("In side if");
+                   kafkaLogProducer.logError(
+                           "LOGIN_REJECTED",
+                           Map.of(
+                                   "username",
+                                   otpRequestDto.getEmail(),
+                                   "reason",
+                                   "Username does not exist in Bank DB"));
+                   throw new BankNotFoundException("Username is not registered with the Bank");
+               }
 
         return generateAndSendOtp(
                 otpRequestDto.getFirstName(),
                 otpRequestDto.getLastName(),
-                otpRequestDto.getEmail(),
                 otpRequestDto.getEmail());
     }
 
     private Boolean generateAndSendOtp(
-            String firstName, String lastName, String email, String key) {
+            String firstName, String lastName, String email) {
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
         log.info("Otp: {}", finalotp);
@@ -143,11 +142,11 @@ public class BankServiceImpl implements BankService {
                         .serviceType("BANK_LOGIN")
                         .build();
 
-        saveOtp(finalotp, key);
+        saveOtp(finalotp, email);
         // Using string topic name to avoid circular dependencies or missing constants
         kafkaTemplate.send("OTP_CREATED_TOPIC", event);
 
-        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email, "key", key));
+        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email));
 
         return true;
     }
@@ -334,5 +333,16 @@ public class BankServiceImpl implements BankService {
     public List<BankCustomerKycData> getKycHistory(String userId, String bankId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
         return mongoRepo.findByUserIdAndBankId(globalId, bankId).map(List::of).orElse(List.of());
+    }
+
+    @Override
+    public Bank registerBank(BankRegisterRequest req) {
+        Bank bank = Bank.builder()
+                .name(req.getName())
+                .code(req.getCode())
+                .username(req.getUsername())
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        return bankRepo.save(bank);
     }
 }

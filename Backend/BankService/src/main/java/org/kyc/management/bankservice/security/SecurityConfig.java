@@ -20,7 +20,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/bank/kyc/otp/**", "/bank/kyc/banks")
+                                auth.requestMatchers("/bank/kyc/otp/**", "/bank/kyc/banks", "/bank/kyc/register")
                                         .permitAll()
                                         .requestMatchers("/bank/kyc/bypass")
                                         .hasRole("ADMIN")

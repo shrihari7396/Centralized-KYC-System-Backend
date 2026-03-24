@@ -11,6 +11,7 @@ import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.dto.BankRegisterRequest;
 
 public interface BankService {
     BankCustomer getCustomerStatus(String userId, String bankId);
@@ -46,4 +47,6 @@ public interface BankService {
     List<Bank> getAllBanks();
 
     List<BankCustomerKycData> getKycHistory(String userId, String bankId);
+
+    Bank registerBank(BankRegisterRequest req);
 }
