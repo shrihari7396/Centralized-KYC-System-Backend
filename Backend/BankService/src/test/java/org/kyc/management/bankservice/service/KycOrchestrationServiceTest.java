@@ -49,7 +49,8 @@ class KycOrchestrationServiceTest {
         UUID bankId = UUID.randomUUID();
         List<DocumentType> requestedDocuments = List.of(DocumentType.AADHAAR, DocumentType.PAN);
         initiateRequest =
-                new BankKycInitiateRequest(bankId.toString(), requestedDocuments, "test@example.com");
+                new BankKycInitiateRequest(
+                        bankId.toString(), requestedDocuments, "test@example.com");
 
         testUserDto =
                 new UserDto(

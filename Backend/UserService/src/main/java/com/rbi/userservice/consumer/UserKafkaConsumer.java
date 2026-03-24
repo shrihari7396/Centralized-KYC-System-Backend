@@ -25,12 +25,12 @@ public class UserKafkaConsumer {
 
         if (event.getEmail() == null || event.getEmail().isBlank()) {
             log.warn(
-                    "KYC success event missing email; cannot update user status. Event: {}",
-                    event);
+                    "KYC success event missing email; cannot update user status. Event: {}", event);
             return;
         }
 
-        int updated = userRepository.updateStatusByEmail(event.getEmail().trim(), UserStatus.ACTIVE);
+        int updated =
+                userRepository.updateStatusByEmail(event.getEmail().trim(), UserStatus.ACTIVE);
         if (updated > 0) {
             log.info("User status updated to ACTIVE for email: {}", event.getEmail());
             return;

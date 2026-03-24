@@ -3,9 +3,9 @@ package com.rbi.apigateway.config;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * CORS is configured centrally via the globalcors section in application.yml.
- * Do NOT add a CorsConfigurationSource bean here — it would cause the
- * Access-Control-Allow-Origin header to be set twice, which browsers reject.
+ * CORS is configured centrally via the globalcors section in application.yml. Do NOT add a
+ * CorsConfigurationSource bean here — it would cause the Access-Control-Allow-Origin header to be
+ * set twice, which browsers reject.
  */
 @Configuration
 public class SecurityConfig {

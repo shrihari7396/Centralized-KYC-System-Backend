@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.client.UserFeignClient;
+import org.kyc.management.bankservice.dto.BankRegisterRequest;
 import org.kyc.management.bankservice.dto.BypassRequestDto;
 import org.kyc.management.bankservice.dto.DashboardStatsResponse;
-import org.kyc.management.bankservice.dto.BankRegisterRequest;
 import org.kyc.management.bankservice.dto.LoginResponseDto;
 import org.kyc.management.bankservice.dto.OtpRequestDto;
 import org.kyc.management.bankservice.dto.OtpVerificationDto;
@@ -110,17 +110,17 @@ public class BankServiceImpl implements BankService {
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
         log.info("Comme: {}", bankRepo.findAll());
-               if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
-                   log.info("In side if");
-                   kafkaLogProducer.logError(
-                           "LOGIN_REJECTED",
-                           Map.of(
-                                   "username",
-                                   otpRequestDto.getEmail(),
-                                   "reason",
-                                   "Username does not exist in Bank DB"));
-                   throw new BankNotFoundException("Username is not registered with the Bank");
-               }
+        if (!bankRepo.existsByUsername(otpRequestDto.getEmail())) {
+            log.info("In side if");
+            kafkaLogProducer.logError(
+                    "LOGIN_REJECTED",
+                    Map.of(
+                            "username",
+                            otpRequestDto.getEmail(),
+                            "reason",
+                            "Username does not exist in Bank DB"));
+            throw new BankNotFoundException("Username is not registered with the Bank");
+        }
 
         return generateAndSendOtp(
                 otpRequestDto.getFirstName(),
@@ -128,8 +128,7 @@ public class BankServiceImpl implements BankService {
                 otpRequestDto.getEmail());
     }
 
-    private Boolean generateAndSendOtp(
-            String firstName, String lastName, String email) {
+    private Boolean generateAndSendOtp(String firstName, String lastName, String email) {
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
         log.info("Otp: {}", finalotp);
@@ -337,12 +336,13 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public Bank registerBank(BankRegisterRequest req) {
-        Bank bank = Bank.builder()
-                .name(req.getName())
-                .code(req.getCode())
-                .username(req.getUsername())
-                .createdAt(java.time.LocalDateTime.now())
-                .build();
+        Bank bank =
+                Bank.builder()
+                        .name(req.getName())
+                        .code(req.getCode())
+                        .username(req.getUsername())
+                        .createdAt(java.time.LocalDateTime.now())
+                        .build();
         return bankRepo.save(bank);
     }
 }

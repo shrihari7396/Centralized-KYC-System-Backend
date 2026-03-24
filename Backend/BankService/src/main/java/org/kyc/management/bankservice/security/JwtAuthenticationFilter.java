@@ -28,7 +28,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        log.info("JwtFilter: URI={} | authHeader={}", request.getRequestURI(), authHeader != null ? "Present" : "Missing");
+        log.info(
+                "JwtFilter: URI={} | authHeader={}",
+                request.getRequestURI(),
+                authHeader != null ? "Present" : "Missing");
         final String jwt;
         final String userEmail;
 
@@ -45,14 +48,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = jwtValidator.getRoleFromToken(jwt);
                 if (role != null) {
                     // Ensure role starts with ROLE_ for Spring Security hasAuthority
-                    String formattedRole = role.startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+                    String formattedRole =
+                            role.startsWith("ROLE_")
+                                    ? role.toUpperCase()
+                                    : "ROLE_" + role.toUpperCase();
                     log.info("JwtFilter: Extracted role={}, formattedRole={}", role, formattedRole);
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority(formattedRole);
 
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userEmail, null, Collections.singletonList(authority));
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
