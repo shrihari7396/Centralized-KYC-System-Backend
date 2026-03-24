@@ -2,7 +2,6 @@ package org.kyc.management.bankservice.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import org.kyc.management.bankservice.entity.DocumentType;
 @AllArgsConstructor
 public class BankKycInitiateRequest {
     @NotNull(message = "Bank ID is required")
-    private UUID bankId;
+    private String bankId;
 
     @NotNull(message = "Requested documents are required")
     private List<DocumentType> requestedDocuments;
