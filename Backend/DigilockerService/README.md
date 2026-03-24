@@ -1,120 +1,64 @@
-# DigiLocker Mock Service
+# 🛡️ DigiLocker Service
 
-A production-ready mock microservice that simulates Government KYC verification (UIDAI/NSDL) with an OTP-based flow and runtime dummy data generation.
+## 📌 Overview
+The **DigiLocker Service** is a core component of the Centralized KYC System. It interacts with or simulates Government DigiLocker verification (Aadhaar/PAN) inside the platform. Its primary responsibilities include:
+*   **OTP-Based Authentication**: Generating and verifying OTPs via Redis setup securely.
+*   **Identity Data Fetches**: Processing triggers to seed Dummy KYC Data back downstream.
+*   **Asynchronous Processing**: Producing descriptive results back over event setups effectively.
 
-## 🏗 Architecture Overview
+---
 
-- **Stack**: Spring Boot 3.5.10, Java 21
-- **Architecture**: Controller → Service → Repository (In-Memory)
-- **Features**:
-    - OTP Generation & Validation
-    - UUID-based Request & Token Management
-    - Runtime Dummy Data Generation (Seed-based)
-    - Simulated Latency/Failure (10% chance)
-    - Global Exception Handling
-    - OpenAPI/Swagger Documentation
+## 🛠️ Tech Stack
+*   **Framework**: Spring Boot 3.x
+*   **Database/Caching**: Redis (For secure session storage and OTP validation with TTL)
+*   **Messaging**: Apache Kafka (Event-driven notification and data fetched triggers)
+*   **Client**: Spring Cloud OpenFeign (Synchronous user lookup)
+*   **Security**: Spring Security + JWT authentication
 
-## 🚀 API Endpoints
+---
 
-### 1. Generate OTP
-- **URL**: `POST /digilocker/otp/generate`
-- **Body**:
-  ```json
-  {
-    "documentType": "PAN",
-    "documentNumber": "ABCDE1234F"
-  }
-  ```
-- **Response**: Returns `requestId`. OTP is logged in the console.
+## 🏗️ System Architecture & Interactions
 
-### 2. Verify OTP
-- **URL**: `POST /digilocker/otp/verify`
-- **Body**:
-  ```json
-  {
-    "requestId": "uuid-from-step-1",
-    "documentNumber": "ABCDE1234F",
-    "otp": "123456" 
-  }
-  ```
-  *(Note: Check application logs for the generated OTP)*
-- **Response**: Returns `verificationToken` on success.
+The DigiLocker Service interact updates components asynchronously over event broker setups.
 
-### 3. Fetch Verified Document
-- **URL**: `GET /digilocker/document`
-- **Headers**: `Authorization: Bearer <verificationToken>`
-- **Query Params**: `documentType=PAN`, `documentNumber=ABCDE1234F`
-- **Response**:
-  ```json
-  {
-      "name": "User_123",
-      "dob": "1995-05-15",
-      "gender": "M",
-      "address": "Generated Address 42",
-      "documentNumber": "XXXX234F"
-  }
-  ```
+![DigiLocker Service Architecture](../../Architechtures/DigilockerService/Digilocker_Service_Architecture.png)
 
-### 4. Health Check
-- **URL**: `GET /digilocker/health`
-- **Response**: `{"status": "UP"}`
 
-## 🧪 Testing
+---
 
-### Running Tests
-To run the automated unit and integration tests:
+## 🔄 Key Workflows
 
-```bash
-mvn test
-```
+### 1️⃣ DigiLocker Verification Flow
+The standard request-approval flow executing execution lifecycle executed inside this service.
 
-### Manual Testing (Postman)
-1. **Start the Application**: `mvn spring-boot:run`
-2. **Generate OTP**: Call `/digilocker/otp/generate`. Check console for OTP.
-3. **Verify OTP**: Call `/digilocker/otp/verify` with the OTP.
-4. **Get Data**: Call `/digilocker/document` with the token.
+![DigiLocker Service Sequence Diagram](../../Architechtures/DigilockerService/Digilocker_Service_Sequence_Diagram.png)
 
-## 📦 Setup & Installation
 
-1. **Prerequisites**: Java 21, Maven 3.8+
-2. **Build**: `mvn clean install`
-3. **Run**: `mvn spring-boot:run`
-4. **Swagger UI**: Access http://localhost:8083/swagger-ui.html
+---
 
-## Service Discovery
-This service registers with Eureka Server at `http://localhost:8761/eureka/`.
+## 🔌 API Endpoints
 
-## 📊 Sequence Diagram: KYC Verification Flow
+All endpoints are prefixed with `/api/digilocker` and usually routed via the **API Gateway (Port 8083)**.
 
-This diagram illustrates how the **KYC Service** orchestrates the verification process using the **DigiLocker Mock Service** via Feign Client.
+| Method | Endpoint | Access Role | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/redirect` | `Public` | Simulates redirection response triggers to partner setups. |
+| **POST** | `/otp/request` | `Public` | Initiates OTP request generation inside context limits. |
+| **POST** | `/otp/verify` | `Public` | Validates accurate matching verifying downstream pipelines triggers. |
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant UserService as User Service
-    participant KYCService as KYC Service
-    participant DigiLocker as DigiLocker Service <br/> (Mock)
+---
 
-    Note over KYCService, DigiLocker: Interaction via Feign Client
+## ⚙️ Configuration Hints
+*   **Caching**: Uses **Redis** (Port 6379) for caching 6-digit OTPs and session data holding.
+*   **Kafka**: Utilizes Kafka topics for processing notifications & results accurately.
+*   **Security**: Validates assertions based on token setups (Currently configured with `permitAll()` for local triggers).
 
-    %% Step 1: Generate OTP
-    User->>UserService: 1. Initiate KYC (PAN/AADHAAR)
-    UserService->>KYCService: 2. Request OTP Generation
-    KYCService->>DigiLocker: 3. POST /digilocker/otp/generate
-    DigiLocker-->>KYCService: 4. Return requestId
-    KYCService-->>UserService: 5. Return requestId
-    UserService-->>User: 6. OTP Sent (Check Console)
+---
 
-    %% Step 2: Verify OTP
-    User->>UserService: 7. Submit OTP + requestId
-    UserService->>KYCService: 8. Verify OTP
-    KYCService->>DigiLocker: 9. POST /digilocker/otp/verify
-    DigiLocker-->>KYCService: 10. Return verificationToken
-
-    %% Step 3: Fetch Data
-    KYCService->>DigiLocker: 11. GET /digilocker/document (Bearer Token)
-    DigiLocker-->>KYCService: 12. Return Document Data (JSON)
-    KYCService->>KYCService: 13. Store Verified Identity
-    KYCService-->>UserService: 14. KYC Verified
-    UserService-->>User: 15. Success Response
-```
+## 🚀 Running the Service
+1.  Ensure **DiscoveryService** (Port 8761) and **Kafka** are running.
+2.  Ensure **Redis** (Port 6379) is active and running.
+3.  Run the application using Maven:
+    ```bash
+    mvn spring-boot:run
+    ```
