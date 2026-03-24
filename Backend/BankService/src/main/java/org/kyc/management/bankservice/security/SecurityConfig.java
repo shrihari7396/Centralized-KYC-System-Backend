@@ -25,7 +25,7 @@ public class SecurityConfig {
                                         .requestMatchers("/bank/kyc/bypass")
                                         .hasRole("ADMIN")
                                         .requestMatchers("/bank/kyc/status/**")
-                                        .hasAnyRole("BANK", "ADMIN")
+                                        .hasAnyRole("BANK", "BANK_AGENT", "ADMIN")
                                         .requestMatchers(
                                                 "/bank/kyc/initiate",
                                                 "/bank/kyc/bank/profile",
@@ -34,7 +34,7 @@ public class SecurityConfig {
                                                 "/bank/kyc/consents/**",
                                                 "/bank/kyc/fetch/**",
                                                 "/bank/kyc/history/**")
-                                        .hasRole("BANK")
+                                        .hasAnyRole("BANK", "BANK_AGENT")
                                         .requestMatchers("/bank/kyc/logout")
                                         .authenticated()
                                         .anyRequest()
