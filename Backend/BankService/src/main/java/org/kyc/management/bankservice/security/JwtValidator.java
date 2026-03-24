@@ -15,16 +15,14 @@ public class JwtValidator {
     private final String secret =
             "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey secretKey;
+
+    JwtValidator() {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 
     public boolean validateToken(String token) {
@@ -56,7 +54,7 @@ public class JwtValidator {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
                 .and()
-                .signWith(getSigningKey())
+                .signWith(secretKey)
                 .compact();
     }
 
