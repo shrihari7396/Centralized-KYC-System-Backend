@@ -19,14 +19,8 @@ The **Email Service** is a supporting microservice in the Centralized KYC System
 
 The Email Service acts as an Asynchronous Message Consumer triggering external SMTP pushes upon setup triggers.
 
-```mermaid
-graph TD
-    K[(Kafka: OTP_CREATED_TOPIC)] -->|1. Consume| EC[OtpKafkaConsumer]
-    KS[(Kafka: kyc-verification-success)] -->|2. Consume| NC[NotificationKafkaConsumer]
-    EC -->|3. Trigger| ES[EmailSenderService]
-    NC -->|4. Trigger| ES
-    ES -->|5. Send Email| SMTP[(Mailtrap SMTP)]
-```
+![Email Service Architecture](../../Architechtures/EmailService/Email_Service_Architecture.png)
+
 
 ---
 
@@ -35,18 +29,8 @@ graph TD
 ### 1️⃣ OTP Email Dispatch Flow
 Message lifecycle consuming execution flow executed inside triggers.
 
-```mermaid
-sequenceDiagram
-    participant K as Kafka Broker
-    participant C as OtpKafkaConsumer
-    participant S as EmailSenderService
-    participant M as Mailtrap SMTP
+![Email Service Sequence Diagram](../../Architechtures/EmailService/Email_Service_Sequence_Diagram.png)
 
-    K->>C: Consume CreateOtpEvent
-    Note over C: Parse JSON data
-    C->>S: sendEmail(event)
-    S->>M: Dispatch MimeMessage
-```
 
 ---
 
