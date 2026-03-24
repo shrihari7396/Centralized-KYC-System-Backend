@@ -8,6 +8,7 @@ import org.kyc.management.kycmanagementservice.event.DigiLockerDataFetchedEvent;
 import org.kyc.management.kycmanagementservice.event.KycVerificationSuccessEvent;
 import org.kyc.management.kycmanagementservice.logging.KafkaLogProducer;
 import org.kyc.management.kycmanagementservice.repository.KycRecordRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,8 @@ public class KycKafkaConsumer {
 
     @KafkaListener(topics = FETCHED_TOPIC, groupId = KAFKA_GROUP_ID)
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
-
+//        DigiLockerDataFetchedEvent event =  modelMapper.map(event1, DigiLockerDataFetchedEvent.class);
+        log.info("Consume digilocker data received{}",  event);
         // 🔴 Defensive null check (critical)
         if (event == null || event.getMobileNumber() == null) {
             log.error("Invalid DigiLocker event received: {}", event);
