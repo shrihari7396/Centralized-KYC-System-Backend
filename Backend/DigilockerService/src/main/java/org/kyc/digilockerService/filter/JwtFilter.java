@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 var authorities =
                         roles.stream()
-                                .map(SimpleGrantedAuthority::new)
+                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                                 .collect(Collectors.toList());
 
                 UsernamePasswordAuthenticationToken auth =
