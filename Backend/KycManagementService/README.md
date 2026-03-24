@@ -22,25 +22,8 @@ The **KYC Management Service** is a core microservice in the Centralized KYC Sys
 
 The Kyc Management Service interacts with async triggers consuming verified datasets to assemble structured records.
 
-```mermaid
-graph TD
-    DS[Digilocker Service] -->|1. DataFetchedEvent| K[(Kafka: digilocker-data-fetched)]
-    K --> KM[Kyc Management Service]
-    KM -->|2. Save Record| DB[(MySQL DB)]
-    Bank[Bank] -->|3. Get Documents| KM
+![KYC Management Service Architecture](../../Architechtures/KYCService/KYC_Service_Architecture.png)
 
-    %% 🎨 Color Classes
-    classDef service fill:#4CAF50,stroke:#1B5E20,color:#fff,stroke-width:2px;
-    classDef kafka fill:#FF9800,stroke:#E65100,color:#fff,stroke-width:2px;
-    classDef db fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:2px;
-    classDef external fill:#9C27B0,stroke:#4A148C,color:#fff,stroke-width:2px;
-
-    %% 🧩 Apply Classes
-    class DS,KM service;
-    class K kafka;
-    class DB db;
-    class Bank external;
-```
 
 ---
 
@@ -49,18 +32,8 @@ graph TD
 ### 1️⃣ KYC Data Sync Flow
 Asynchronous updates consuming verified events triggers synchronisation lifecycles.
 
-```mermaid
-sequenceDiagram
-    participant D as Digilocker Service
-    participant K as Kafka Broker
-    participant M as Kyc Management Service
-    participant DB as MySQL DB
+![KYC Management Service Sequence Diagram](../../Architechtures/KYCService/KYC_Service_Sequence_Diagram.png)
 
-    D->>K: Publish DigiLockerDataFetchedEvent
-    K->>M: Consume DigiLockerDataFetchedEvent
-    Note over M: Process Data & Create KycEntity
-    M->>DB: Save/Update KycEntity (Status: VERIFIED)
-```
 
 ---
 
