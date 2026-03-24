@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtValidator jwtValidator;
@@ -26,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        log.info("JwtFilter: URI={} | authHeader={}", request.getRequestURI(), authHeader != null ? "Present" : "Missing");
         final String jwt;
         final String userEmail;
 
@@ -43,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (role != null) {
                     // Ensure role starts with ROLE_ for Spring Security hasAuthority
                     String formattedRole = role.startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+                    log.info("JwtFilter: Extracted role={}, formattedRole={}", role, formattedRole);
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority(formattedRole);
 
                     UsernamePasswordAuthenticationToken authToken =
