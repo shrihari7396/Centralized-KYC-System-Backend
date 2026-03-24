@@ -1,94 +1,71 @@
-# Consent Service
+# 🛡️ Consent Service
 
-The **Consent Service** is a core component of the Centralized KYC System. It manages the lifecycle of KYC consent requests initiated by Banks/Organizations seeking user data access, ensuring secure approval with OTP authentication.
-
----
-
-## 🏗️ Architecture Layout
-
-Below is a Mermaid chart describing the architecture and module relationships:
-
-```mermaid
-graph TD
-    B[Bank Service] -->|1. ConsentRequestEvent| K[(Kafka: consent-request-topic)]
-    K --> CS[Consent Service]
-    CS -->|2. Save Record| DB[(MySQL DB)]
-    CS -->|3. Cache OTP| R[(Redis)]
-    CS -->|4. NotificationEvent| KN[(Kafka: notification-events-topic)]
-    CS -->|5. CreateOtpEvent| KE[(Kafka: otp-created-topic)]
-    KE --> ES[Email Service]
-    ES -->|6. Email dispatch| U[User / Client]
-    U -->|7. Approve Consent| CS
-    CS -->|8. ConsentApprovedEvent| B
-```
+## 📌 Overview
+The **Consent Service** is a core component of the Centralized KYC System. It manages the lifecycle of KYC consent requests initiated by Banks/Organizations seeking user data access. Its primary responsibilities include:
+*   **Consent Request Lifecycle**: Managing creation, approval, and expiration of user consents.
+*   **OTP Verification**: Securely caching and verifying OTPs via Redis for approval actions.
+*   **Notification Dispatch**: Triggering events for user and bank notifications upon status changes.
+*   **Access Token Minting**: Generating secure assertions/records for downstream KYC access.
 
 ---
 
-## 🔄 Lifecycle Sequence
-
-The standard request-approval flow executing over event-driven hooks executed inside this service:
-
-```mermaid
-sequenceDiagram
-    participant B as Bank Service
-    participant K as Kafka Broker
-    participant C as Consent Service
-    participant R as Redis
-    participant E as Email Service
-    participant U as User / Client
-
-    B->>K: Publish ConsentRequestEvent
-    K->>C: Consume ConsentRequestEvent
-    Note over C: Creates ConsentRecord (PENDING)
-    C->>R: Cache 6-digit OTP (TTL 10m)
-    C->>K: Trigger CreateOtpEvent
-    C->>K: Trigger NotificationEvent
-    K->>E: Consume CreateOtpEvent
-    E-->>U: Dispatches Email with OTP
-    U->>C: POST /consents/{id}/status?action=Accept&otp=123456
-    C->>R: Verify OTP matching
-    Note over C: Generate Secure Consent Token (JWT)
-    C->>C: Update status to APPROVED
-    C->>K: Publish ConsentApprovedEvent to Bank
-```
+## 🛠️ Tech Stack
+*   **Framework**: Spring Boot 4.x
+*   **Database**: MySQL (Relational persistence for consent records)
+*   **Caching**: Redis (For secure OTP caching with TTL)
+*   **Messaging**: Apache Kafka (Event-driven notification and status updates)
+*   **Client**: Spring Cloud OpenFeign (Synchronous user lookup)
+*   **Security**: Spring Security + JWT
 
 ---
 
-## 📌 Features
+## 🏗️ System Architecture & Interactions
 
-- **Event-Driven Intake**: Automatically processes incoming KYC requests without synchronous blocking setups.
-- **Auto OTP Generation**: Immediately caches a Redis variable and triggers an `EmailService` endpoint dispatch for every request intakes.
-- **Mapped URLs**: Forwards actionable endpoints to push Notification system redirects directly to approval hooks.
-- **Secure Consent Token (JWT)**: Mints standard tokens bundling the absolute fields approved for secure downstream accessing workflows.
+The Consent Service interacts with Kafka Brokers for asynchronous event consumptions and notifications, and provides REST endpoints for consent operations.
+
+![Consent Service Architecture](../../Architechtures/ConsentService/Consent_Service_Architecture.png)
+
 
 ---
 
-## 🛠️ API Endpoints
+## 🔄 Key Workflows
 
-All endpoints use base routing prefix: `/consents`
+### 1️⃣ Consent Request & Approval Flow
+The standard request-approval flow executing over event-driven hooks inside this service.
 
-| Endpoint | Method | Params | Description |
+![Consent Service Sequence Diagram](../../Architechtures/ConsentService/Consent_Service_Sequence_Diagram.png)
+
+
+---
+
+## 🔌 API Endpoints
+
+All endpoints are prefixed with `/consents` and usually routed via the **API Gateway (Port 8083)**.
+
+| Method | Endpoint | Access Role | Description |
 | :--- | :--- | :--- | :--- |
-| `/request` | `POST` | `@RequestBody ConsentRequestDto` | (Internal/Bank trigger) Receives trigger requests. |
-| `/send-otp/{consentId}` | `POST` | `@PathVariable UUID` | Manually triggers/resends the verification OTP. |
-| `/approve/{consentId}` | `POST` | `@RequestParam String otp` | Approves and generates access JWT tokens. |
-| `/reject/{consentId}` | `POST` | `@RequestParam String otp` | Rejects targeting consent scope. |
-| `/{consentId}/status` | `POST` | `action=[Accept/Decline], otp=123456` | **Unified Endpoint**: Route unified form/link actions. |
-| `/user/{userId}` | `GET` | `@PathVariable String` | Returns all consent records bound to a specific user. |
+| **POST** | `/request` | `Public / Internal` | Receives trigger requests for consent. |
+| **POST** | `/{consentId}/otp` | `Public` | Manually triggers/resends the verification OTP. |
+| **POST** | `/{consentId}/approve` | `Public` | Approves consent using OTP. |
+| **POST** | `/{consentId}/reject` | `Public` | Rejects consent scope using OTP. |
+| **POST** | `/{consentId}/status` | `Public` | **Unified Endpoint**: Handle actions (Accept/Decline). |
+| **GET** | `/user/{userId}` | `Public` | Returns all consent records bound to a specific user. |
+| **GET** | `/` | `Public` | Returns details for a specific consent (User & Bank). |
 
 ---
 
-## ⚙️ Prerequisites Configuration (`application.yml`)
+## ⚙️ Configuration Hints
+*   **Database**: Uses **MySQL** (`jdbc:mysql://localhost:3306/kyc_consent_db`) for consent records.
+*   **Caching**: Uses **Redis** (Port 6379) for caching 6-digit OTPs with a 10-minute expiration.
+*   **Security**: Validates requests based on token flow (Currently configured with `permitAll()` for local development).
+*   **Encryption**: Utilizes `encryption.secret-key` for secure assertion triggers locally.
 
-The following variables support JSON serialisation for `@KafkaListener` consumption securely:
+---
 
-```yaml
-spring:
-  kafka:
-    consumer:
-      bootstrap-servers: localhost:9092
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-```
+## 🚀 Running the Service
+1.  Ensure **DiscoveryService** (Port 8761) and **Kafka** are running.
+2.  Ensure **Redis** (Port 6379) is active and running.
+3.  Run the application using Maven:
+    ```bash
+    mvn spring-boot:run
+    ```
