@@ -44,7 +44,7 @@ All endpoints are prefixed with `/api/kyc` and routed via the **API Gateway (Por
 | Method | Endpoint | Access Role | Description |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/digilocker` | `Internal` | Stores verified Digilocker data triggers for a user. |
-| **GET** | `/bank/documents` | `Bank` | Returns verified user data for a bank based on JWT details. |
+| **GET** | `/bank/documents` | `Bank` | Alternate fetch API (Preferred workflow: Asynchronous Push to `kyc-data-topic` consumed by BankService). |
 | **GET** | `/{userId}` | `User` | Returns a summarized KYC profile dashboard context. |
 | **GET** | `/{userId}/documents` | `User` | Returns a list of verified document proofs. |
 | **GET** | `/{userId}/token` | `User` | Returns the current KYC token details. |
