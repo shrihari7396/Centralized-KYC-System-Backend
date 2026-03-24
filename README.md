@@ -38,6 +38,21 @@ The project focuses on **data security, reusability, and efficiency**, reducing 
 
 ---
 
+## 📂 Microservices Architecture
+
+The system is built using a **Microservices Architecture** with independent services communicating via REST APIs and Apache Kafka.
+
+| Service | Description | README |
+| :--- | :--- | :--- |
+| 🏦 **Bank Service** | Interface for banks to register, initiate consent-based KYC requests, and track status. | [README](Backend/BankService/README.md) |
+| 📝 **Consent Service** | Manages customer consents for data sharing, validating access rules iteratively. | [README](Backend/ConsentService/README.md) |
+| 🛡️ **Digilocker Service** | Interacts with or simulates Government DigiLocker for OTP-based identity verification. | [README](Backend/DigilockerService/README.md) |
+| 📧 **Email Service** | Asynchronous service responsible for dispatching descriptions/OTP messages via Mailtrap SMTP. | [README](Backend/EmailService/README.md) |
+| 🛡️ **KYC Management Service** | Central orchestrator aggregating verified downstream data streams into structured records. | [README](Backend/KycManagementService/README.md) |
+| 👥 **User Service** | Manages authentication (OTP/JWT) and user profile status updates efficiently. | [README](Backend/UserService/README.md) |
+
+---
+
 ## 🏗️ System Architecture
 
 1. User registers and submits KYC documents
