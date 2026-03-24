@@ -69,3 +69,44 @@ spring:
                 - Path=/ws/**
 
       # ❌ IMPORTANT: NO GLOBAL CORS HERE (to avoid duplication)
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "http://localhost:5173"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+                maxAge: 3600
+            add-to-simple-url-handler-mapping: true
+
+# --- EUREKA CONFIG ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+# --- SERVER CONFIG ---
+server:
+  port: 8083
+
+# --- SECURITY / CUSTOM PROPS ---
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 864000000
+
+# --- LOGGING ---
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+        cloud:
+          gateway: DEBUG
