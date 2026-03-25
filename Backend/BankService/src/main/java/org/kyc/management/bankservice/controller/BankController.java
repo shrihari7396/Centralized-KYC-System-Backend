@@ -5,28 +5,21 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
-import org.kyc.management.bankservice.dto.BankRegisterRequest;
-import org.kyc.management.bankservice.dto.BypassRequestDto;
-import org.kyc.management.bankservice.dto.DashboardStatsResponse;
-import org.kyc.management.bankservice.dto.OtpRequestDto;
-import org.kyc.management.bankservice.dto.OtpVerificationDto;
+import org.kyc.management.bankservice.dto.*;
 import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.entity.DocumentType;
+import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.service.BankService;
 import org.kyc.management.bankservice.service.KycOrchestrationService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/bank/kyc")
@@ -49,7 +42,7 @@ public class BankController {
     }
 
     @PostMapping("/bypass")
-    public ResponseEntity<BankCustomer> adminBypass(@RequestBody @Valid BypassRequestDto req) {
+    public ResponseEntity<BankCustomer>  adminBypass(@RequestBody @Valid BypassRequestDto req) {
         return ResponseEntity.ok(bankSvc.bypassKyc(req));
     }
 
@@ -136,5 +129,40 @@ public class BankController {
     @PostMapping("/register")
     public ResponseEntity<Bank> registerBank(@RequestBody @Valid BankRegisterRequest req) {
         return ResponseEntity.ok(bankSvc.registerBank(req));
+    }
+
+    @GetMapping("/audit/timeline/{userId}/{bankId}")
+    public ResponseEntity<List<TimelineEvent>> getTimeline(
+            @PathVariable String userId, @PathVariable String bankId) {
+        return ResponseEntity.ok(bankSvc.getUnifiedTimeline(userId, bankId));
+    }
+
+    @PostMapping("/risk/reclassify")
+    public ResponseEntity<BankCustomer> updateRisk(@RequestBody @Valid RiskUpdateRequest request) {
+        return ResponseEntity.ok(bankSvc.updateRiskLevel(request));
+    }
+
+    @GetMapping("/customers/search")
+    public ResponseEntity<Page<BankCustomer>> searchCustomers(
+            @RequestParam String bankId,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) KycStatus status,
+            @RequestParam(required = false) String riskLevel,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(
+                bankSvc.searchCustomers(
+                        bankId, query, status, riskLevel, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/consents/{consentId}/data")
+    public ResponseEntity<BankCustomerKycData> getDataByConsent(@PathVariable String consentId) {
+        return ResponseEntity.ok(bankSvc.findByConsentId(consentId));
+    }
+
+    @GetMapping("/verification/report/{kycRequestId}")
+    public ResponseEntity<Map<DocumentType, String>> getVerificationReport(
+            @PathVariable Long kycRequestId) {
+        return ResponseEntity.ok(bankSvc.getDetailReport(kycRequestId));
     }
 }

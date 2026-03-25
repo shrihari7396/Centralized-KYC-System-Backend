@@ -2,16 +2,15 @@ package org.kyc.management.bankservice.service;
 
 import java.util.List;
 import java.util.Map;
-import org.kyc.management.bankservice.dto.BankRegisterRequest;
-import org.kyc.management.bankservice.dto.BypassRequestDto;
-import org.kyc.management.bankservice.dto.DashboardStatsResponse;
-import org.kyc.management.bankservice.dto.LoginResponseDto;
-import org.kyc.management.bankservice.dto.OtpRequestDto;
-import org.kyc.management.bankservice.dto.OtpVerificationDto;
+import org.kyc.management.bankservice.dto.*;
 import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.entity.DocumentType;
+import org.kyc.management.bankservice.entity.KycStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface BankService {
     BankCustomer getCustomerStatus(String userId, String bankId);
@@ -49,4 +48,15 @@ public interface BankService {
     List<BankCustomerKycData> getKycHistory(String userId, String bankId);
 
     Bank registerBank(BankRegisterRequest req);
+
+    List<TimelineEvent> getUnifiedTimeline(String userId, String bankId);
+
+    BankCustomer updateRiskLevel(RiskUpdateRequest request);
+
+    Page<BankCustomer> searchCustomers(
+            String bankId, String query, KycStatus status, String riskLevel, Pageable pageable);
+
+    BankCustomerKycData findByConsentId(String consentId);
+
+    Map<DocumentType, String> getDetailReport(Long kycRequestId);
 }

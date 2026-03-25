@@ -3,22 +3,20 @@ package org.kyc.management.bankservice.service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kyc.management.bankservice.client.UserFeignClient;
-import org.kyc.management.bankservice.dto.BankRegisterRequest;
-import org.kyc.management.bankservice.dto.BypassRequestDto;
-import org.kyc.management.bankservice.dto.DashboardStatsResponse;
-import org.kyc.management.bankservice.dto.LoginResponseDto;
-import org.kyc.management.bankservice.dto.OtpRequestDto;
-import org.kyc.management.bankservice.dto.OtpVerificationDto;
+import org.kyc.management.bankservice.dto.*;
 import org.kyc.management.bankservice.entity.Bank;
 import org.kyc.management.bankservice.entity.BankCustomer;
 import org.kyc.management.bankservice.entity.BankCustomerKycData;
 import org.kyc.management.bankservice.entity.Consent;
+import org.kyc.management.bankservice.entity.DocumentType;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.CreateOtpEvent;
 import org.kyc.management.bankservice.exception.*;
@@ -28,6 +26,8 @@ import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.repository.BankRepository;
 import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.kyc.management.bankservice.security.JwtValidator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -344,5 +344,92 @@ public class BankServiceImpl implements BankService {
                         .createdAt(java.time.LocalDateTime.now())
                         .build();
         return bankRepo.save(bank);
+    }
+
+    @Override
+    public List<TimelineEvent> getUnifiedTimeline(String userId, String bankId) {
+        String globalId = userFeignClient.getUserDetails(userId).getUserId();
+        List<TimelineEvent> timeline = new ArrayList<>();
+
+        // 1. Add Consent status changes
+        consentRepo
+                .findByUserIdAndBankId(globalId, bankId)
+                .ifPresent(
+                        c -> {
+                            timeline.add(
+                                    TimelineEvent.builder()
+                                            .timestamp(c.getCreatedAt())
+                                            .type("CONSENT_CREATED")
+                                            .message("KYC request initiated")
+                                            .status(c.getStatus().name())
+                                            .build());
+                            if (c.getUpdatedAt() != null
+                                    && !c.getUpdatedAt().equals(c.getCreatedAt())) {
+                                timeline.add(
+                                        TimelineEvent.builder()
+                                                .timestamp(c.getUpdatedAt())
+                                                .type("CONSENT_UPDATED")
+                                                .message("Status changed to " + c.getStatus())
+                                                .status(c.getStatus().name())
+                                                .build());
+                            }
+                        });
+
+        // 2. Add KYC Data fetch events
+        mongoRepo
+                .findByUserIdAndBankId(globalId, bankId)
+                .ifPresent(
+                        data -> {
+                            timeline.add(
+                                    TimelineEvent.builder()
+                                            .timestamp(data.getCreatedAt())
+                                            .type("DATA_FETCHED")
+                                            .message("Detailed KYC document data retrieved")
+                                            .status("FETCH_SUCCESS")
+                                            .build());
+                        });
+
+        return timeline.stream()
+                .sorted(Comparator.comparing(TimelineEvent::getTimestamp).reversed())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public BankCustomer updateRiskLevel(RiskUpdateRequest request) {
+        String globalId = userFeignClient.getUserDetails(request.getUserId()).getUserId();
+        BankCustomer customer =
+                repo.findByUserIdAndBankId(globalId, request.getBankId())
+                        .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+
+        customer.setRiskLevel(request.getNewRiskLevel());
+        customer.setOverrideReason("Manual Reclassification: " + request.getReason());
+        return repo.save(customer);
+    }
+
+    @Override
+    public Page<BankCustomer> searchCustomers(
+            String bankId, String query, KycStatus status, String riskLevel, Pageable pageable) {
+        if (riskLevel != null && !riskLevel.isEmpty()) {
+            return repo.findByBankIdAndUserIdRegexAndRiskLevel(
+                    bankId, query != null ? query : "", riskLevel, pageable);
+        }
+        return repo.findByBankIdAndUserIdContaining(
+                bankId, query != null ? query : "", pageable);
+    }
+
+    @Override
+    public BankCustomerKycData findByConsentId(String consentId) {
+        return mongoRepo
+                .findByConsentId(consentId)
+                .orElseThrow(() -> new KycDataNotFoundException("KYC data not found for consent"));
+    }
+
+    @Override
+    public Map<DocumentType, String> getDetailReport(Long kycRequestId) {
+        // Placeholder implementation - In a real system, this would fetch from a
+        // VerificationService
+        // or a detailed audit log entry.
+        kafkaLogProducer.logInfo("GET_DETAIL_REPORT", Map.of("kycRequestId", kycRequestId));
+        return Map.of(DocumentType.PAN, "Verified", DocumentType.AADHAAR, "Verified");
     }
 }

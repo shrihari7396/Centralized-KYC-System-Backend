@@ -54,6 +54,7 @@ public class KycOrchestrationService {
                             req.getBankId() != null ? req.getBankId().toString() : "null",
                             "reason",
                             "User not found"));
+            e.printStackTrace();
             throw new UserNotFoundException(
                     "User not found in system. Consent cannot be accepted.");
         }
