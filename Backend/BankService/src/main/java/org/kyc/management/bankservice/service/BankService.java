@@ -45,6 +45,8 @@ public interface BankService {
 
     List<Bank> getAllBanks();
 
+    Bank getBankById(String bankId);
+
     List<BankCustomerKycData> getKycHistory(String userId, String bankId);
 
     Bank registerBank(BankRegisterRequest req);

@@ -329,6 +329,12 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
+    public Bank getBankById(String bankId) {
+        return bankRepo.findById(bankId)
+                .orElseThrow(() -> new BankNotFoundException("Bank not found for id: " + bankId));
+    }
+
+    @Override
     public List<BankCustomerKycData> getKycHistory(String userId, String bankId) {
         String globalId = userFeignClient.getUserDetails(userId).getUserId();
         return mongoRepo.findByUserIdAndBankId(globalId, bankId).map(List::of).orElse(List.of());

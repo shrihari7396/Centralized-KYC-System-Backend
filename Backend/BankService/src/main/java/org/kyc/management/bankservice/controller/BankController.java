@@ -120,6 +120,11 @@ public class BankController {
         return ResponseEntity.ok(bankSvc.getAllBanks());
     }
 
+    @GetMapping("/banks/{bankId}")
+    public ResponseEntity<Bank> getBankById(@PathVariable("bankId") String bankId) {
+        return ResponseEntity.ok(bankSvc.getBankById(bankId));
+    }
+
     @GetMapping("/history/{userId}/{bankId}")
     public ResponseEntity<List<BankCustomerKycData>> getKycHistory(
             @PathVariable("userId") String userId, @PathVariable("bankId") String bankId) {
