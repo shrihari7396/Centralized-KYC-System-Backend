@@ -28,31 +28,43 @@ spring:
               uri: lb://USERSERVICE
               predicates:
                 - Path=/user/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: bank-service
               uri: lb://BANKSERVICE
               predicates:
                 - Path=/bank/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: consent-service
               uri: lb://CONSENT-SERVICE
               predicates:
                 - Path=/consents/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: kyc-management-service
               uri: lb://KYCMANAGEMENTSERVICE
               predicates:
                 - Path=/api/kyc/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: digilocker-service
               uri: lb://DIGILOCKERSERVICE
               predicates:
                 - Path=/api/digilocker/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: AI_SERVICE
               uri: lb://AISERVICE
               predicates:
                 - Path=/ai/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: notification-ws
               uri: lb:ws://NOTIFICATION-SYSTEM

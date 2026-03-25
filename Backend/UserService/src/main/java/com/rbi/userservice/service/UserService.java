@@ -20,8 +20,6 @@ public interface UserService {
 
     LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto);
 
-    UserDto getUserDetails(String email);
-
     Boolean logout(String token);
 
     UserStatus getUserStatusByEmail(String email);
