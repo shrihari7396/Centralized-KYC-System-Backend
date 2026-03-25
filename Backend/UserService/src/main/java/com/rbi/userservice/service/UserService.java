@@ -23,4 +23,6 @@ public interface UserService {
     Boolean logout(String token);
 
     UserStatus getUserStatusByEmail(String email);
+
+    UserDto getUserDetails(String email);
 }
