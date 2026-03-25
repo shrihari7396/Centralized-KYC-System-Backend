@@ -1,5 +1,6 @@
 package org.kyc.management.bankservice.kafka;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.kyc.management.bankservice.config.KafkaConstants;
 import org.kyc.management.bankservice.entity.Consent;
 import org.kyc.management.bankservice.entity.KycStatus;
 import org.kyc.management.bankservice.event.ConsentResponseEvent;
+import org.kyc.management.bankservice.event.ConsentStatus;
 import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class ConsentKafkaConsumer {
 
         if (consentOpt.isPresent()) {
             Consent consent = consentOpt.get();
-            if (org.kyc.management.bankservice.event.ConsentStatus.REJECTED == event.getStatus()) {
+            if (ConsentStatus.REJECTED == event.getStatus()) {
                 consent.setStatus(KycStatus.KYC_REJECTED);
                 log.info(
                         "Consent was REJECTED for userId: {} and bankId: {}",
@@ -45,7 +47,7 @@ public class ConsentKafkaConsumer {
                         event.getBankId());
             }
 
-            consent.setUpdatedAt(java.time.LocalDateTime.now());
+            consent.setUpdatedAt(LocalDateTime.now());
             consentRepository.save(consent);
         } else {
             log.warn(

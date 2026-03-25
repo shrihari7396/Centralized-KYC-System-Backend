@@ -20,6 +20,7 @@ import org.kyc.management.bankservice.repository.BankCustomerRepository;
 import org.kyc.management.bankservice.repository.ConsentRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class KycOrchestrationService {
     private final UserFeignClient userFeignClient;
     private final ConsentRepository consentRepository;
 
+    @Transactional
     public BankCustomer initiateKyc(BankKycInitiateRequest req) {
         kafkaLogProducer.logInfo(
                 "KYC_INITIATED", Map.of("email", req.getEmail(), "bankId", req.getBankId()));
@@ -59,6 +61,20 @@ public class KycOrchestrationService {
                     "User not found in system. Consent cannot be accepted.");
         }
 
+        if (!"ACTIVE".equalsIgnoreCase(userDto.getStatus())) {
+            kafkaLogProducer.logError(
+                    "INITIATE_KYC_FAILED",
+                    Map.of(
+                            "email",
+                            req.getEmail(),
+                            "bankId",
+                            req.getBankId() != null ? req.getBankId().toString() : "null",
+                            "reason",
+                            "User KYC not verified"));
+            throw new KycNotVerifiedException(
+                    "Consent cannot be created. User KYC are not Verified in User Service.");
+        }
+
         BankCustomer customer =
                 bankCustomerRepository
                         .findByUserIdAndBankId(userGlobalId, req.getBankId().toString())
@@ -81,20 +97,6 @@ public class KycOrchestrationService {
                             });
         }
 
-        if (!"ACTIVE".equalsIgnoreCase(userDto.getStatus())) {
-            kafkaLogProducer.logError(
-                    "INITIATE_KYC_FAILED",
-                    Map.of(
-                            "email",
-                            req.getEmail(),
-                            "bankId",
-                            req.getBankId() != null ? req.getBankId().toString() : "null",
-                            "reason",
-                            "User KYC not verified"));
-            throw new KycNotVerifiedException(
-                    "Consent cannot be created. User KYC are not Verified in User Service.");
-        }
-
         // Create Consent record in CONSENT_PENDING state
         Consent consent =
                 Consent.builder()
@@ -111,7 +113,7 @@ public class KycOrchestrationService {
                 ConsentRequestEvent.builder()
                         .userId(userGlobalId)
                         .email(req.getEmail())
-                        .bankId(req.getBankId().toString())
+                        .bankId(req.getBankId())
                         .consentId(consent.getId())
                         .requestedDocuments(req.getRequestedDocuments())
                         .build();
@@ -120,16 +122,12 @@ public class KycOrchestrationService {
         kafkaTemplate.send(KafkaConstants.CONSENT_REQUEST_TOPIC, event);
 
         // reuse customer fetched above
-
         customer.setUserId(userGlobalId);
-        customer.setBankId(req.getBankId().toString());
+        customer.setBankId(req.getBankId());
         if (customer.getConsentIds() == null) {
             customer.setConsentIds(new ArrayList<>());
         }
-        if (!customer.getConsentIds().contains(consent.getId())) {
-            customer.getConsentIds().add(consent.getId());
-        }
-
+        customer.getConsentIds().add(consent.getId());
         return bankCustomerRepository.save(customer);
     }
 }
