@@ -76,8 +76,6 @@ public class ConsentController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ConsentResponseDto>> getAllConsents(@PathVariable String userId) {
         List<ConsentResponseDto> response = consentService.getAllConsents(userId);
-        System.out.println("working");
-        System.out.println(response);
         return ResponseEntity.ok(response);
     }
 

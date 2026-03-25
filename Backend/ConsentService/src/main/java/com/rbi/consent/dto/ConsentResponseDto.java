@@ -19,4 +19,6 @@ public class ConsentResponseDto {
     private ConsentStatus status;
 
     private LocalDateTime expiryAt;
+
+    private BankDto bank;
 }

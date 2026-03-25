@@ -3,8 +3,10 @@ package com.rbi.consent.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbi.consent.client.BankFeignClient;
 import com.rbi.consent.client.UserFeignClient;
 import com.rbi.consent.dto.ConsentActionDto;
+import com.rbi.consent.dto.BankDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.dto.UserDto;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,7 @@ public class ConsentServiceImpl implements ConsentService {
 
     private final ConsentRepository consentRepository;
     private final UserFeignClient userFeignClient;
+    private final BankFeignClient bankFeignClient;
     private final ConsentKafkaProducer consentKafkaProducer;
     private final KafkaLogProducer kafkaLogProducer;
     private final ObjectMapper objectMapper;
@@ -291,7 +295,27 @@ public class ConsentServiceImpl implements ConsentService {
 
     @Override
     public List<ConsentResponseDto> getAllConsents(String userId) {
-        return consentRepository.findByUserId(userId).stream()
+        List<ConsentRecord> records = consentRepository.findByUserId(userId);
+        Map<String, BankDto> bankById =
+                records.stream()
+                        .map(ConsentRecord::getBankId)
+                        .distinct()
+                        .map(
+                                bankId -> {
+                                    try {
+                                        return bankFeignClient.getBankById(bankId.toString());
+                                    } catch (Exception e) {
+                                        log.warn(
+                                                "Failed to fetch bank details for bankId {}: {}",
+                                                bankId,
+                                                e.getMessage());
+                                        return null;
+                                    }
+                                })
+                        .filter(java.util.Objects::nonNull)
+                        .collect(Collectors.toMap(BankDto::getId, Function.identity()));
+
+        return records.stream()
                 .map(
                         record ->
                                 ConsentResponseDto.builder()
@@ -299,6 +323,7 @@ public class ConsentServiceImpl implements ConsentService {
                                         .bankId(record.getBankId())
                                         .status(record.getConsentStatus())
                                         .expiryAt(record.getExpiryAt())
+                                        .bank(bankById.get(record.getBankId().toString()))
                                         .build())
                 .collect(Collectors.toList());
     }
