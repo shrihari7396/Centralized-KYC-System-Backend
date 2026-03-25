@@ -1,5 +1,6 @@
 package com.rbi.consent.controller;
 
+import com.rbi.consent.dto.ConsentActionDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.logging.KafkaLogProducer;
@@ -47,30 +48,24 @@ public class ConsentController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{consentId}/approve")
-    public ResponseEntity<ConsentResponseDto> approveConsent(
-            @PathVariable UUID consentId, @RequestParam String otp) {
-        ConsentResponseDto response = consentService.approveConsent(consentId, otp);
-        logProducer.logInfo("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{consentId}/reject")
-    public ResponseEntity<Void> rejectConsent(
-            @PathVariable UUID consentId, @RequestParam String otp) {
-        consentService.rejectConsent(consentId, otp);
-        logProducer.logInfo("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @PostMapping("/{consentId}/submit")
+    public ResponseEntity<Void> submitConsent(
+            @PathVariable UUID consentId, @Valid @RequestBody ConsentActionDto actionDto) {
+        consentService.submitConsent(consentId, actionDto);
+        logProducer.logInfo(
+                "CONSENT_SUBMITTED",
+                Map.of("consentId", consentId.toString(), "action", actionDto.getAction()));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{consentId}/status")
     public ResponseEntity<Void> handleConsentStatus(
-            @PathVariable UUID consentId, @RequestParam String action, @RequestParam String otp) {
+            @PathVariable UUID consentId, @RequestParam String action) {
         if ("Accept".equalsIgnoreCase(action)) {
-            consentService.approveConsent(consentId, otp);
+            consentService.approveConsent(consentId);
             logProducer.logInfo("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
         } else if ("Decline".equalsIgnoreCase(action) || "Reject".equalsIgnoreCase(action)) {
-            consentService.rejectConsent(consentId, otp);
+            consentService.rejectConsent(consentId);
             logProducer.logInfo("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
         } else {
             return ResponseEntity.badRequest().build();

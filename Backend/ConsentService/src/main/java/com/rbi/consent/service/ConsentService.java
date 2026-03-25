@@ -1,5 +1,6 @@
 package com.rbi.consent.service;
 
+import com.rbi.consent.dto.ConsentActionDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
 import java.util.List;
@@ -11,9 +12,11 @@ public interface ConsentService {
 
     void sendConsentOtp(UUID consentId);
 
-    ConsentResponseDto approveConsent(UUID consentId, String otp);
+    void submitConsent(UUID consentId, ConsentActionDto actionDto);
 
-    void rejectConsent(UUID consentId, String otp);
+    ConsentResponseDto approveConsent(UUID consentId);
+
+    void rejectConsent(UUID consentId);
 
     List<ConsentResponseDto> getAllConsents(String userId);
 

@@ -14,4 +14,7 @@ public class ConsentActionDto {
 
     @NotBlank(message = "OTP is required")
     private String otp;
+
+    @NotBlank(message = "Action is required")
+    private String action; // "Accept" or "Decline"
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbi.consent.client.UserFeignClient;
+import com.rbi.consent.dto.ConsentActionDto;
 import com.rbi.consent.dto.ConsentRequestDto;
 import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.dto.UserDto;
@@ -205,9 +206,21 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     @Override
-    public ConsentResponseDto approveConsent(UUID consentId, String otp) {
-        verifyOtp(consentId, otp);
+    public void submitConsent(UUID consentId, ConsentActionDto actionDto) {
+        verifyOtp(consentId, actionDto.getOtp());
 
+        String action = actionDto.getAction();
+        if ("Accept".equalsIgnoreCase(action) || "Approved".equalsIgnoreCase(action)) {
+            approveConsent(consentId);
+        } else if ("Decline".equalsIgnoreCase(action) || "Reject".equalsIgnoreCase(action)) {
+            rejectConsent(consentId);
+        } else {
+            throw new IllegalArgumentException("Invalid action: " + action);
+        }
+    }
+
+    @Override
+    public ConsentResponseDto approveConsent(UUID consentId) {
         ConsentRecord record =
                 consentRepository
                         .findById(consentId)
@@ -291,9 +304,7 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     @Override
-    public void rejectConsent(UUID consentId, String otp) {
-        verifyOtp(consentId, otp);
-
+    public void rejectConsent(UUID consentId) {
         ConsentRecord record =
                 consentRepository
                         .findById(consentId)
