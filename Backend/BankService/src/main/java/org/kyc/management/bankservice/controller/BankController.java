@@ -42,7 +42,7 @@ public class BankController {
     }
 
     @PostMapping("/bypass")
-    public ResponseEntity<BankCustomer>  adminBypass(@RequestBody @Valid BypassRequestDto req) {
+    public ResponseEntity<BankCustomer> adminBypass(@RequestBody @Valid BypassRequestDto req) {
         return ResponseEntity.ok(bankSvc.bypassKyc(req));
     }
 

@@ -413,8 +413,7 @@ public class BankServiceImpl implements BankService {
             return repo.findByBankIdAndUserIdRegexAndRiskLevel(
                     bankId, query != null ? query : "", riskLevel, pageable);
         }
-        return repo.findByBankIdAndUserIdContaining(
-                bankId, query != null ? query : "", pageable);
+        return repo.findByBankIdAndUserIdContaining(bankId, query != null ? query : "", pageable);
     }
 
     @Override

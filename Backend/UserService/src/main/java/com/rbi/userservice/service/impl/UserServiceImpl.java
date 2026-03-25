@@ -185,6 +185,7 @@ public class UserServiceImpl implements UserService {
     public UserStatus getUserStatusByEmail(String email) {
         return userRepository.findUserStatusByEmail(email);
     }
+
     @Override
     public UserDto getUserDetails(String email) {
         UserEntity user =

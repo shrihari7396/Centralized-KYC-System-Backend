@@ -21,7 +21,8 @@ public interface BankCustomerRepository extends MongoRepository<BankCustomer, St
 
     long countByBankId(String bankId);
 
-    Page<BankCustomer> findByBankIdAndUserIdContaining(String bankId, String userId, Pageable pageable);
+    Page<BankCustomer> findByBankIdAndUserIdContaining(
+            String bankId, String userId, Pageable pageable);
 
     @Query("{ 'bankId': ?0, 'userId': { '$regex': ?1, '$options': 'i' }, 'riskLevel': ?2 }")
     Page<BankCustomer> findByBankIdAndUserIdRegexAndRiskLevel(
