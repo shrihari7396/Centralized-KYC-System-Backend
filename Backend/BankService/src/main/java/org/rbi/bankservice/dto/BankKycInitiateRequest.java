@@ -1,11 +1,11 @@
-package org.kyc.management.bankservice.dto;
+package org.rbi.bankservice.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kyc.management.bankservice.entity.DocumentType;
+import org.rbi.bankservice.entity.DocumentType;
 
 @Data
 @NoArgsConstructor

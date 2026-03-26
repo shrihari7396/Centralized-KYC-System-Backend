@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.entity;
+package org.rbi.bankservice.entity;
 
 public enum DocumentType {
     AADHAAR,

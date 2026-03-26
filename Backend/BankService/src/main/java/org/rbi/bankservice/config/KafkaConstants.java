@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.config;
+package org.rbi.bankservice.config;
 
 public class KafkaConstants {
     public static final String CONSENT_REQUEST_TOPIC = "consent-request-topic";

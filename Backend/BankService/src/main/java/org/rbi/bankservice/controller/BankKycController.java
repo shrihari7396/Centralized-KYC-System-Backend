@@ -1,18 +1,18 @@
-package org.kyc.management.bankservice.controller;
+package org.rbi.bankservice.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.dto.BankKycInitiateRequest;
-import org.kyc.management.bankservice.dto.BypassRequestDto;
-import org.kyc.management.bankservice.dto.TimelineEvent;
-import org.kyc.management.bankservice.entity.BankCustomer;
-import org.kyc.management.bankservice.entity.BankCustomerKycData;
-import org.kyc.management.bankservice.entity.DocumentType;
-import org.kyc.management.bankservice.service.BankService;
-import org.kyc.management.bankservice.service.KycOrchestrationService;
+import org.rbi.bankservice.dto.BankKycInitiateRequest;
+import org.rbi.bankservice.dto.BypassRequestDto;
+import org.rbi.bankservice.dto.TimelineEvent;
+import org.rbi.bankservice.entity.BankCustomer;
+import org.rbi.bankservice.entity.BankCustomerKycData;
+import org.rbi.bankservice.entity.DocumentType;
+import org.rbi.bankservice.service.BankService;
+import org.rbi.bankservice.service.KycOrchestrationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

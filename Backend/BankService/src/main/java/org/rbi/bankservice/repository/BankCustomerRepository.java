@@ -1,8 +1,9 @@
-package org.kyc.management.bankservice.repository;
+package org.rbi.bankservice.repository;
 
 import java.util.List;
 import java.util.Optional;
-import org.kyc.management.bankservice.entity.BankCustomer;
+
+import org.rbi.bankservice.entity.BankCustomer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;

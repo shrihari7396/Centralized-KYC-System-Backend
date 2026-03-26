@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.dto;
+package org.rbi.bankservice.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -1,11 +1,11 @@
-package org.kyc.management.bankservice.controller;
+package org.rbi.bankservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.dto.OtpRequestDto;
-import org.kyc.management.bankservice.dto.OtpVerificationDto;
-import org.kyc.management.bankservice.service.BankService;
+import org.rbi.bankservice.dto.OtpRequestDto;
+import org.rbi.bankservice.dto.OtpVerificationDto;
+import org.rbi.bankservice.service.BankService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.logging;
+package org.rbi.bankservice.logging;
 
 public enum LogLevel {
     INFO,

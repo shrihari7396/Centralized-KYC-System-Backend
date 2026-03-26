@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.exception;
+package org.rbi.bankservice.exception;
 
 import java.util.HashMap;
 import java.util.Map;

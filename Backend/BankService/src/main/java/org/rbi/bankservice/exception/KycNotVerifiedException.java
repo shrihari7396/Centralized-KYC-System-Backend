@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.exception;
+package org.rbi.bankservice.exception;
 
 public class KycNotVerifiedException extends RuntimeException {
     public KycNotVerifiedException(String message) {

@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.exception;
+package org.rbi.bankservice.exception;
 
 public class BankNotFoundException extends RuntimeException {
     public BankNotFoundException(String message) {

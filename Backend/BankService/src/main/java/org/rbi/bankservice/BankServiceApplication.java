@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice;
+package org.rbi.bankservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

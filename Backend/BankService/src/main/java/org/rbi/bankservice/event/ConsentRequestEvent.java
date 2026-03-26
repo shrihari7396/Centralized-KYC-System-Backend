@@ -1,11 +1,11 @@
-package org.kyc.management.bankservice.event;
+package org.rbi.bankservice.event;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kyc.management.bankservice.entity.DocumentType;
+import org.rbi.bankservice.entity.DocumentType;
 
 @Data
 @Builder

@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.dto;
+package org.rbi.bankservice.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

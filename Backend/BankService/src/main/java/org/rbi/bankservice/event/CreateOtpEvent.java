@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.event;
+package org.rbi.bankservice.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

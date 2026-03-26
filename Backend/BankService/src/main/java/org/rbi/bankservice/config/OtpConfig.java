@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.config;
+package org.rbi.bankservice.config;
 
 import java.security.SecureRandom;
 import org.springframework.context.annotation.Bean;

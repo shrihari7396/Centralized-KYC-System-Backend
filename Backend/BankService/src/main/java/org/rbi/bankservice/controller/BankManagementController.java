@@ -1,13 +1,13 @@
-package org.kyc.management.bankservice.controller;
+package org.rbi.bankservice.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.dto.BankRegisterRequest;
-import org.kyc.management.bankservice.dto.DashboardStatsResponse;
-import org.kyc.management.bankservice.entity.Bank;
-import org.kyc.management.bankservice.service.BankService;
+import org.rbi.bankservice.dto.BankRegisterRequest;
+import org.rbi.bankservice.dto.DashboardStatsResponse;
+import org.rbi.bankservice.entity.Bank;
+import org.rbi.bankservice.service.BankService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

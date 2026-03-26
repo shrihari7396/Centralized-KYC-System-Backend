@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.security;
+package org.rbi.bankservice.security;
 
 import jakarta.annotation.PostConstruct;
 import java.nio.ByteBuffer;

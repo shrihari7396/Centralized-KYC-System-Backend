@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.entity;
+package org.rbi.bankservice.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;

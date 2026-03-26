@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.logging;
+package org.rbi.bankservice.logging;
 
 import java.time.Instant;
 import java.util.Map;

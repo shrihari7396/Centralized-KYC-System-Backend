@@ -1,14 +1,10 @@
-package org.kyc.management.bankservice.service;
+package org.rbi.bankservice.service;
 
 import java.util.List;
 import java.util.Map;
-import org.kyc.management.bankservice.dto.*;
-import org.kyc.management.bankservice.entity.Bank;
-import org.kyc.management.bankservice.entity.BankCustomer;
-import org.kyc.management.bankservice.entity.BankCustomerKycData;
-import org.kyc.management.bankservice.entity.Consent;
-import org.kyc.management.bankservice.entity.DocumentType;
-import org.kyc.management.bankservice.entity.KycStatus;
+
+import org.rbi.bankservice.dto.*;
+import org.rbi.bankservice.entity.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

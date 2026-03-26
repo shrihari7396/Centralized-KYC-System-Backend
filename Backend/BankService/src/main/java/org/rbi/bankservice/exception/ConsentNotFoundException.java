@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.exception;
+package org.rbi.bankservice.exception;
 
 public class ConsentNotFoundException extends RuntimeException {
     public ConsentNotFoundException(String message) {

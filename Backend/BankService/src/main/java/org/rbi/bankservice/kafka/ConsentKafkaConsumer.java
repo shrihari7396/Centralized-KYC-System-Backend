@@ -1,15 +1,15 @@
-package org.kyc.management.bankservice.kafka;
+package org.rbi.bankservice.kafka;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.config.KafkaConstants;
-import org.kyc.management.bankservice.entity.Consent;
-import org.kyc.management.bankservice.entity.KycStatus;
-import org.kyc.management.bankservice.event.ConsentResponseEvent;
-import org.kyc.management.bankservice.event.ConsentStatus;
-import org.kyc.management.bankservice.repository.ConsentRepository;
+import org.rbi.bankservice.config.KafkaConstants;
+import org.rbi.bankservice.entity.Consent;
+import org.rbi.bankservice.entity.KycStatus;
+import org.rbi.bankservice.event.ConsentResponseEvent;
+import org.rbi.bankservice.event.ConsentStatus;
+import org.rbi.bankservice.repository.ConsentRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 

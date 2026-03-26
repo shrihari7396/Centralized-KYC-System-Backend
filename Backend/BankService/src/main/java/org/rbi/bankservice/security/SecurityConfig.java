@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.security;
+package org.rbi.bankservice.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

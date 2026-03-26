@@ -1,12 +1,12 @@
-package org.kyc.management.bankservice.controller;
+package org.rbi.bankservice.controller;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kyc.management.bankservice.entity.BankCustomer;
-import org.kyc.management.bankservice.entity.BankCustomerKycData;
-import org.kyc.management.bankservice.entity.Consent;
-import org.kyc.management.bankservice.service.BankService;
+import org.rbi.bankservice.entity.BankCustomer;
+import org.rbi.bankservice.entity.BankCustomerKycData;
+import org.rbi.bankservice.entity.Consent;
+import org.rbi.bankservice.service.BankService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

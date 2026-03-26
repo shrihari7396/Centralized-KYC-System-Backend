@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.dto;
+package org.rbi.bankservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

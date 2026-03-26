@@ -1,6 +1,7 @@
-package org.kyc.management.bankservice.client;
+package org.rbi.bankservice.client;
 
-import org.kyc.management.bankservice.dto.UserDto;
+
+import org.rbi.bankservice.dto.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.security;
+package org.rbi.bankservice.security;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

@@ -1,4 +1,4 @@
-package org.kyc.management.bankservice.security;
+package org.rbi.bankservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
