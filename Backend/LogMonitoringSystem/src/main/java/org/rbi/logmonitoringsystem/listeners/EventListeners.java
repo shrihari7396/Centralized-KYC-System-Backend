@@ -1,9 +1,9 @@
-package edu.pict.logmonitoringsystem.listeners;
+package org.rbi.logmonitoringsystem.listeners;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.pict.logmonitoringsystem.dtos.LogEventDTO;
-import edu.pict.logmonitoringsystem.entity.LogEntity;
-import edu.pict.logmonitoringsystem.repository.LogRepository;
+import org.rbi.logmonitoringsystem.dtos.LogEventDTO;
+import org.rbi.logmonitoringsystem.entity.LogEntity;
+import org.rbi.logmonitoringsystem.repository.LogRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

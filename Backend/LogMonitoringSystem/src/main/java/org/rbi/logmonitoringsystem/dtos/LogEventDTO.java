@@ -1,6 +1,6 @@
-package edu.pict.logmonitoringsystem.dtos;
+package org.rbi.logmonitoringsystem.dtos;
 
-import edu.pict.logmonitoringsystem.entity.LogLevel;
+import org.rbi.logmonitoringsystem.entity.LogLevel;
 import java.time.Instant;
 import java.util.Map;
 import lombok.Data;

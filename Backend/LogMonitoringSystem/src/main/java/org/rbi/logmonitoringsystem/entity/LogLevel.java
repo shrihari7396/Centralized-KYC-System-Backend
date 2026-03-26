@@ -1,4 +1,4 @@
-package edu.pict.logmonitoringsystem.entity;
+package org.rbi.logmonitoringsystem.entity;
 
 public enum LogLevel {
     INFO,

@@ -1,6 +1,6 @@
-package edu.pict.logmonitoringsystem.repository;
+package org.rbi.logmonitoringsystem.repository;
 
-import edu.pict.logmonitoringsystem.entity.LogEntity;
+import org.rbi.logmonitoringsystem.entity.LogEntity;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 

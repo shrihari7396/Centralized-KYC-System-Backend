@@ -1,7 +1,7 @@
-package edu.pict.logmonitoringsystem.config;
+package org.rbi.logmonitoringsystem.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.pict.logmonitoringsystem.dtos.LogEventDTO;
+import org.rbi.logmonitoringsystem.dtos.LogEventDTO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;

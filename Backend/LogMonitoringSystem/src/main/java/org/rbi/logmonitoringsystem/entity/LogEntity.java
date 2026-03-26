@@ -1,4 +1,4 @@
-package edu.pict.logmonitoringsystem.entity;
+package org.rbi.logmonitoringsystem.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
