@@ -8,7 +8,7 @@
         <version>4.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>org.kyc.management</groupId>
+    <groupId>org.rbi.bankservice</groupId>
     <artifactId>BankService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>BankService</name>
