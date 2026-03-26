@@ -19,6 +19,7 @@ import com.rbi.consent.event.NotificationEvent;
 import com.rbi.consent.exception.ConsentExpiredException;
 import com.rbi.consent.exception.ConsentNotFoundException;
 import com.rbi.consent.exception.ConsentRejectedException;
+import com.rbi.consent.exception.InValidOtpException;
 import com.rbi.consent.kafka.ConsentKafkaProducer;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.repository.ConsentRepository;
@@ -195,14 +196,14 @@ public class ConsentServiceImpl implements ConsentService {
         if (storedOtp == null) {
             kafkaLogProducer.logWarning(
                     "OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
-            throw new com.rbi.consent.exception.InValidOtpException("Expired or invalid OTP");
+            throw new InValidOtpException("Expired or invalid OTP");
         }
 
         if (!storedOtp.equals(otpInput)) {
             kafkaLogProducer.logWarning(
                     "OTP_VERIFICATION_FAILED",
                     java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
-            throw new com.rbi.consent.exception.InValidOtpException("Invalid OTP");
+            throw new InValidOtpException("Invalid OTP");
         }
 
         // Delete OTP after successful verification
