@@ -1,10 +1,10 @@
 package org.rbi.consentservice.controller;
 
-import org.rbi.consentservice.dto.ConsentResponseDto;
-import org.rbi.consentservice.service.ConsentService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.rbi.consentservice.dto.ConsentResponseDto;
+import org.rbi.consentservice.service.ConsentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

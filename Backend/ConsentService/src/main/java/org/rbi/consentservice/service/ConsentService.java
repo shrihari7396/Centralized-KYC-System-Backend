@@ -1,10 +1,10 @@
 package org.rbi.consentservice.service;
 
+import java.util.List;
+import java.util.UUID;
 import org.rbi.consentservice.dto.ConsentActionDto;
 import org.rbi.consentservice.dto.ConsentRequestDto;
 import org.rbi.consentservice.dto.ConsentResponseDto;
-import java.util.List;
-import java.util.UUID;
 
 public interface ConsentService {
 

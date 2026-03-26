@@ -1,8 +1,8 @@
 package org.rbi.userservice.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.rbi.userservice.DTO.RegisterDTO;
 import org.rbi.userservice.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

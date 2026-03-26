@@ -1,11 +1,11 @@
 package org.rbi.consentservice.kafka;
 
-import org.rbi.consentservice.dto.ConsentRequestDto;
-import org.rbi.consentservice.event.ConsentRequestEvent;
-import org.rbi.consentservice.service.ConsentService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rbi.consentservice.dto.ConsentRequestDto;
+import org.rbi.consentservice.event.ConsentRequestEvent;
+import org.rbi.consentservice.service.ConsentService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 

@@ -1,12 +1,12 @@
 package org.rbi.userservice.controller;
 
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.rbi.userservice.DTO.OtpRequestDto;
 import org.rbi.userservice.DTO.OtpVerificationDto;
 import org.rbi.userservice.exception.UserNotFoundException;
 import org.rbi.userservice.kafkaEvents.LogProducer;
 import org.rbi.userservice.service.UserService;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

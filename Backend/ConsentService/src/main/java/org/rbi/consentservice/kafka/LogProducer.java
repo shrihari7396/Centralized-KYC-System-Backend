@@ -1,10 +1,10 @@
 package org.rbi.consentservice.kafka;
 
-import org.rbi.consentservice.dto.LogEventDTO;
 import java.time.Instant;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rbi.consentservice.dto.LogEventDTO;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 

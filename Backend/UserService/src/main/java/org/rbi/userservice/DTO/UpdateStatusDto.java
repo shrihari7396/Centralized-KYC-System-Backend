@@ -1,7 +1,7 @@
 package org.rbi.userservice.DTO;
 
-import org.rbi.userservice.Model.UserStatus;
 import lombok.Data;
+import org.rbi.userservice.Model.UserStatus;
 
 @Data
 public class UpdateStatusDto {

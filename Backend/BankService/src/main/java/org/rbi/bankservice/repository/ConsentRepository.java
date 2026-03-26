@@ -2,7 +2,6 @@ package org.rbi.bankservice.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.rbi.bankservice.entity.Consent;
 import org.rbi.bankservice.entity.KycStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;

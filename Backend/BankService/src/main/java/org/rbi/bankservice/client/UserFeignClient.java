@@ -1,6 +1,5 @@
 package org.rbi.bankservice.client;
 
-
 import org.rbi.bankservice.dto.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

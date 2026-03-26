@@ -1,12 +1,12 @@
 package org.rbi.userservice.consumer;
 
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.rbi.userservice.Model.UserEntity;
 import org.rbi.userservice.Model.UserStatus;
 import org.rbi.userservice.Repository.UserRepository;
 import org.rbi.userservice.event.KycVerificationSuccessEvent;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 

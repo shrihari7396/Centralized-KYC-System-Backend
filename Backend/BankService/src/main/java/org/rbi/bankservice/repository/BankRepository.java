@@ -1,7 +1,6 @@
 package org.rbi.bankservice.repository;
 
 import java.util.Optional;
-
 import org.rbi.bankservice.entity.Bank;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

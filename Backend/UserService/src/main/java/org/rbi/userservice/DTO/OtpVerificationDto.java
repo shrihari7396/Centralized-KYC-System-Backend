@@ -1,8 +1,8 @@
 package org.rbi.userservice.DTO;
 
-import org.rbi.userservice.Model.Role;
 import lombok.Builder;
 import lombok.Data;
+import org.rbi.userservice.Model.Role;
 
 @Builder
 @Data

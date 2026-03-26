@@ -1,6 +1,5 @@
 package org.rbi.userservice.Model;
 
-import org.rbi.userservice.security.StringCryptoConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -17,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.rbi.userservice.security.StringCryptoConverter;
 
 @Builder
 @Entity

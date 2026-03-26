@@ -2,7 +2,6 @@ package org.rbi.bankservice.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.rbi.bankservice.entity.BankCustomer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

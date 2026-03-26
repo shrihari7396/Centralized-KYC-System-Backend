@@ -38,28 +38,17 @@ public class ConsentResponseConsumer {
 
                 Map<String, Object> kycData = new HashMap<>();
                 if (event.getRequestedDocuments() != null) {
-                    if (event.getRequestedDocuments()
-                            .contains(
-                                    DocumentType
-                                            .AADHAAR)) {
+                    if (event.getRequestedDocuments().contains(DocumentType.AADHAAR)) {
                         kycData.put("aadhaarNo", kyc.getAadhaarNo());
                     }
-                    if (event.getRequestedDocuments()
-                            .contains(
-                                    DocumentType.PAN)) {
+                    if (event.getRequestedDocuments().contains(DocumentType.PAN)) {
                         kycData.put("pan", kyc.getPan());
                     }
-                    if (event.getRequestedDocuments()
-                            .contains(
-                                    DocumentType
-                                            .DRIVING_LICENSE)) {
+                    if (event.getRequestedDocuments().contains(DocumentType.DRIVING_LICENSE)) {
                         kycData.put("drivingLicense", kyc.getDrivingLicense());
                     }
                     if (kyc.getAddress() != null
-                            && event.getRequestedDocuments()
-                                    .contains(
-                                            DocumentType
-                                                    .ADDRESS_PROOF)) {
+                            && event.getRequestedDocuments().contains(DocumentType.ADDRESS_PROOF)) {
                         kycData.put("address", kyc.getAddress());
                     }
                 } else {

@@ -3,14 +3,25 @@ package org.rbi.consentservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.rbi.consentservice.client.BankFeignClient;
 import org.rbi.consentservice.client.UserFeignClient;
+import org.rbi.consentservice.config.KafkaTopicNameConstants;
 import org.rbi.consentservice.dto.BankDto;
 import org.rbi.consentservice.dto.ConsentActionDto;
 import org.rbi.consentservice.dto.ConsentRequestDto;
 import org.rbi.consentservice.dto.ConsentResponseDto;
 import org.rbi.consentservice.dto.UserDto;
-import org.rbi.consentservice.config.KafkaTopicNameConstants;
 import org.rbi.consentservice.entity.ConsentRecord;
 import org.rbi.consentservice.enums.ConsentDocumentType;
 import org.rbi.consentservice.enums.ConsentStatus;
@@ -25,17 +36,6 @@ import org.rbi.consentservice.exception.InValidOtpException;
 import org.rbi.consentservice.kafka.ConsentKafkaProducer;
 import org.rbi.consentservice.logging.KafkaLogProducer;
 import org.rbi.consentservice.repository.ConsentRepository;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -186,8 +186,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .serviceType("CONSENT")
                         .build();
 
-        kafkaTemplate.send(
-                KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
+        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
         log.info("Sent CreateOtpEvent for consent {} to Kafka", consentId);
     }
 

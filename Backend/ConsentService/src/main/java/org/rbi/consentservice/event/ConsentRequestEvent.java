@@ -1,11 +1,11 @@
 package org.rbi.consentservice.event;
 
-import org.rbi.consentservice.enums.ConsentDocumentType;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.rbi.consentservice.enums.ConsentDocumentType;
 
 @Data
 @Builder

@@ -1,5 +1,10 @@
 package org.rbi.userservice.service.impl;
 
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.rbi.userservice.DTO.*;
 import org.rbi.userservice.Model.UserEntity;
 import org.rbi.userservice.Model.UserStatus;
@@ -10,11 +15,6 @@ import org.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import org.rbi.userservice.logging.KafkaLogProducer;
 import org.rbi.userservice.service.JWTService;
 import org.rbi.userservice.service.UserService;
-import java.security.SecureRandom;
-import java.time.Duration;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

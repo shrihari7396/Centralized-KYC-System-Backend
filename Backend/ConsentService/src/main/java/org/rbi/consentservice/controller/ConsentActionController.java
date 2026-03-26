@@ -1,13 +1,13 @@
 package org.rbi.consentservice.controller;
 
-import org.rbi.consentservice.dto.ConsentActionDto;
-import org.rbi.consentservice.dto.ConsentRequestDto;
-import org.rbi.consentservice.logging.KafkaLogProducer;
-import org.rbi.consentservice.service.ConsentService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.rbi.consentservice.dto.ConsentActionDto;
+import org.rbi.consentservice.dto.ConsentRequestDto;
+import org.rbi.consentservice.logging.KafkaLogProducer;
+import org.rbi.consentservice.service.ConsentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

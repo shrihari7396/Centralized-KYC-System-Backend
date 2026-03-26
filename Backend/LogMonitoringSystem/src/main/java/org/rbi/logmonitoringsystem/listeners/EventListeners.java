@@ -1,11 +1,11 @@
 package org.rbi.logmonitoringsystem.listeners;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.rbi.logmonitoringsystem.dtos.LogEventDTO;
 import org.rbi.logmonitoringsystem.entity.LogEntity;
 import org.rbi.logmonitoringsystem.repository.LogRepository;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 

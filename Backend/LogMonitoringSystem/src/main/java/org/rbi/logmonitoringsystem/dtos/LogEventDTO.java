@@ -1,9 +1,9 @@
 package org.rbi.logmonitoringsystem.dtos;
 
-import org.rbi.logmonitoringsystem.entity.LogLevel;
 import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
+import org.rbi.logmonitoringsystem.entity.LogLevel;
 
 @Data
 public class LogEventDTO {

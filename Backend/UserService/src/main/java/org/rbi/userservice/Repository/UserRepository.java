@@ -1,10 +1,10 @@
 package org.rbi.userservice.Repository;
 
-import org.rbi.userservice.Model.UserEntity;
-import org.rbi.userservice.Model.UserStatus;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
+import org.rbi.userservice.Model.UserEntity;
+import org.rbi.userservice.Model.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
