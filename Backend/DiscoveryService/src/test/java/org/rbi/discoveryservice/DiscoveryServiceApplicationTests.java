@@ -1,4 +1,4 @@
-package com.rbi.discoveryservice;
+package org.rbi.discoveryservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
