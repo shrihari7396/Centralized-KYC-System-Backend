@@ -53,6 +53,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorAttributes, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(PreviouslyRejectedConsentException.class)
+    public ResponseEntity<Map<String, Object>> handlePreviouslyRejectedConsentException(
+            PreviouslyRejectedConsentException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");

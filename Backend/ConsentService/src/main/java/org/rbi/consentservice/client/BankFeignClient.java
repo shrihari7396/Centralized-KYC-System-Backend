@@ -10,11 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "BANK-SERVICE")
 public interface BankFeignClient {
-
-    @PostMapping("/api/banks/notify-consent")
-    void notifyBank(
-            @RequestParam("consentId") UUID consentId, @RequestParam("jwtToken") String jwtToken);
-
     @GetMapping("/bank/kyc/banks/{bankId}")
     BankDto getBankById(@PathVariable("bankId") String bankId);
 }

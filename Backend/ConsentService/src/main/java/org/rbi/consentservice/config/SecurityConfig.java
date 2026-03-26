@@ -23,13 +23,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers(
-                                                "/consents/otp/**",
-                                                "/consents/*/otp/**",
-                                                "/consents/*/submit/**",
-                                                "/consents/request/**")
-                                        .permitAll()
-                                        .anyRequest()
+                                auth.anyRequest()
                                         .authenticated())
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

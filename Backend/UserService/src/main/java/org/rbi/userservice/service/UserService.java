@@ -25,4 +25,6 @@ public interface UserService {
     UserStatus getUserStatusByEmail(String email);
 
     UserDto getUserDetails(String email);
+
+    UserDto getByUserId(String userId);
 }

@@ -17,11 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rbi.consentservice.client.BankFeignClient;
 import org.rbi.consentservice.client.UserFeignClient;
 import org.rbi.consentservice.config.KafkaTopicNameConstants;
-import org.rbi.consentservice.dto.BankDto;
-import org.rbi.consentservice.dto.ConsentActionDto;
-import org.rbi.consentservice.dto.ConsentRequestDto;
-import org.rbi.consentservice.dto.ConsentResponseDto;
-import org.rbi.consentservice.dto.UserDto;
+import org.rbi.consentservice.dto.*;
 import org.rbi.consentservice.entity.ConsentRecord;
 import org.rbi.consentservice.enums.ConsentDocumentType;
 import org.rbi.consentservice.enums.ConsentStatus;
@@ -33,6 +29,7 @@ import org.rbi.consentservice.exception.ConsentExpiredException;
 import org.rbi.consentservice.exception.ConsentNotFoundException;
 import org.rbi.consentservice.exception.ConsentRejectedException;
 import org.rbi.consentservice.exception.InValidOtpException;
+import org.rbi.consentservice.exception.PreviouslyRejectedConsentException;
 import org.rbi.consentservice.kafka.ConsentKafkaProducer;
 import org.rbi.consentservice.logging.KafkaLogProducer;
 import org.rbi.consentservice.repository.ConsentRepository;
@@ -64,10 +61,14 @@ public class ConsentServiceImpl implements ConsentService {
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
-        // If an active consent already exists, de-activate it before creating a new one.
-        consentRepository
-                .findByUserIdAndBankIdAndActiveTrue(requestDto.getUserId(), requestDto.getBankId())
-                .ifPresent(
+        // Fetch all records for this pair in ONE hit
+        List<ConsentRecord> existingRecords =
+                consentRepository.findByUserIdAndBankId(requestDto.getUserId(), requestDto.getBankId());
+
+        // 1. De-activate active ones (using memory list)
+        existingRecords.stream()
+                .filter(ConsentRecord::isActive)
+                .forEach(
                         existing -> {
                             existing.setActive(false);
                             existing.setConsentStatus(ConsentStatus.EXPIRED);
@@ -78,8 +79,10 @@ public class ConsentServiceImpl implements ConsentService {
                                     requestDto.getUserId());
                         });
 
+        // 2. Save New Consent Record
         ConsentRecord consentRecord =
                 ConsentRecord.builder()
+                        .id(UUID.fromString(requestDto.getConsentId()))
                         .userId(requestDto.getUserId())
                         .bankId(requestDto.getBankId())
                         .consentStatus(ConsentStatus.PENDING)
@@ -90,46 +93,76 @@ public class ConsentServiceImpl implements ConsentService {
 
         ConsentRecord saved = consentRepository.save(consentRecord);
 
-        kafkaLogProducer.logInfo(
-                "CONSENT_REQUESTED",
-                java.util.Map.of(
-                        "userId",
-                        requestDto.getUserId(),
-                        "bankId",
-                        requestDto.getBankId(),
-                        "consentId",
-                        saved.getId()));
+        // 2. Fetch User Details for correct email (Mandatory)
+        UserDto user;
+        try {
+            user = userFeignClient.getUserDetailsById(requestDto.getUserId());
+            if (user == null || user.getEmail() == null) {
+                throw new ConsentNotFoundException("User details or email not found for ID: " + requestDto.getUserId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch user details for userId {}: {}", requestDto.getUserId(), e.getMessage());
+            throw new ConsentNotFoundException("Could not initiate consent: User details unavailable.");
+        }
 
-        // Trigger Global Notification Event via Kafka
-        String nId = requestDto.getUserId() + "_" + requestDto.getBankId() + "_" + saved.getId();
+        String userEmail = user.getEmail();
+
+        // 3. Fetch Bank Details for notification
+        BankDto bank = null;
+        try {
+            bank = bankFeignClient.getBankById(requestDto.getBankId().toString());
+        } catch (Exception e) {
+            log.warn("Failed to fetch bank details for bankId {}: {}", requestDto.getBankId(), e.getMessage());
+        }
+
+        // 4. Trigger Global Notification Event via Kafka (WebSocket for Frontend)
+        String nId = userEmail + "_" + requestDto.getBankId() + "_" + saved.getId();
         NotificationEvent notifEvent =
                 NotificationEvent.builder()
                         .notificationId(nId)
-                        .targetId(requestDto.getUserId())
-                        .email(requestDto.getUserId())
+                        .targetId(requestDto.getUserId()) // targetId is the UUID (userId)
+                        .email(userEmail) // Actual email for identification
                         .type("CONSENT_REQUEST")
                         .message(
-                                "A new KYC Consent request was initiated by a Bank. Action URL: "
-                                        + consentBaseUrl
-                                        + "/"
-                                        + saved.getId()
-                                        + "/status?Accept or Decline")
+                                String.format(
+                                        "New KYC Consent request from %s.",
+                                        (bank != null ? bank.getName() : "a Bank")))
                         .timestamp(System.currentTimeMillis())
-                        .actionUrl(
-                                consentBaseUrl + "/" + saved.getId() + "/status?Accept or Decline")
+                        .actionUrl(consentBaseUrl + "/" + saved.getId() + "/status")
                         .metadata(
                                 java.util.Map.of(
-                                        "consentId",
-                                        saved.getId(),
-                                        "bankId",
-                                        requestDto.getBankId()))
+                                        "consentId", saved.getId().toString(),
+                                        "bankId", requestDto.getBankId().toString(),
+                                        "bankName", (bank != null ? bank.getName() : "Unknown"),
+                                        "bankCode", (bank != null ? bank.getCode() : "N/A"),
+                                        "email", userEmail))
                         .build();
 
         kafkaTemplate.send("notification-events-topic", notifEvent);
-        log.info("Published universal NotificationEvent to Kafka for consent: {}", saved.getId());
+        log.info("Published NotificationEvent to Kafka for consent: {}", saved.getId());
 
-        // Automatically trigger OTP generation and email-out for the target user-identifier
-        sendConsentOtp(saved.getId());
+        kafkaLogProducer.logInfo(
+                "CONSENT_REQUESTED",
+                Map.of(
+                        "userId", requestDto.getUserId(),
+                        "bankId", requestDto.getBankId().toString(),
+                        "consentId", saved.getId().toString()));
+    }
+
+    private void triggerEmailOtp(ConsentRecord record, String otp, UserDto user) {
+        String userEmail = user.getEmail();
+
+        CreateOtpEvent otpEvent =
+                CreateOtpEvent.builder()
+                        .email(userEmail)
+                        .otp(otp)
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .serviceType("CONSENT")
+                        .build();
+
+        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
+        log.info("Sent CreateOtpEvent via Kafka to EmailService for consent {}", record.getId());
     }
 
     @Override
@@ -149,20 +182,20 @@ public class ConsentServiceImpl implements ConsentService {
                                     return new ConsentNotFoundException("Consent not found.");
                                 });
 
+        if (record.getConsentStatus() == ConsentStatus.REJECTED) {
+            kafkaLogProducer.logWarning(
+                    "CONSENT_OTP_BLOCKED",
+                    Map.of("consentId", consentId.toString(), "reason", "Previously Rejected"));
+            throw new PreviouslyRejectedConsentException(
+                    "You have previously rejected this consent. Further operations are blocked.");
+        }
+
         if (record.getConsentStatus() != ConsentStatus.PENDING) {
             kafkaLogProducer.logWarning(
                     "CONSENT_OTP_REJECTED",
                     java.util.Map.of("consentId", consentId, "reason", "Not in pending state"));
             throw new IllegalArgumentException(
                     "OTP can only be sent for PENDING consent requests.");
-        }
-
-        // Fetch User Details for personalized OTP email
-        UserDto user = null;
-        try {
-            user = userFeignClient.getUserDetails(record.getUserId());
-        } catch (Exception e) {
-            log.warn("Failed to fetch user details for consent {}: {}", consentId, e.getMessage());
         }
 
         // Generate 6-digit OTP
@@ -176,18 +209,19 @@ public class ConsentServiceImpl implements ConsentService {
 
         log.info("Generated OTP for consent {}: {}", consentId, otp);
 
-        // Send OTP via Kafka for EmailService to pick up
-        CreateOtpEvent otpEvent =
-                CreateOtpEvent.builder()
-                        .email(record.getUserId()) // userId is the email
-                        .otp(otp)
-                        .firstName(user != null ? user.getFirstName() : "User")
-                        .lastName(user != null ? user.getLastName() : "")
-                        .serviceType("CONSENT")
-                        .build();
+        // Fetch User details for correct delivery
+        UserDto user;
+        try {
+            user = userFeignClient.getUserDetailsById(record.getUserId());
+            if (user == null || user.getEmail() == null) {
+                throw new ConsentNotFoundException("User email details unavailable for OTP.");
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch user email for consent {}: {}", consentId, e.getMessage());
+            throw new ConsentNotFoundException("Cannot send OTP: User details unavailable.");
+        }
 
-        kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
-        log.info("Sent CreateOtpEvent for consent {} to Kafka", consentId);
+        triggerEmailOtp(record, otp, user);
     }
 
     private void verifyOtp(UUID consentId, String otpInput) {
@@ -213,20 +247,29 @@ public class ConsentServiceImpl implements ConsentService {
 
     @Override
     public void submitConsent(UUID consentId, ConsentActionDto actionDto) {
+        ConsentRecord record =
+                consentRepository
+                        .findById(consentId)
+                        .orElseThrow(() -> new ConsentNotFoundException("Consent not found."));
+
+        if (record.getConsentStatus() == ConsentStatus.REJECTED) {
+            throw new PreviouslyRejectedConsentException(
+                    "This consent was previously rejected and cannot be accepted later.");
+        }
+
         verifyOtp(consentId, actionDto.getOtp());
 
-        String action = actionDto.getAction();
-        if ("Accept".equalsIgnoreCase(action) || "Approved".equalsIgnoreCase(action)) {
+        Action action = actionDto.getAction();
+        if (action.equals(Action.ACCEPT)) {
             approveConsent(consentId);
-        } else if ("Decline".equalsIgnoreCase(action) || "Reject".equalsIgnoreCase(action)) {
+        } else if (action.equals(Action.REJECT)) {
             rejectConsent(consentId);
         } else {
             throw new IllegalArgumentException("Invalid action: " + action);
         }
     }
 
-    @Override
-    public ConsentResponseDto approveConsent(UUID consentId) {
+    private ConsentResponseDto approveConsent(UUID consentId) {
         ConsentRecord record =
                 consentRepository
                         .findById(consentId)
@@ -330,8 +373,7 @@ public class ConsentServiceImpl implements ConsentService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void rejectConsent(UUID consentId) {
+    private void rejectConsent(UUID consentId) {
         ConsentRecord record =
                 consentRepository
                         .findById(consentId)

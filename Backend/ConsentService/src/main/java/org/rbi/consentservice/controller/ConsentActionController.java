@@ -5,10 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.rbi.consentservice.dto.ConsentActionDto;
-import org.rbi.consentservice.dto.ConsentRequestDto;
 import org.rbi.consentservice.logging.KafkaLogProducer;
 import org.rbi.consentservice.service.ConsentService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,19 +17,6 @@ public class ConsentActionController {
 
     private final ConsentService consentService;
     private final KafkaLogProducer logProducer;
-
-    @PostMapping("/request")
-    public ResponseEntity<Void> requestConsent(@Valid @RequestBody ConsentRequestDto requestDto) {
-        consentService.requestConsent(requestDto);
-        logProducer.logInfo(
-                "CONSENT_REQUEST_RECEIVED",
-                Map.of(
-                        "userId",
-                        requestDto.getUserId().toString(),
-                        "bankId",
-                        requestDto.getBankId().toString()));
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
-    }
 
     @PostMapping("/{consentId}/otp")
     public ResponseEntity<Void> sendOtp(@PathVariable UUID consentId) {
@@ -47,21 +32,6 @@ public class ConsentActionController {
         logProducer.logInfo(
                 "CONSENT_SUBMITTED",
                 Map.of("consentId", consentId.toString(), "action", actionDto.getAction()));
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{consentId}/status")
-    public ResponseEntity<Void> handleConsentStatus(
-            @PathVariable UUID consentId, @RequestParam String action) {
-        if ("Accept".equalsIgnoreCase(action)) {
-            consentService.approveConsent(consentId);
-            logProducer.logInfo("CONSENT_APPROVED", Map.of("consentId", consentId.toString()));
-        } else if ("Decline".equalsIgnoreCase(action) || "Reject".equalsIgnoreCase(action)) {
-            consentService.rejectConsent(consentId);
-            logProducer.logInfo("CONSENT_REJECTED", Map.of("consentId", consentId.toString()));
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
         return ResponseEntity.ok().build();
     }
 }

@@ -22,6 +22,11 @@ public class UserProfileController {
         return ResponseEntity.ok(userService.getUserDetails(email));
     }
 
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> getDetailsById(@PathVariable String id) {
+        return ResponseEntity.ok(userService.getByUserId(id));
+    }
+
     @GetMapping("/kyc-status/{email}")
     public ResponseEntity<?> getStatusByEmail(@PathVariable String email) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserStatusByEmail(email));

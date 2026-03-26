@@ -14,10 +14,6 @@ public interface ConsentService {
 
     void submitConsent(UUID consentId, ConsentActionDto actionDto);
 
-    ConsentResponseDto approveConsent(UUID consentId);
-
-    void rejectConsent(UUID consentId);
-
     List<ConsentResponseDto> getAllConsents(String userId);
 
     ConsentResponseDto getConsent(String userId, UUID bankId);
