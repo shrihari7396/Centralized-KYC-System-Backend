@@ -1,6 +1,5 @@
 package org.rbi.userservice.service.impl;
 
-import com.rbi.userservice.DTO.*;
 import org.rbi.userservice.DTO.*;
 import org.rbi.userservice.Model.UserEntity;
 import org.rbi.userservice.Model.UserStatus;
