@@ -2,28 +2,20 @@ package com.rbi.consent.controller;
 
 import com.rbi.consent.dto.ConsentActionDto;
 import com.rbi.consent.dto.ConsentRequestDto;
-import com.rbi.consent.dto.ConsentResponseDto;
 import com.rbi.consent.logging.KafkaLogProducer;
 import com.rbi.consent.service.ConsentService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/consents")
 @RequiredArgsConstructor
-public class ConsentController {
+public class ConsentActionController {
 
     private final ConsentService consentService;
     private final KafkaLogProducer logProducer;
@@ -71,17 +63,5 @@ public class ConsentController {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ConsentResponseDto>> getAllConsents(@PathVariable String userId) {
-        List<ConsentResponseDto> response = consentService.getAllConsents(userId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<ConsentResponseDto> getConsent(@RequestParam String userId, @RequestParam UUID bankId) {
-        ConsentResponseDto response = consentService.getConsent(userId, bankId);
-        return ResponseEntity.ok(response);
     }
 }
