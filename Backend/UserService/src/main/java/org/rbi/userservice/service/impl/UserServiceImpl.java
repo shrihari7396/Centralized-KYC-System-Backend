@@ -208,7 +208,8 @@ public class UserServiceImpl implements UserService {
         UserEntity user =
                 userRepository
                         .findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                        .orElseThrow(
+                                () -> new RuntimeException("User not found with ID: " + userId));
         return UserDto.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())

@@ -17,7 +17,8 @@ public interface ConsentRepository extends JpaRepository<ConsentRecord, UUID> {
 
     List<ConsentRecord> findByUserIdAndBankId(String userId, UUID bankId);
 
-    boolean existsByUserIdAndBankIdAndConsentStatus(String userId, UUID bankId, ConsentStatus status);
+    boolean existsByUserIdAndBankIdAndConsentStatus(
+            String userId, UUID bankId, ConsentStatus status);
 
     List<ConsentRecord> findByConsentStatus(ConsentStatus status);
 }

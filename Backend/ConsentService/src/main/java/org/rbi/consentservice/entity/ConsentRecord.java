@@ -19,8 +19,7 @@ import org.rbi.consentservice.enums.ConsentStatus;
         indexes = {@Index(name = "idx_user_bank", columnList = "userId, bankId")})
 public class ConsentRecord {
 
-    @Id 
-    private UUID id;
+    @Id private UUID id;
 
     @Column(nullable = false, length = 100)
     private String userId;

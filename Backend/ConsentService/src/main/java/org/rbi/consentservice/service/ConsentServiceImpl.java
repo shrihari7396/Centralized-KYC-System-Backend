@@ -63,7 +63,8 @@ public class ConsentServiceImpl implements ConsentService {
     public void requestConsent(ConsentRequestDto requestDto) {
         // Fetch all records for this pair in ONE hit
         List<ConsentRecord> existingRecords =
-                consentRepository.findByUserIdAndBankId(requestDto.getUserId(), requestDto.getBankId());
+                consentRepository.findByUserIdAndBankId(
+                        requestDto.getUserId(), requestDto.getBankId());
 
         // 1. De-activate active ones (using memory list)
         existingRecords.stream()
@@ -98,11 +99,16 @@ public class ConsentServiceImpl implements ConsentService {
         try {
             user = userFeignClient.getUserDetailsById(requestDto.getUserId());
             if (user == null || user.getEmail() == null) {
-                throw new ConsentNotFoundException("User details or email not found for ID: " + requestDto.getUserId());
+                throw new ConsentNotFoundException(
+                        "User details or email not found for ID: " + requestDto.getUserId());
             }
         } catch (Exception e) {
-            log.error("Failed to fetch user details for userId {}: {}", requestDto.getUserId(), e.getMessage());
-            throw new ConsentNotFoundException("Could not initiate consent: User details unavailable.");
+            log.error(
+                    "Failed to fetch user details for userId {}: {}",
+                    requestDto.getUserId(),
+                    e.getMessage());
+            throw new ConsentNotFoundException(
+                    "Could not initiate consent: User details unavailable.");
         }
 
         String userEmail = user.getEmail();
@@ -112,7 +118,10 @@ public class ConsentServiceImpl implements ConsentService {
         try {
             bank = bankFeignClient.getBankById(requestDto.getBankId().toString());
         } catch (Exception e) {
-            log.warn("Failed to fetch bank details for bankId {}: {}", requestDto.getBankId(), e.getMessage());
+            log.warn(
+                    "Failed to fetch bank details for bankId {}: {}",
+                    requestDto.getBankId(),
+                    e.getMessage());
         }
 
         // 4. Trigger Global Notification Event via Kafka (WebSocket for Frontend)
@@ -131,11 +140,16 @@ public class ConsentServiceImpl implements ConsentService {
                         .actionUrl(consentBaseUrl + "/" + saved.getId() + "/status")
                         .metadata(
                                 java.util.Map.of(
-                                        "consentId", saved.getId().toString(),
-                                        "bankId", requestDto.getBankId().toString(),
-                                        "bankName", (bank != null ? bank.getName() : "Unknown"),
-                                        "bankCode", (bank != null ? bank.getCode() : "N/A"),
-                                        "email", userEmail))
+                                        "consentId",
+                                        saved.getId().toString(),
+                                        "bankId",
+                                        requestDto.getBankId().toString(),
+                                        "bankName",
+                                        (bank != null ? bank.getName() : "Unknown"),
+                                        "bankCode",
+                                        (bank != null ? bank.getCode() : "N/A"),
+                                        "email",
+                                        userEmail))
                         .build();
 
         kafkaTemplate.send("notification-events-topic", notifEvent);
