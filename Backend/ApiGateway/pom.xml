@@ -100,11 +100,6 @@ It contains all the interfaces and classes necessary for creating and managing J
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Tomcat Embed Core library -->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-        </dependency>
         <!-- Spring Kafka for messaging and event-driven communication -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>

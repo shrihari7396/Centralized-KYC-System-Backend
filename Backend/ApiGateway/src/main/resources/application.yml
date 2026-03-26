@@ -4,6 +4,8 @@ spring:
       enabled: always
   application:
     name: API-GATEWAY
+  main:
+    web-application-type: reactive
 
   # --- KAFKA CONFIG ---
   kafka:
