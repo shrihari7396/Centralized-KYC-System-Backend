@@ -61,26 +61,7 @@ public class ConsentServiceImpl implements ConsentService {
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
-        // Fetch all records for this pair in ONE hit
-        List<ConsentRecord> existingRecords =
-                consentRepository.findByUserIdAndBankId(
-                        requestDto.getUserId(), requestDto.getBankId());
-
-        // 1. De-activate active ones (using memory list)
-        existingRecords.stream()
-                .filter(ConsentRecord::isActive)
-                .forEach(
-                        existing -> {
-                            existing.setActive(false);
-                            existing.setConsentStatus(ConsentStatus.EXPIRED);
-                            consentRepository.save(existing);
-                            log.info(
-                                    "De-activated existing active consent {} for user {}",
-                                    existing.getId(),
-                                    requestDto.getUserId());
-                        });
-
-        // 2. Save New Consent Record
+        // 1. Save New Consent Record
         ConsentRecord consentRecord =
                 ConsentRecord.builder()
                         .id(UUID.fromString(requestDto.getConsentId()))
@@ -93,6 +74,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .build();
 
         ConsentRecord saved = consentRepository.save(consentRecord);
+
 
         // 2. Fetch User Details for correct email (Mandatory)
         UserDto user;
@@ -152,7 +134,7 @@ public class ConsentServiceImpl implements ConsentService {
                                         userEmail))
                         .build();
 
-        kafkaTemplate.send("notification-events-topic", notifEvent);
+        kafkaTemplate.send(KafkaTopicNameConstants.NOTIFICATION_EVENTS_TOPIC, notifEvent);
         log.info("Published NotificationEvent to Kafka for consent: {}", saved.getId());
 
         kafkaLogProducer.logInfo(
@@ -207,7 +189,7 @@ public class ConsentServiceImpl implements ConsentService {
         if (record.getConsentStatus() != ConsentStatus.PENDING) {
             kafkaLogProducer.logWarning(
                     "CONSENT_OTP_REJECTED",
-                    java.util.Map.of("consentId", consentId, "reason", "Not in pending state"));
+                    Map.of("consentId", consentId, "reason", "Not in pending state"));
             throw new IllegalArgumentException(
                     "OTP can only be sent for PENDING consent requests.");
         }
@@ -332,7 +314,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .message("Consent Approved for " + updated.getUserId())
                         .timestamp(System.currentTimeMillis())
                         .build();
-        kafkaTemplate.send("notification-events-topic", bankNotif);
+        kafkaTemplate.send(KafkaTopicNameConstants.NOTIFICATION_EVENTS_TOPIC, bankNotif);
 
         kafkaLogProducer.logInfo(
                 "CONSENT_APPROVED",
@@ -410,7 +392,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .message("Consent Rejected for user " + record.getUserId())
                         .timestamp(System.currentTimeMillis())
                         .build();
-        kafkaTemplate.send("notification-events-topic", bankNotif);
+        kafkaTemplate.send(KafkaTopicNameConstants.NOTIFICATION_EVENTS_TOPIC, bankNotif);
 
         List<DocumentType> docs = new ArrayList<>();
         try {

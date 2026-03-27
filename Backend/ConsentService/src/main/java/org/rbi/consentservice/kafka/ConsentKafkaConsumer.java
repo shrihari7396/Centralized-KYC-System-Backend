@@ -3,6 +3,7 @@ package org.rbi.consentservice.kafka;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rbi.consentservice.config.KafkaTopicNameConstants;
 import org.rbi.consentservice.dto.ConsentRequestDto;
 import org.rbi.consentservice.event.ConsentRequestEvent;
 import org.rbi.consentservice.service.ConsentService;
@@ -16,7 +17,9 @@ public class ConsentKafkaConsumer {
 
     private final ConsentService consentService;
 
-    @KafkaListener(topics = "consent-request-topic", groupId = "consent-service-group")
+    @KafkaListener(
+            topics = KafkaTopicNameConstants.CONSENT_REQUEST_TOPIC,
+            groupId = "consent-service-group")
     public void consumeConsentRequest(ConsentRequestEvent event) {
         log.info("Received Consent Request via Kafka for User: {}", event.getUserId());
 
