@@ -5,15 +5,14 @@ server:
 
 spring:
   mail:
-    host: live.smtp.mailtrap.io   # Mailtrap Live SMTP for sending
-    port: 587
-    username: api
-    password: 18ac210122973893ea995db5b85ff5bc
-    from: hello@demomailtrap.co   # From address (required for sending)
-
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    from: ${SMTP_FROM}
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${SMTP_AUTH}
           starttls:
-            enable: true
+            enable: ${SMTP_STARTTLS_ENABLE}

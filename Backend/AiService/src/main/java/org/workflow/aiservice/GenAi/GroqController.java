@@ -71,7 +71,7 @@ public class GroqController {
                         + ".\n"
                         + "If asked how banks access data, clarify that banks do not fetch documents from DigiLocker; they consume the verification outcomes from the KYC Service using a valid Consent ID\n"
                         + ".";
-
+        System.out.println("INSIDE AI CONTROLLER");
         return groqApiService.callGroqApi(systemPrompt, promptDto.getContent());
     }
 }
