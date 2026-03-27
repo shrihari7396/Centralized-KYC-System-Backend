@@ -21,9 +21,16 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
+    @Value("${spring.mail.host:}")
+    private String smtpHost;
+
+    @Value("${spring.mail.port:0}")
+    private int smtpPort;
+
     @Autowired private EmailTemplateFactory templateFactory;
 
     public void sendEmail(CreateOtpEvent event) throws MessagingException {
+        ensureSmtpConfigured();
         EmailTemplateStrategy strategy = templateFactory.getStrategy(event.getServiceType());
 
         String body = strategy.getHtmlBody(event);
@@ -54,6 +61,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
 
     public void sendKycSuccessEmail(org.kyc.emailservice.event.KycVerificationSuccessEvent event)
             throws MessagingException {
+        ensureSmtpConfigured();
         String subject = "KYC Verification Successful";
         String body =
                 String.format(
@@ -74,5 +82,16 @@ public class EmailSenderServiceImpl implements EmailSenderService {
         mailSender.send(mimeMessage);
         kafkaLogProducer.logInfo(
                 "KYC_EMAIL_SENT_SUCCESSFULLY", java.util.Map.of("email", event.getEmail()));
+    }
+
+    private void ensureSmtpConfigured() {
+        if (fromEmail == null
+                || fromEmail.isBlank()
+                || smtpHost == null
+                || smtpHost.isBlank()
+                || smtpPort <= 0) {
+            throw new IllegalStateException(
+                    "SMTP is not configured. Set SMTP_HOST, SMTP_PORT, and SMTP_FROM.");
+        }
     }
 }

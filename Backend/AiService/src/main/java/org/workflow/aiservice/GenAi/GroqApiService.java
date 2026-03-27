@@ -26,6 +26,10 @@ public class GroqApiService {
 
     public String callGroqApi(String systemPrompt, String userMessage) {
         try {
+            if (apiKey == null || apiKey.isBlank()) {
+                throw new IllegalStateException(
+                        "GROQ_API_KEY is not set. Configure env var GROQ_API_KEY or set groq.api.key.");
+            }
             // Construct JSON payload using a Map
 
             Map<String, Object> requestBody = new HashMap<>();
