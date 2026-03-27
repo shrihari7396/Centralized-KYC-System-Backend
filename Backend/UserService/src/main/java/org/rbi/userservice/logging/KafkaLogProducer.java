@@ -3,6 +3,7 @@ package org.rbi.userservice.logging;
 import java.time.Instant;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.rbi.userservice.config.KafkaTopicNameConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,15 @@ public class KafkaLogProducer {
     private String serviceId;
 
     public void logInfo(String eventType, Map<String, Object> payload) {
-        sendLog("log-info", eventType, LogLevel.INFO, payload);
+        sendLog(KafkaTopicNameConstants.LOG_INFO_TOPIC, eventType, LogLevel.INFO, payload);
     }
 
     public void logWarning(String eventType, Map<String, Object> payload) {
-        sendLog("log-warning", eventType, LogLevel.WARNING, payload);
+        sendLog(KafkaTopicNameConstants.LOG_WARNING_TOPIC, eventType, LogLevel.WARNING, payload);
     }
 
     public void logError(String eventType, Map<String, Object> payload) {
-        sendLog("log-error", eventType, LogLevel.ERROR, payload);
+        sendLog(KafkaTopicNameConstants.LOG_ERROR_TOPIC, eventType, LogLevel.ERROR, payload);
     }
 
     private void sendLog(

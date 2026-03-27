@@ -11,4 +11,5 @@ public class CreateOtpEvent {
     private String email;
     private String otp;
     private String serviceType;
+    private String consentId;
 }

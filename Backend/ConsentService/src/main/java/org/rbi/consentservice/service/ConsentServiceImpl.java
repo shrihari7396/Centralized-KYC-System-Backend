@@ -420,7 +420,7 @@ public class ConsentServiceImpl implements ConsentService {
 
         kafkaLogProducer.logWarning(
                 "CONSENT_REJECTED",
-                java.util.Map.of(
+                Map.of(
                         "consentId",
                         record.getId(),
                         "userId",

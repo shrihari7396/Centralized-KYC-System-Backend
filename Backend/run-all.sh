@@ -37,13 +37,13 @@ sleep 10
 #sleep 10
 run_service ApiGateway
 run_service BankService
-#run_service ConsentService
-#run_service DigilockerService
-#run_service EmailService
-#run_service KycManagementService
-#run_service UserService
-#run_service NotificationSystem
-#run_service AiService
+run_service ConsentService
+run_service DigilockerService
+run_service EmailService
+run_service KycManagementService
+run_service UserService
+run_service NotificationSystem
+run_service AiService
 
 
 echo "All services started!"
