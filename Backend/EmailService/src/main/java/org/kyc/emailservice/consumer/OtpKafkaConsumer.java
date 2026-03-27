@@ -14,7 +14,14 @@ import org.springframework.stereotype.Service;
 public class OtpKafkaConsumer {
     @Autowired private EmailSenderService emailSenderService;
 
-    @KafkaListener(topics = AppConstants.EMAIL_TOPIC_NAME, groupId = AppConstants.KAFKA_GROUP_ID)
+    @KafkaListener(
+            topics = {
+                AppConstants.CONSENT_OTP_TOPIC,
+                AppConstants.USERSERVICE_OTP_TOPIC,
+                AppConstants.BANKSERVICE_OTP_TOPIC,
+                AppConstants.DIGILOCKER_OTP_TOPIC
+            },
+            groupId = AppConstants.KAFKA_GROUP_ID)
     public void toEmail(String message) throws MessagingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         CreateOtpEvent event = objectMapper.readValue(message, CreateOtpEvent.class);

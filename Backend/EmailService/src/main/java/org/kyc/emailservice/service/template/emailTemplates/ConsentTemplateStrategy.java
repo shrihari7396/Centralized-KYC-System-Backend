@@ -22,10 +22,12 @@ public class ConsentTemplateStrategy implements EmailTemplateStrategy {
                 event.getFirstName(),
                 event.getLastName(),
                 event.getOtp(),
-                "Approve consent access for KYC documents");
+                "Approve consent access for KYC documents",
+                event.getConsentId());
     }
 
-    private String getTemplate(String firstName, String lastName, String otp, String purpose) {
+    private String getTemplate(
+            String firstName, String lastName, String otp, String purpose, String consentId) {
         return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body style=\"font-family: Arial; background-color: #f4f6f8; margin: 0; padding: 20px;\">"
                 + "<div style=\"max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);\">"
                 + "<h2 style=\"text-align: center; color: #1a73e8;\">Consent Verification</h2>"
@@ -40,6 +42,9 @@ public class ConsentTemplateStrategy implements EmailTemplateStrategy {
                 + "<div style=\"text-align: center; margin: 30px 0;\"><span style=\"font-size: 28px; letter-spacing: 4px; font-weight: bold; color: #1a73e8;\">"
                 + otp
                 + "</span></div>"
+                + "<p style=\"text-align: center; color: #555; font-size: 14px;\">Reference Consent ID: <code style=\"background: #f0f0f0; padding: 2px 5px; border-radius: 3px;\">"
+                + consentId
+                + "</code></p>"
                 + "<p>⏱ <strong>This OTP is valid for 5 minutes only.</strong></p>"
                 + "<p>Please do not share this OTP with anyone for security reasons.</p>"
                 + "<hr style=\"border-top: 1px solid #eaeaea;\">"

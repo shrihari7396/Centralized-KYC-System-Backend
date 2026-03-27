@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rbi.bankservice.client.UserFeignClient;
+import org.rbi.bankservice.config.KafkaConstants;
 import org.rbi.bankservice.dto.*;
 import org.rbi.bankservice.entity.*;
 import org.rbi.bankservice.event.CreateOtpEvent;
@@ -138,7 +139,7 @@ public class BankServiceImpl implements BankService {
 
         saveOtp(finalotp, email);
         // Using string topic name to avoid circular dependencies or missing constants
-        kafkaTemplate.send("OTP_CREATED_TOPIC", event);
+        kafkaTemplate.send(KafkaConstants.OTP_CREATED_TOPIC, event);
 
         kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email));
 

@@ -15,4 +15,5 @@ public class CreateOtpEvent {
     private String email;
     private String otp;
     private String serviceType; // e.g., "LOGIN", "DIGILOCKER", "CONSENT"
+    private String consentId;
 }

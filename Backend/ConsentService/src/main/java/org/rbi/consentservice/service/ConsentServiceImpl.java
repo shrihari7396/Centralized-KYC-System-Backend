@@ -155,6 +155,7 @@ public class ConsentServiceImpl implements ConsentService {
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
                         .serviceType("CONSENT")
+                        .consentId(record.getId().toString())
                         .build();
 
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, otpEvent);
