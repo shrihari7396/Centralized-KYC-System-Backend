@@ -5,7 +5,6 @@ package org.workflow.aiservice.GenAi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin
 @RequestMapping("/ai")
 @RestController
 public class GroqController {

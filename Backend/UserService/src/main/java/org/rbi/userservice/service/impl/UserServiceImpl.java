@@ -6,6 +6,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rbi.userservice.DTO.*;
+import org.rbi.userservice.Model.Role;
 import org.rbi.userservice.Model.UserEntity;
 import org.rbi.userservice.Model.UserStatus;
 import org.rbi.userservice.Repository.UserRepository;
@@ -87,6 +88,7 @@ public class UserServiceImpl implements UserService {
                         .email(user.getEmail())
                         .status(UserStatus.KYC_PENDING)
                         .phone(user.getMobileNumber())
+                        .roles(Role.USER)
                         .build();
 
         UserEntity saved = userRepository.save(u);
@@ -199,6 +201,9 @@ public class UserServiceImpl implements UserService {
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .roles(
+                        java.util.List.of(
+                                user.getRoles() != null ? user.getRoles().name() : "USER"))
                 .status(user.getStatus())
                 .build();
     }
@@ -216,6 +221,9 @@ public class UserServiceImpl implements UserService {
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .roles(
+                        java.util.List.of(
+                                user.getRoles() != null ? user.getRoles().name() : "USER"))
                 .status(user.getStatus())
                 .build();
     }

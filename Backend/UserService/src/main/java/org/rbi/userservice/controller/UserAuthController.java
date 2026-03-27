@@ -37,6 +37,15 @@ public class UserAuthController {
 
     @PostMapping("/otp/verify")
     public ResponseEntity<?> otpVerification(@RequestBody OtpVerificationDto otpVerificationDto) {
+        String key = otpVerificationDto.getEmail();
+        if (key == null || key.isBlank()) {
+            key = otpVerificationDto.getUsername();
+        }
+        if (key == null || key.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "email or username is required for OTP verification"));
+        }
+        otpVerificationDto.setEmail(key);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userService.getLoginResponseDto(otpVerificationDto));
     }
