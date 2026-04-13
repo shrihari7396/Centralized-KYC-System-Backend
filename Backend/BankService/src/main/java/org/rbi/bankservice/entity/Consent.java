@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Consent {
     @Id private String id;
 
+    private String consentId;
     private String bankId;
     private String userId;
     private KycStatus status;

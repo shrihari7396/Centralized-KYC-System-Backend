@@ -3,6 +3,8 @@ package org.rbi.bankservice.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.rbi.bankservice.client.UserFeignClient;
 import org.rbi.bankservice.config.KafkaConstants;
@@ -102,6 +104,7 @@ public class KycOrchestrationService {
                 Consent.builder()
                         .bankId(req.getBankId().toString())
                         .userId(userGlobalId)
+                        .consentId(UUID.randomUUID().toString())
                         .status(KycStatus.CONSENT_PENDING)
                         .requestedDocuments(req.getRequestedDocuments())
                         .createdAt(LocalDateTime.now())
@@ -114,7 +117,7 @@ public class KycOrchestrationService {
                         .userId(userGlobalId)
                         .email(req.getEmail())
                         .bankId(req.getBankId())
-                        .consentId(consent.getId())
+                        .consentId(consent.getConsentId())
                         .requestedDocuments(req.getRequestedDocuments())
                         .build();
 

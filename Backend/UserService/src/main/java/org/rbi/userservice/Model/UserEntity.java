@@ -1,7 +1,6 @@
 package org.rbi.userservice.Model;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,7 +15,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.rbi.userservice.security.StringCryptoConverter;
 
 @Builder
 @Entity
@@ -33,15 +31,15 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Convert(converter = StringCryptoConverter.class)
+    //    @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String firstName;
 
-    @Convert(converter = StringCryptoConverter.class)
+    //    @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String lastName;
 
-    @Convert(converter = StringCryptoConverter.class)
+    //    @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String phone;
 

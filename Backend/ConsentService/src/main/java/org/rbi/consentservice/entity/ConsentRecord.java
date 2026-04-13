@@ -2,7 +2,6 @@ package org.rbi.consentservice.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,13 +18,15 @@ import org.rbi.consentservice.enums.ConsentStatus;
         indexes = {@Index(name = "idx_user_bank", columnList = "userId, bankId")})
 public class ConsentRecord {
 
-    @Id private UUID id;
+    @Id
+    @Column(nullable = false, length = 64)
+    private String id;
 
     @Column(nullable = false, length = 100)
     private String userId;
 
     @Column(nullable = false)
-    private UUID bankId;
+    private String bankId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

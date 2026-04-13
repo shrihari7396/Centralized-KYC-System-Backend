@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.rbi.userservice.Model.UserEntity;
 import org.rbi.userservice.Model.UserStatus;
 import org.rbi.userservice.Repository.UserRepository;
-import org.rbi.userservice.event.KycVerificationSuccessEvent;
 import org.rbi.userservice.config.KafkaTopicNameConstants;
+import org.rbi.userservice.event.KycVerificationSuccessEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,9 @@ public class UserKafkaConsumer {
 
     private final UserRepository userRepository;
 
-    @KafkaListener(topics = KafkaTopicNameConstants.KYC_VERIFICATION_SUCCESS_TOPIC, groupId = "user-service-group")
+    @KafkaListener(
+            topics = KafkaTopicNameConstants.KYC_VERIFICATION_SUCCESS_TOPIC,
+            groupId = "user-service-group")
     public void consumeKycSuccess(KycVerificationSuccessEvent event) {
         log.info("Consumed KYC success event: {}", event);
 

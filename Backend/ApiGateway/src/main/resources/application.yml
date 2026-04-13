@@ -30,8 +30,8 @@ spring:
               uri: lb://USERSERVICE
               predicates:
                 - Path=/user/**
-              filters:
-                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+#              filters:
+#                - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
             - id: bank-service
               uri: lb://BANKSERVICE

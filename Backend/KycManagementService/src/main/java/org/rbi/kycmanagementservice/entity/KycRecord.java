@@ -21,6 +21,9 @@ public class KycRecord {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID kycId;
 
+    @Column(name = "user_id")
+    private String userId;
+
     private String mobileNumber;
 
     private String aadharNumber;
@@ -32,6 +35,8 @@ public class KycRecord {
     private String lastName;
 
     private String middleName;
+
+    private String email;
 
     private LocalDate dob;
 

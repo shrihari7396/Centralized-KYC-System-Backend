@@ -19,10 +19,10 @@ public class OtpKafkaConsumer {
 
     @KafkaListener(
             topics = {
-                AppConstants.CONSENT_OTP_TOPIC,
-                AppConstants.USERSERVICE_OTP_TOPIC,
-                AppConstants.BANKSERVICE_OTP_TOPIC,
-                AppConstants.DIGILOCKER_OTP_TOPIC
+                    AppConstants.CONSENT_OTP_TOPIC,
+                    AppConstants.USERSERVICE_OTP_TOPIC,
+                    AppConstants.BANKSERVICE_OTP_TOPIC,
+                    AppConstants.DIGILOCKER_OTP_TOPIC
             },
             groupId = AppConstants.KAFKA_GROUP_ID)
     public void toEmail(String message) {

@@ -19,6 +19,22 @@ public class ConsentKafkaProducer {
                 "Sending ConsentResponseEvent to topic {} for consentId: {}",
                 KafkaTopicNameConstants.CONSENT_RESPONSE_TOPIC,
                 event.getConsentId());
-        kafkaTemplate.send(KafkaTopicNameConstants.CONSENT_RESPONSE_TOPIC, event);
+        kafkaTemplate
+                .send(KafkaTopicNameConstants.CONSENT_RESPONSE_TOPIC, event)
+                .whenComplete(
+                        (result, ex) -> {
+                            if (ex != null) {
+                                log.error(
+                                        "Failed to publish ConsentResponseEvent for consentId {}",
+                                        event.getConsentId(),
+                                        ex);
+                                return;
+                            }
+
+                            log.info(
+                                    "Published ConsentResponseEvent for consentId {} at offset {}",
+                                    event.getConsentId(),
+                                    result.getRecordMetadata().offset());
+                        });
     }
 }

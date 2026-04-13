@@ -23,6 +23,7 @@ public class SecurityConfig {
                                 auth.requestMatchers(
                                                 "/bank/kyc/otp/**",
                                                 "/bank/kyc/banks",
+                                                "/banks/kyc/banks/{bankId}/",
                                                 "/bank/kyc/banks/**",
                                                 "/bank/kyc/register")
                                         .permitAll()

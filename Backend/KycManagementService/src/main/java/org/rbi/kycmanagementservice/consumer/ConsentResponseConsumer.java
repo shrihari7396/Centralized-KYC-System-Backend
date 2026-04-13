@@ -7,11 +7,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rbi.kycmanagementservice.configs.KafkaConstants;
 import org.rbi.kycmanagementservice.dto.DocumentType;
-import org.rbi.kycmanagementservice.entity.KycEntity;
+import org.rbi.kycmanagementservice.entity.KycRecord;
 import org.rbi.kycmanagementservice.enums.ConsentStatus;
 import org.rbi.kycmanagementservice.event.ConsentResponseEvent;
 import org.rbi.kycmanagementservice.event.KycDataEvent;
-import org.rbi.kycmanagementservice.repository.KycRepository;
+import org.rbi.kycmanagementservice.repository.KycRecordRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ConsentResponseConsumer {
 
-    private final KycRepository kycRepository;
+    private final KycRecordRepository kycRecordRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @KafkaListener(topics = KafkaConstants.CONSENT_RESPONSE_TOPIC, groupId = "kyc-management-group")
@@ -32,29 +32,29 @@ public class ConsentResponseConsumer {
                 event.getBankId());
 
         if (event.getStatus() == ConsentStatus.APPROVED) {
-            Optional<KycEntity> kycOpt = kycRepository.findById(event.getUserId());
-            if (kycOpt.isPresent()) {
-                KycEntity kyc = kycOpt.get();
+            Optional<KycRecord> recordOpt = kycRecordRepository.findByUserId(event.getUserId());
+            if (recordOpt.isPresent()) {
+                KycRecord record = recordOpt.get();
 
                 Map<String, Object> kycData = new HashMap<>();
                 if (event.getRequestedDocuments() != null) {
                     if (event.getRequestedDocuments().contains(DocumentType.AADHAAR)) {
-                        kycData.put("aadhaarNo", kyc.getAadhaarNo());
+                        kycData.put("aadhaarNo", record.getAadharNumber());
                     }
                     if (event.getRequestedDocuments().contains(DocumentType.PAN)) {
-                        kycData.put("pan", kyc.getPan());
+                        kycData.put("pan", record.getPanNumber());
                     }
-                    if (event.getRequestedDocuments().contains(DocumentType.DRIVING_LICENSE)) {
-                        kycData.put("drivingLicense", kyc.getDrivingLicense());
-                    }
-                    if (kyc.getAddress() != null
+                    if (record.getAddress() != null
                             && event.getRequestedDocuments().contains(DocumentType.ADDRESS_PROOF)) {
-                        kycData.put("address", kyc.getAddress());
+                        kycData.put("address", record.getAddress());
                     }
                 } else {
                     // Fallback: Add all if nothing is filtered
-                    kycData.put("aadhaarNo", kyc.getAadhaarNo());
-                    kycData.put("pan", kyc.getPan());
+                    kycData.put("aadhaarNo", record.getAadharNumber());
+                    kycData.put("pan", record.getPanNumber());
+                    if (record.getAddress() != null) {
+                        kycData.put("address", record.getAddress());
+                    }
                 }
 
                 KycDataEvent dataEvent =
@@ -70,7 +70,7 @@ public class ConsentResponseConsumer {
                         "Published KycDataEvent to kyc-data-topic for userId: {}",
                         event.getUserId());
             } else {
-                log.warn("KycEntity not found for userId: {}", event.getUserId());
+                log.warn("KycRecord not found for userId: {}", event.getUserId());
             }
         }
     }

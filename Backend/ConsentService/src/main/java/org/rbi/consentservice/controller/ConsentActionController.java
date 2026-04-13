@@ -19,8 +19,8 @@ public class ConsentActionController {
     private final KafkaLogProducer logProducer;
 
     @PostMapping("/{consentId}/otp")
-    public ResponseEntity<Void> sendOtp(@PathVariable UUID consentId) {
-        consentService.sendConsentOtp(consentId);
+    public ResponseEntity<Void> sendOtp(@PathVariable String consentId) {
+        consentService.sendConsentOtp(UUID.fromString(consentId));
         logProducer.logInfo("CONSENT_OTP_SENT", Map.of("consentId", consentId.toString()));
         return ResponseEntity.ok().build();
     }

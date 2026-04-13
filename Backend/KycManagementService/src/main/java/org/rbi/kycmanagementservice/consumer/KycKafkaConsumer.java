@@ -24,7 +24,7 @@ public class KycKafkaConsumer {
     private final KafkaLogProducer kafkaLogProducer;
 
     private static final String FETCHED_TOPIC = KafkaConstants.DIGILOCKER_DATA_FETCHED_TOPIC;
-    private static final String SUCCESS_TOPIC = KafkaConstants.SUCCESS_TOPIC;
+    private static final String SUCCESS_TOPIC = KafkaConstants.KYC_VERIFICATION_SUCCESS;
     private static final String KAFKA_GROUP_ID = KafkaConstants.KAFKA_GROUP_ID;
 
     @KafkaListener(topics = FETCHED_TOPIC, groupId = KAFKA_GROUP_ID)
@@ -49,7 +49,7 @@ public class KycKafkaConsumer {
         // Fetch or create record
         KycRecord record =
                 kycRecordRepository
-                        .findByMobileNumber(event.getMobileNumber())
+                        .findByEmail(event.getMobileNumber())
                         .orElse(new KycRecord());
 
         // Full name construction (null-safe)
@@ -63,6 +63,7 @@ public class KycKafkaConsumer {
                         .trim();
 
         // Map fields
+        record.setUserId(event.getUserId());
         record.setMobileNumber(event.getMobileNumber());
         record.setAadharNumber(event.getAadharNumber());
         record.setPanNumber(event.getPanNumber());

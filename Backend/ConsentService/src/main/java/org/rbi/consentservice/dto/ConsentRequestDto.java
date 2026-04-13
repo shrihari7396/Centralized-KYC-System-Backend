@@ -2,7 +2,6 @@ package org.rbi.consentservice.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +18,7 @@ public class ConsentRequestDto {
     private String userId;
 
     @NotNull(message = "Bank ID is required")
-    private UUID bankId;
+    private String bankId;
 
     private String consentId;
 

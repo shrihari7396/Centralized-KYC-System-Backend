@@ -1,7 +1,6 @@
 package org.rbi.consentservice.dto;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +13,8 @@ import org.rbi.consentservice.enums.ConsentStatus;
 @AllArgsConstructor
 public class ConsentResponseDto {
 
-    private UUID consentId;
-    private UUID bankId;
+    private String consentId;
+    private String bankId;
     private ConsentStatus status;
 
     private LocalDateTime expiryAt;
