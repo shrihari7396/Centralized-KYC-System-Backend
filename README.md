@@ -1,4 +1,4 @@
-# Centralized KYC System
+# Distributed Centralized KYC System
 
 ## 📌 Project Overview
 
