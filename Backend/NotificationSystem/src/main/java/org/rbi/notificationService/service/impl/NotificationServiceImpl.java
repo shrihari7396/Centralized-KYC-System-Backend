@@ -74,11 +74,6 @@ public class NotificationServiceImpl implements NotificationService {
                     log.error("Failed to publish message to Redis for remote instance delivery", e);
                 }
             }
-        } else {
-            log.info(
-                    "Target {} is offline. Notification {} saved as PENDING.",
-                    event.getTargetId(),
-                    event.getNotificationId());
         }
     }
 

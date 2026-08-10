@@ -1,5 +1,7 @@
 package org.rbi.notificationService.security;
 
+import lombok.RequiredArgsConstructor;
+import org.rbi.notificationService.exception.JwtValidationException;
 import org.rbi.notificationService.service.SessionRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -10,15 +12,11 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
     private final JWTService jwtService;
     private final SessionRegistry sessionRegistry;
-
-    public JwtChannelInterceptor(JWTService jwtService, SessionRegistry sessionRegistry) {
-        this.jwtService = jwtService;
-        this.sessionRegistry = sessionRegistry;
-    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -38,10 +36,10 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                     String sessionId = accessor.getSessionId();
                     sessionRegistry.registerSession(userId, sessionId);
                 } else {
-                    throw new IllegalArgumentException("Invalid JWT Token");
+                    throw new JwtValidationException("Invalid JWT Token");
                 }
             } else {
-                throw new IllegalArgumentException("Missing or invalid Authorization header");
+                throw new JwtValidationException("Missing or invalid Authorization header");
             }
         }
 
