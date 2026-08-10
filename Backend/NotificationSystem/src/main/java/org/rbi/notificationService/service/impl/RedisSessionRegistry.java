@@ -18,7 +18,8 @@ public class RedisSessionRegistry implements SessionRegistry {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Getter private final InstanceId instanceId;
+    @Getter
+    private final InstanceId instanceId;
 
     private static final String TARGET_PREFIX = "client:";
     private static final String INSTANCE_PREFIX = "instance:";

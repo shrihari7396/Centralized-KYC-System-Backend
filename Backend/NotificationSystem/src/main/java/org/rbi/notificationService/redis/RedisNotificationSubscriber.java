@@ -30,6 +30,7 @@ public class RedisNotificationSubscriber implements MessageListener {
         this.sessionRegistry = sessionRegistry;
     }
 
+    @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
             String json = new String(message.getBody());

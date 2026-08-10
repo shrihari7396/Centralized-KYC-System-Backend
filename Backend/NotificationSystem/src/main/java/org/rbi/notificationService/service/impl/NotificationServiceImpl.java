@@ -50,13 +50,17 @@ public class NotificationServiceImpl implements NotificationService {
         String targetInstanceId = sessionRegistry.getInstanceForUser(event.getTargetId());
         if (targetInstanceId != null) {
             if (targetInstanceId.equals(instanceId.getInstanceId())) {
-                log.info(
-                        "Target {} is on the local instance. Bypassing Redis serialization.",
-                        event.getTargetId());
+//                log.info(
+//                        "Target {} is on the local instance. Bypassing Redis serialization.",
+//                        event.getTargetId());
+
                 String destination = "/queue/notifications";
+
                 messagingTemplate.convertAndSendToUser(
                         event.getTargetId(), destination, notification);
+
                 notification.setStatus(NotificationStatus.DELIVERED);
+
                 notificationRepository.save(notification);
             } else {
                 try {
@@ -84,7 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
         // this
         // Convert and send to user
         messagingTemplate.convertAndSendToUser(
-                targetId, // SimplePrincipal name (Global ID)
+                targetId,
                 destination,
                 notifications);
 

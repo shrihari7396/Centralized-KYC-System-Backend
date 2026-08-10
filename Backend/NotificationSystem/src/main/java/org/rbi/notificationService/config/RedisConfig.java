@@ -2,7 +2,7 @@ package org.rbi.notificationService.config;
 
 import lombok.RequiredArgsConstructor;
 import org.rbi.notificationService.redis.RedisNotificationSubscriber;
-import org.rbi.notificationService.service.impl.RedisSessionRegistry;
+import org.rbi.notificationService.utility.InstanceId;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,11 +13,11 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 @RequiredArgsConstructor
 public class RedisConfig {
 
-    private final RedisSessionRegistry redisSessionRegistry;
+    private final InstanceId instanceId;
 
     @Bean
     public ChannelTopic topic() {
-        return new ChannelTopic("notify:" + redisSessionRegistry.getInstanceId().getInstanceId());
+        return new ChannelTopic("notify:" + instanceId.getInstanceId());
     }
 
     @Bean
