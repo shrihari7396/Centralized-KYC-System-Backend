@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import lombok.RequiredArgsConstructor;
 import org.rbi.kycmanagementservice.dto.DigilockerDataRequest;
 import org.rbi.kycmanagementservice.dto.DocumentProofResponseDto;
 import org.rbi.kycmanagementservice.dto.KycTokenResponseDto;
@@ -21,17 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class KycService {
 
-    @Autowired private KycRepository kycRepository;
-
-    @Autowired private KycRecordRepository kycRecordRepository;
-
-    @Autowired private KycTokenRedisService kycTokenRedisService;
-
-    @Autowired private JwtParserUtil jwtParserUtil;
-
-    @Autowired private TokenBlacklistService tokenBlacklistService;
+    private final KycRepository kycRepository;
+    private final KycRecordRepository kycRecordRepository;
+    private final KycTokenRedisService kycTokenRedisService;
+    private final JwtParserUtil jwtParserUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     /**
      * Stores incoming data from Digilocker with a PENDING verification status. Overwrites existing

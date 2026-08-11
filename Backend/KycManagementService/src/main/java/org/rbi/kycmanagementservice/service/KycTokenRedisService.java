@@ -17,7 +17,8 @@ public class KycTokenRedisService {
 
     private static final String REDIS_TOKEN_PREFIX = "KYC_TOKEN:";
 
-    @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     private final ObjectMapper objectMapper;
 

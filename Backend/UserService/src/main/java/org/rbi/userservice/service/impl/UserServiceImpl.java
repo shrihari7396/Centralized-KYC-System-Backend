@@ -2,6 +2,7 @@ package org.rbi.userservice.service.impl;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.rbi.userservice.Model.UserStatus;
 import org.rbi.userservice.Repository.UserRepository;
 import org.rbi.userservice.config.KafkaTopicNameConstants;
 import org.rbi.userservice.exception.InValidOtpException;
+import org.rbi.userservice.exception.UserNotFoundException;
 import org.rbi.userservice.kafkaEvents.CreateOtpEvent;
 import org.rbi.userservice.logging.KafkaLogProducer;
 import org.rbi.userservice.service.JWTService;
@@ -39,21 +41,6 @@ public class UserServiceImpl implements UserService {
                 otpRequestDto.getLastName(),
                 otpRequestDto.getEmail(),
                 otpRequestDto.getEmail());
-    }
-
-    @Override
-    public Boolean sendOtpByPhone(String phone) {
-        UserEntity user =
-                userRepository
-                        .findByPhone(phone)
-                        .orElseThrow(
-                                () -> {
-                                    kafkaLogProducer.logError(
-                                            "USER_NOT_FOUND", Map.of("phone", phone));
-                                    return new RuntimeException(
-                                            "User not found with phone: " + phone);
-                                });
-        return generateAndSendOtp(user.getFirstName(), user.getLastName(), user.getEmail(), phone);
     }
 
     private Boolean generateAndSendOtp(
@@ -120,13 +107,11 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    @Override
-    public void saveOtp(String otp, String key) {
+    private void saveOtp(String otp, String key) {
         redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
     }
 
-    @Override
-    public void deleteOtp(String key) {
+    private void deleteOtp(String key) {
         redisTemplate.delete(key);
     }
 
@@ -194,7 +179,7 @@ public class UserServiceImpl implements UserService {
                 userRepository
                         .findByEmail(email)
                         .orElseThrow(
-                                () -> new RuntimeException("User not found with email: " + email));
+                                () -> new UserNotFoundException("User not found with email: " + email));
         return UserDto.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
@@ -214,7 +199,7 @@ public class UserServiceImpl implements UserService {
                 userRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException("User not found with ID: " + userId));
+                                () -> new UserNotFoundException("User not found with ID: " + userId));
         return UserDto.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
@@ -222,7 +207,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .roles(
-                        java.util.List.of(
+                        List.of(
                                 user.getRoles() != null ? user.getRoles().name() : "USER"))
                 .status(user.getStatus())
                 .build();

@@ -40,7 +40,6 @@ public class EventListeners {
 
             // 3️⃣ Persist to DB
 
-            System.out.println(logs);
             logRepository.saveAll(logs);
         } catch (Exception ex) {
             ex.printStackTrace();
