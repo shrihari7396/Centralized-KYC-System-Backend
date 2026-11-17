@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  namespace: kyc-system
+  labels:
+    app.kubernetes.io/name: email-service
+    app.kubernetes.io/instance: email-service-v1
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: mailer-notifications
+    app.kubernetes.io/part-of: centralized-kyc-system
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: email-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: email-service
+        app.kubernetes.io/component: mailer-notifications
+        app.kubernetes.io/part-of: centralized-kyc-system
+    spec:
+      containers:
+        - name: email-service
+          image: kyc-system/email-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8092
+              name: http
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: "8092"
+            - name: SPRING_APPLICATION_NAME
+              value: "EMAILSERVICE"
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/api/emailService/"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: SMTP_PORT
+            - name: SMTP_AUTH
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: SMTP_AUTH
+            - name: SMTP_STARTTLS_ENABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: SMTP_STARTTLS_ENABLE
+            - name: SMTP_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: kyc-global-config
+                  key: SMTP_FROM
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: kyc-secrets
+                  key: SMTP_USERNAME
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kyc-secrets
+                  key: SMTP_PASSWORD
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 750m
+              memory: 768Mi
+          startupProbe:
+            tcpSocket:
+              port: 8092
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            tcpSocket:
+              port: 8092
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8092
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-service
+  namespace: kyc-system
+  labels:
+    app.kubernetes.io/name: email-service
+    app.kubernetes.io/component: mailer-notifications
+    app.kubernetes.io/part-of: centralized-kyc-system
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8092
+      targetPort: 8092
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: email-service

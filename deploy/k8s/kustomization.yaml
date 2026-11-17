@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kyc-system
+
+resources:
+  - 00-namespace.yaml
+  - 01-configmap.yaml
+  - 02-secrets.yaml
+  - 03-infrastructure.yaml
+  - 04-discovery-service.yaml
+  - 05-api-gateway.yaml
+  - 06-user-service.yaml
+  - 07-kyc-management-service.yaml
+  - 08-consent-service.yaml
+  - 09-bank-service.yaml
+  - 10-digilocker-service.yaml
+  - 11-email-service.yaml
+  - 12-notification-system.yaml
+  - 13-log-monitoring-system.yaml
+  - 14-ai-service.yaml
