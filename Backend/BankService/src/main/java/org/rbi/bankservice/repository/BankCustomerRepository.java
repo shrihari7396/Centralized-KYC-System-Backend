@@ -19,6 +19,8 @@ public interface BankCustomerRepository extends MongoRepository<BankCustomer, St
 
     List<BankCustomer> findByBankId(String bankId);
 
+    List<BankCustomer> findByUserIdIn(List<String> userIds);
+
     long countByBankId(String bankId);
 
     Page<BankCustomer> findByBankIdAndUserIdContaining(

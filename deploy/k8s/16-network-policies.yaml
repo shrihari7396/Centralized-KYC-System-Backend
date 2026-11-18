@@ -1,0 +1,80 @@
+# Zero-Trust Network Policies for Centralized KYC System
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: kyc-system
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow external ingress traffic only to ApiGateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-gateway
+  namespace: kyc-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Allow internal microservices communication from ApiGateway and peers
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal-microservices
+  namespace: kyc-system
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values: ["service", "discovery", "gateway"]
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: centralized-kyc-system
+---
+# Protect Databases and Message Brokers: Only internal backend services can connect
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: protect-infrastructure-backends
+  namespace: kyc-system
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values: ["database", "cache", "messaging"]
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: ["service", "gateway"]
+      ports:
+        - protocol: TCP
+          port: 3306 # MySQL
+        - protocol: TCP
+          port: 27017 # MongoDB
+        - protocol: TCP
+          port: 6379 # Redis
+        - protocol: TCP
+          port: 9092 # Kafka

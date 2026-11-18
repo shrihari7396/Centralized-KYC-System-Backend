@@ -124,10 +124,18 @@ public class BankServiceImpl implements BankService {
                 otpRequestDto.getEmail());
     }
 
+    private static final int MAX_OTP_ATTEMPTS = 3;
+    private static final Duration OTP_TTL = Duration.ofMinutes(3);
+    private static final Duration LOCKOUT_DURATION = Duration.ofMinutes(15);
+
     private Boolean generateAndSendOtp(String firstName, String lastName, String email) {
+        String lockoutKey = "otp_locked:" + email;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            throw new InValidOtpException("Account is temporarily locked due to excessive failed attempts. Please try again later.");
+        }
+
         int otp = secureRandom.nextInt(1_000_000);
         String finalotp = String.format("%06d", otp);
-        log.info("Otp: {}", finalotp);
         CreateOtpEvent event =
                 CreateOtpEvent.builder()
                         .firstName(firstName)
@@ -138,37 +146,55 @@ public class BankServiceImpl implements BankService {
                         .build();
 
         saveOtp(finalotp, email);
-        // Using string topic name to avoid circular dependencies or missing constants
+        redisTemplate.delete("otp_attempts:" + email);
         kafkaTemplate.send(KafkaConstants.OTP_CREATED_TOPIC, event);
 
-        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", email));
+        kafkaLogProducer.logInfo("OTP_SENT", java.util.Map.of("email", maskEmail(email)));
 
         return true;
     }
 
     @Override
     public Boolean verifyOtp(String otp, String key) {
+        String lockoutKey = "otp_locked:" + key;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            throw new InValidOtpException("Account is temporarily locked due to excessive failed attempts. Please request a new OTP later.");
+        }
+
         String storedOtp = redisTemplate.opsForValue().get(key);
         if (storedOtp == null) {
             kafkaLogProducer.logWarning(
-                    "OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", key));
-            throw new InValidOtpException("Expired or invalid OTP");
-        }
-        boolean result = storedOtp.equals(otp);
-        if (!result) {
-            kafkaLogProducer.logWarning(
-                    "OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", key));
-            throw new InValidOtpException("Invalid OTP");
+                    "OTP_VERIFICATION_FAILED_EXPIRED", java.util.Map.of("key", maskEmail(key)));
+            throw new InValidOtpException("Expired or invalid OTP. Please request a new OTP.");
         }
 
-        kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", key));
+        String attemptsKey = "otp_attempts:" + key;
+        boolean result = storedOtp.equals(otp);
+        if (!result) {
+            Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+            kafkaLogProducer.logWarning(
+                    "OTP_VERIFICATION_FAILED_INVALID", java.util.Map.of("key", maskEmail(key), "attempt", String.valueOf(attempts)));
+
+            if (attempts != null && attempts >= MAX_OTP_ATTEMPTS) {
+                deleteOtp(key);
+                redisTemplate.delete(attemptsKey);
+                redisTemplate.opsForValue().set(lockoutKey, "locked", LOCKOUT_DURATION);
+                throw new InValidOtpException("Account temporarily locked for 15 minutes due to 3 consecutive failed attempts.");
+            }
+
+            int remaining = MAX_OTP_ATTEMPTS - (attempts != null ? attempts.intValue() : 1);
+            throw new InValidOtpException("Invalid OTP. " + remaining + " attempt(s) remaining.");
+        }
+
+        kafkaLogProducer.logInfo("OTP_VERIFIED", java.util.Map.of("key", maskEmail(key)));
         deleteOtp(key);
+        redisTemplate.delete(attemptsKey);
         return result;
     }
 
     @Override
     public void saveOtp(String otp, String key) {
-        redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
+        redisTemplate.opsForValue().set(key, otp, OTP_TTL);
     }
 
     @Override
@@ -219,8 +245,7 @@ public class BankServiceImpl implements BankService {
         } catch (Exception e) {
             kafkaLogProducer.logError(
                     "LOGOUT_FAILED",
-                    java.util.Map.of(
-                            "token_snippet", token.substring(0, Math.min(token.length(), 10))));
+                    java.util.Map.of("error", e.getMessage()));
         }
         return false;
     }
@@ -238,9 +263,7 @@ public class BankServiceImpl implements BankService {
         java.util.List<String> userIds =
                 approvedConsents.stream().map(Consent::getUserId).collect(Collectors.toList());
 
-        return repo.findAll().stream()
-                .filter(c -> userIds.contains(c.getUserId()))
-                .collect(Collectors.toList());
+        return repo.findByUserIdIn(userIds);
     }
 
     @Override
@@ -432,5 +455,12 @@ public class BankServiceImpl implements BankService {
         // or a detailed audit log entry.
         kafkaLogProducer.logInfo("GET_DETAIL_REPORT", Map.of("kycRequestId", kycRequestId));
         return Map.of(DocumentType.PAN, "Verified", DocumentType.AADHAAR, "Verified");
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "***";
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 2) return "***" + email.substring(atIndex);
+        return email.substring(0, 2) + "***" + email.substring(atIndex);
     }
 }

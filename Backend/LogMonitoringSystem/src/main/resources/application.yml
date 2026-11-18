@@ -1,56 +1,89 @@
-spring:
-  output:
-    ansi:
-      enabled: always
+server:
+  port: ${SERVER_PORT:8085}
 
+spring:
   application:
     name: LogMonitoringSystem
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
 
   kafka:
-    bootstrap-servers: localhost:9092
-
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: sentientgate-logging-service
       auto-offset-reset: earliest
       enable-auto-commit: false
       max-poll-records: 500
-
-      # ✅ Correct deserializers
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-
-        # ✅ FIXED (your actual DTO)
         spring.json.value.default.type: org.rbi.logmonitoringsystem.dtos.LogEventDTO
-
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
-
     listener:
       concurrency: 3
       type: batch
       ack-mode: batch
 
   datasource:
-    url: jdbc:mysql://localhost:3306/kyc
-    username: root
-    password: 899961
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE_LOGS:kyc}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    open-in-view: true
+    open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
 
-server:
-  port: 8085
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: INFO
+    org.rbi.logmonitoringsystem: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:kyc;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop

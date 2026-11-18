@@ -1,18 +1,70 @@
 server:
-  servlet:
-    context-path: /api/emailService/
-  port: 8092
+  port: ${SERVER_PORT:8092}
 
 spring:
+  application:
+    name: EMAILSERVICE
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
   mail:
-    host: ${SMTP_HOST:}
-    port: ${SMTP_PORT:0}
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
     username: ${SMTP_USERNAME:}
     password: ${SMTP_PASSWORD:}
-    from: ${SMTP_FROM:}
+    from: ${SMTP_FROM:noreply@kyc.rbi.org}
     properties:
       mail:
         smtp:
           auth: ${SMTP_AUTH:false}
           starttls:
             enable: ${SMTP_STARTTLS_ENABLE:false}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: email-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: INFO
+    org.kyc.emailservice: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  mail:
+    host: localhost
+    port: 1025
+    from: test@kyc.rbi.org
