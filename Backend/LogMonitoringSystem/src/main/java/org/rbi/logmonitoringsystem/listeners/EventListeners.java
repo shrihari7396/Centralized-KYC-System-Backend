@@ -3,6 +3,7 @@ package org.rbi.logmonitoringsystem.listeners;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.rbi.logmonitoringsystem.dtos.LogEventDTO;
 import org.rbi.logmonitoringsystem.entity.LogEntity;
 import org.rbi.logmonitoringsystem.repository.LogRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class EventListeners {
     private final LogRepository logRepository;
     private final ObjectMapper objectMapper;
@@ -19,9 +21,11 @@ public class EventListeners {
             topics = {"log-info", "log-warning", "log-error"},
             containerFactory = "kafkaListenerContainerFactory")
     public void consume(List<LogEventDTO> events) {
+        if (events == null || events.isEmpty()) {
+            return;
+        }
 
         try {
-            // 2️⃣ Map DTO → Entity
             List<LogEntity> logs =
                     events.stream()
                             .map(
@@ -38,11 +42,11 @@ public class EventListeners {
                                                     .build())
                             .toList();
 
-            // 3️⃣ Persist to DB
-
             logRepository.saveAll(logs);
+            log.debug("Successfully ingested {} audit log events into database", logs.size());
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("Failed to persist batch of {} log events: {}", events.size(), ex.getMessage(), ex);
+            throw new RuntimeException("Error persisting audit logs batch", ex);
         }
     }
 
@@ -50,6 +54,7 @@ public class EventListeners {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (Exception e) {
+            log.warn("Failed to serialize audit log payload: {}", e.getMessage());
             return "{\"error\": \"Failed to serialize payload\"}";
         }
     }

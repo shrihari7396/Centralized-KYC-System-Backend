@@ -5,11 +5,13 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rbi.kycmanagementservice.configs.KafkaConstants;
+import org.rbi.kycmanagementservice.entity.KycEntity;
 import org.rbi.kycmanagementservice.entity.KycRecord;
 import org.rbi.kycmanagementservice.event.DigiLockerDataFetchedEvent;
 import org.rbi.kycmanagementservice.event.KycVerificationSuccessEvent;
 import org.rbi.kycmanagementservice.logging.KafkaLogProducer;
 import org.rbi.kycmanagementservice.repository.KycRecordRepository;
+import org.rbi.kycmanagementservice.repository.KycRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class KycKafkaConsumer {
 
     private final KycRecordRepository kycRecordRepository;
+    private final KycRepository kycRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaLogProducer kafkaLogProducer;
 
@@ -29,10 +32,7 @@ public class KycKafkaConsumer {
 
     @KafkaListener(topics = FETCHED_TOPIC, groupId = KAFKA_GROUP_ID)
     public void consumeDigilockerData(DigiLockerDataFetchedEvent event) {
-        //        DigiLockerDataFetchedEvent event =  modelMapper.map(event1,
-        // DigiLockerDataFetchedEvent.class);
-        log.info("Consume digilocker data received{}", event);
-        // 🔴 Defensive null check (critical)
+        log.info("Consume digilocker data received for userId: {}", event != null ? event.getUserId() : "null");
         if (event == null || event.getMobileNumber() == null) {
             log.error("Invalid DigiLocker event received: {}", event);
             return;
@@ -40,17 +40,15 @@ public class KycKafkaConsumer {
 
         log.info("Consumed DigiLocker data for mobile: {}", event.getMobileNumber());
 
-        // ✅ Safe logging map (replaced Map.of)
         Map<String, Object> startLog = new HashMap<>();
         startLog.put("mobileNumber", event.getMobileNumber());
-
+        startLog.put("userId", event.getUserId());
         kafkaLogProducer.logInfo("KYC_PROCESSING_STARTED", startLog);
 
-        // Fetch or create record
-        KycRecord record =
-                kycRecordRepository
-                        .findByEmail(event.getMobileNumber())
-                        .orElse(new KycRecord());
+        // Fetch or create record (fixed lookup by userId or mobileNumber instead of findByEmail)
+        KycRecord record = kycRecordRepository.findByUserId(event.getUserId())
+                .or(() -> kycRecordRepository.findByMobileNumber(event.getMobileNumber()))
+                .orElse(new KycRecord());
 
         // Full name construction (null-safe)
         String fullName =
@@ -76,7 +74,32 @@ public class KycKafkaConsumer {
 
         // Save to DB
         kycRecordRepository.save(record);
-        log.info("KycRecord saved to DB for mobile: {}", event.getMobileNumber());
+        log.info("KycRecord saved to DB for userId: {}", event.getUserId());
+
+        // Synchronize KycEntity status to VERIFIED so bank access checks succeed
+        if (event.getUserId() != null) {
+            kycRepository.findById(event.getUserId()).ifPresentOrElse(kycEntity -> {
+                kycEntity.setStatus("VERIFIED");
+                if (kycEntity.getAadhaarNo() == null && event.getAadharNumber() != null) {
+                    kycEntity.setAadhaarNo(event.getAadharNumber());
+                }
+                if (kycEntity.getPan() == null && event.getPanNumber() != null) {
+                    kycEntity.setPan(event.getPanNumber());
+                }
+                kycRepository.save(kycEntity);
+                log.info("KycEntity status updated to VERIFIED for userId: {}", event.getUserId());
+            }, () -> {
+                // If KycEntity does not exist yet, create it
+                KycEntity newEntity = KycEntity.builder()
+                        .userId(event.getUserId())
+                        .aadhaarNo(event.getAadharNumber())
+                        .pan(event.getPanNumber())
+                        .status("VERIFIED")
+                        .build();
+                kycRepository.save(newEntity);
+                log.info("Created new verified KycEntity for userId: {}", event.getUserId());
+            });
+        }
 
         // Produce success event
         KycVerificationSuccessEvent successEvent =
@@ -94,11 +117,9 @@ public class KycKafkaConsumer {
 
         kafkaTemplate.send(SUCCESS_TOPIC, event.getMobileNumber(), successEvent);
 
-        // ✅ Safe logging map (replaced Map.of)
         Map<String, Object> successLog = new HashMap<>();
         successLog.put("mobileNumber", event.getMobileNumber());
         successLog.put("status", "SUCCESS");
-
-        kafkaLogProducer.logInfo("KYC_VERIFICATION_SUCCESS", successLog);
+        kafkaLogProducer.logInfo("KYC_PROCESSING_COMPLETED", successLog);
     }
 }

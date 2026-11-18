@@ -1,87 +1,102 @@
 package org.rbi.kycmanagementservice.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Date;
 import java.util.List;
+import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class JwtParserUtil {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final SecretKey secretKey;
 
-    /** Extracts the complete JSON payload from the given JWT token. */
-    public JsonNode parsePayload(String token) {
-        try {
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-            String[] chunks = token.split("\\.");
-            if (chunks.length < 2) {
-                throw new IllegalArgumentException("Invalid JWT token format");
-            }
-
-            Base64.Decoder decoder = Base64.getUrlDecoder();
-            String payload = new String(decoder.decode(chunks[1]));
-            return objectMapper.readTree(payload);
-        } catch (Exception e) {
-            throw new RuntimeException("Error parsing JWT Token", e);
-        }
+    public JwtParserUtil(
+            @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
+            String secret) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** Utility method to extract a specific claim as a string. */
+    private String cleanToken(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7).trim();
+        }
+        return token != null ? token.trim() : null;
+    }
+
+    /**
+     * Parses and cryptographically validates the token payload against the configured HMAC secret key.
+     */
+    public Claims parsePayload(String token) {
+        String cleaned = cleanToken(token);
+        if (cleaned == null || cleaned.isEmpty()) {
+            throw new IllegalArgumentException("JWT token is null or empty");
+        }
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(cleaned)
+                .getPayload();
+    }
+
+    /** Extracts user ID from subject or custom userId claim. */
     public String extractUserId(String token) {
-        JsonNode payload = parsePayload(token);
-        if (payload.has("sub")) {
-            return payload.get("sub").asText();
+        Claims claims = parsePayload(token);
+        String userId = claims.get("userId", String.class);
+        if (userId != null && !userId.isBlank()) {
+            return userId;
         }
-        return null; // or throw exception depending on security model
+        return claims.getSubject();
     }
 
-    /** Extracts the requested fields list from the token. */
+    /** Extracts requested document fields list. */
+    @SuppressWarnings("unchecked")
     public List<String> extractRequestedFields(String token) {
-        JsonNode payload = parsePayload(token);
-        List<String> fields = new ArrayList<>();
-        if (payload.has("documentFields") && payload.get("documentFields").isArray()) {
-            for (JsonNode fieldNode : payload.get("documentFields")) {
-                fields.add(fieldNode.asText());
-            }
+        Claims claims = parsePayload(token);
+        Object docFields = claims.get("documentFields");
+        if (docFields instanceof List<?>) {
+            return (List<String>) docFields;
         }
-        return fields;
+        return new ArrayList<>();
     }
 
-    /** Extracts the token ID (JTI). */
+    /** Extracts JWT ID (JTI). */
     public String extractJti(String token) {
-        JsonNode payload = parsePayload(token);
-        if (payload.has("jti")) {
-            return payload.get("jti").asText();
-        }
-        return null;
+        Claims claims = parsePayload(token);
+        return claims.getId();
     }
 
-    /** Checks if the token is expired by verifying the 'exp' claim. */
+    /** Checks if token is expired. */
     public boolean isTokenExpired(String token) {
-        JsonNode payload = parsePayload(token);
-        if (payload.has("exp")) {
-            long expEpoch = payload.get("exp").asLong();
-            long currentEpoch = System.currentTimeMillis() / 1000;
-            return currentEpoch >= expEpoch;
+        try {
+            Claims claims = parsePayload(token);
+            Date exp = claims.getExpiration();
+            return exp != null && exp.before(new Date());
+        } catch (JwtException e) {
+            log.warn("Token expired or invalid: {}", e.getMessage());
+            return true;
         }
-        // If there's no expiration claim, we could either consider it never expires,
-        // or immediately expires. Let's assume valid but not trackable for expiration.
-        return false;
     }
 
-    /** Extracts the remaining time to live for a token in seconds. */
+    /** Extracts remaining seconds before expiration. */
     public long getExpirationRemainingSeconds(String token) {
-        JsonNode payload = parsePayload(token);
-        if (payload.has("exp")) {
-            long expEpoch = payload.get("exp").asLong();
-            long currentEpoch = System.currentTimeMillis() / 1000;
-            long remaining = expEpoch - currentEpoch;
-            return remaining > 0 ? remaining : 0;
+        try {
+            Claims claims = parsePayload(token);
+            Date exp = claims.getExpiration();
+            if (exp != null) {
+                long remaining = (exp.getTime() - System.currentTimeMillis()) / 1000;
+                return Math.max(remaining, 0);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to calculate remaining seconds: {}", e.getMessage());
         }
         return 0;
     }

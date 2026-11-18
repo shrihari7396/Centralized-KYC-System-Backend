@@ -37,6 +37,7 @@ public class BankKycController {
     }
 
     @PostMapping("/bypass")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BankCustomer> adminBypass(@RequestBody @Valid BypassRequestDto req) {
         return ResponseEntity.ok(bankSvc.bypassKyc(req));
     }

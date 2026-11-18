@@ -15,14 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtServiceImpl implements JwtService {
 
-    @Value("${secret.key}")
-    private String SECRET; // must be >= 32 chars
+    @Value("${secret.key:${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}}")
+    private String secret;
 
     private SecretKey key;
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -40,13 +40,21 @@ public class JwtServiceImpl implements JwtService {
     public boolean validateToken(String token) {
         try {
             Claims claims = getClaims(token);
-            return !claims.getExpiration().before(new Date());
+            Date exp = claims.getExpiration();
+            return exp != null && !exp.before(new Date());
         } catch (Exception e) {
             return false;
         }
     }
 
     private Claims getClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7).trim();
+        }
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

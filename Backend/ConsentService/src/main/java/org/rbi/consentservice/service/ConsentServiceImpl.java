@@ -57,7 +57,8 @@ public class ConsentServiceImpl implements ConsentService {
     private String consentBaseUrl;
 
     private static final String OTP_KEY_PREFIX = "consent_otp:";
-    private static final long OTP_EXPIRY_MINUTES = 10;
+    private static final long OTP_EXPIRY_MINUTES = 3;
+    private static final int MAX_OTP_ATTEMPTS = 3;
 
     @Override
     public void requestConsent(ConsentRequestDto requestDto) {
@@ -196,13 +197,14 @@ public class ConsentServiceImpl implements ConsentService {
         // Generate 6-digit OTP
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
 
-        // Store in Redis with TTL
+        // Store in Redis with TTL and reset attempts
         String redisKey = OTP_KEY_PREFIX + consentIdValue;
         redisTemplate
                 .opsForValue()
                 .set(redisKey, otp, OTP_EXPIRY_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
+        redisTemplate.delete("consent_otp_attempts:" + consentIdValue);
 
-        log.info("Generated OTP for consent {}: {}", consentIdValue, otp);
+        log.info("Generated OTP for consent {}", consentIdValue);
 
         // Fetch User details for correct delivery
         UserDto user;
@@ -220,24 +222,41 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     private void verifyOtp(String consentId, String otpInput) {
+        String lockoutKey = "consent_otp_locked:" + consentId;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            throw new InValidOtpException("Consent verification is temporarily locked due to excessive failed attempts. Please request a new OTP.");
+        }
+
         String redisKey = OTP_KEY_PREFIX + consentId;
         String storedOtp = redisTemplate.opsForValue().get(redisKey);
 
         if (storedOtp == null) {
             kafkaLogProducer.logWarning(
                     "OTP_EXPIRED_OR_NOT_REQUESTED", java.util.Map.of("consentId", consentId));
-            throw new InValidOtpException("Expired or invalid OTP");
+            throw new InValidOtpException("Expired or invalid OTP. Please request a new OTP.");
         }
 
+        String attemptsKey = "consent_otp_attempts:" + consentId;
         if (!storedOtp.equals(otpInput)) {
+            Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
             kafkaLogProducer.logWarning(
                     "OTP_VERIFICATION_FAILED",
-                    java.util.Map.of("consentId", consentId, "reason", "Invalid OTP provided"));
-            throw new InValidOtpException("Invalid OTP");
+                    java.util.Map.of("consentId", consentId, "attempt", String.valueOf(attempts)));
+
+            if (attempts != null && attempts >= MAX_OTP_ATTEMPTS) {
+                redisTemplate.delete(redisKey);
+                redisTemplate.delete(attemptsKey);
+                redisTemplate.opsForValue().set(lockoutKey, "locked", java.time.Duration.ofMinutes(15));
+                throw new InValidOtpException("Too many failed attempts. Consent verification locked for 15 minutes.");
+            }
+
+            int remaining = MAX_OTP_ATTEMPTS - (attempts != null ? attempts.intValue() : 1);
+            throw new InValidOtpException("Invalid OTP. " + remaining + " attempt(s) remaining.");
         }
 
-        // Delete OTP after successful verification
+        // Delete OTP and attempts after successful verification
         redisTemplate.delete(redisKey);
+        redisTemplate.delete(attemptsKey);
     }
 
     @Override

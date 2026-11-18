@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rbi.userservice.DTO.*;
@@ -34,6 +35,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final SecureRandom secureRandom;
 
+    private static final int MAX_OTP_ATTEMPTS = 3;
+    private static final Duration OTP_TTL = Duration.ofMinutes(3);
+    private static final Duration LOCKOUT_DURATION = Duration.ofMinutes(15);
+
     @Override
     public Boolean sendOtp(OtpRequestDto otpRequestDto) {
         return generateAndSendOtp(
@@ -43,72 +48,98 @@ public class UserServiceImpl implements UserService {
                 otpRequestDto.getEmail());
     }
 
-    private Boolean generateAndSendOtp(
-            String firstName, String lastName, String email, String key) {
+    private Boolean generateAndSendOtp(String firstName, String lastName, String email, String key) {
+        String lockoutKey = "otp_locked:" + key;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            log.warn("OTP request rejected: account locked for key: {}", maskEmail(key));
+            throw new InValidOtpException("Account is temporarily locked due to excessive failed attempts. Please try again later.");
+        }
+
         int otp = secureRandom.nextInt(1_000_000);
-        String finalotp = String.format("%06d", otp);
+        String finalOtp = String.format("%06d", otp);
 
-        CreateOtpEvent event =
-                CreateOtpEvent.builder()
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .email(email)
-                        .otp(finalotp)
-                        .serviceType("LOGIN")
-                        .build();
-        log.info("OTP: {}", finalotp);
-        System.out.println(finalotp);
-        saveOtp(finalotp, key);
+        CreateOtpEvent event = CreateOtpEvent.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .otp(finalOtp)
+                .serviceType("LOGIN")
+                .build();
+
+        // Save OTP and reset attempt counter
+        saveOtp(finalOtp, key);
+        redisTemplate.delete("otp_attempts:" + key);
+
         kafkaTemplate.send(KafkaTopicNameConstants.OTP_CREATED_TOPIC, event);
-
-        kafkaLogProducer.logInfo("OTP_SENT", Map.of("email", email, "key", key));
+        kafkaLogProducer.logInfo("OTP_SENT", Map.of("key", maskEmail(key)));
 
         return true;
     }
 
     @Override
     public Boolean registerUser(RegisterDTO user) {
-        UserEntity u =
-                UserEntity.builder()
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .email(user.getEmail())
-                        .status(UserStatus.KYC_PENDING)
-                        .phone(user.getMobileNumber())
-                        .roles(Role.USER)
-                        .build();
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("User with email " + user.getEmail() + " is already registered.");
+        }
+
+        UserEntity u = UserEntity.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .status(UserStatus.KYC_PENDING)
+                .phone(user.getMobileNumber())
+                .roles(Role.USER)
+                .build();
 
         UserEntity saved = userRepository.save(u);
         if (saved != null) {
-            kafkaLogProducer.logInfo(
-                    "USER_REGISTERED",
-                    Map.of("email", saved.getEmail(), "phone", saved.getPhone()));
+            kafkaLogProducer.logInfo("USER_REGISTERED", Map.of("userId", saved.getId(), "email", maskEmail(saved.getEmail())));
         } else {
-            kafkaLogProducer.logError("USER_REGISTRATION_FAILED", Map.of("email", user.getEmail()));
+            kafkaLogProducer.logError("USER_REGISTRATION_FAILED", Map.of("email", maskEmail(user.getEmail())));
         }
         return saved != null;
     }
 
     @Override
     public Boolean verifyOtp(String otp, String key) {
-        String StoredOtp = redisTemplate.opsForValue().get(key);
-        if (StoredOtp == null) {
-            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_EXPIRED", Map.of("key", key));
-            throw new InValidOtpException("Expired or invalid OTP");
-        }
-        boolean result = StoredOtp.equals(otp);
-        if (!result) {
-            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_INVALID", Map.of("key", key));
-            throw new InValidOtpException("Invalid OTP");
+        String lockoutKey = "otp_locked:" + key;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+            throw new InValidOtpException("Account is temporarily locked due to excessive failed attempts. Please request a new OTP later.");
         }
 
-        kafkaLogProducer.logInfo("OTP_VERIFIED", Map.of("key", key));
+        String storedOtp = redisTemplate.opsForValue().get(key);
+        if (storedOtp == null) {
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_EXPIRED", Map.of("key", maskEmail(key)));
+            throw new InValidOtpException("Expired or invalid OTP. Please request a new OTP.");
+        }
+
+        String attemptsKey = "otp_attempts:" + key;
+        boolean result = storedOtp.equals(otp);
+
+        if (!result) {
+            Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+            kafkaLogProducer.logWarning("OTP_VERIFICATION_FAILED_INVALID", Map.of("key", maskEmail(key), "attempt", String.valueOf(attempts)));
+
+            if (attempts != null && attempts >= MAX_OTP_ATTEMPTS) {
+                deleteOtp(key);
+                redisTemplate.delete(attemptsKey);
+                redisTemplate.opsForValue().set(lockoutKey, "locked", LOCKOUT_DURATION);
+                log.warn("Account locked for key {} after {} failed attempts", maskEmail(key), attempts);
+                throw new InValidOtpException("Account temporarily locked for 15 minutes due to 3 consecutive failed attempts.");
+            }
+
+            int remaining = MAX_OTP_ATTEMPTS - (attempts != null ? attempts.intValue() : 1);
+            throw new InValidOtpException("Invalid OTP. " + remaining + " attempt(s) remaining.");
+        }
+
+        kafkaLogProducer.logInfo("OTP_VERIFIED", Map.of("key", maskEmail(key)));
         deleteOtp(key);
-        return result;
+        redisTemplate.delete(attemptsKey);
+        return true;
     }
 
     private void saveOtp(String otp, String key) {
-        redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(10));
+        redisTemplate.opsForValue().set(key, otp, OTP_TTL);
     }
 
     private void deleteOtp(String key) {
@@ -117,35 +148,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isExistByEmail(String email) {
-        return userRepository.updateLastLogin(email) > 0;
+        return userRepository.findByEmail(email).isPresent();
     }
 
     @Override
     public LoginResponseDto getLoginResponseDto(OtpVerificationDto otpVerificationDto) {
-        LoginResponseDto response = null;
-
-        if (verifyOtp(otpVerificationDto.getOtp(), otpVerificationDto.getEmail())) {
-            String token =
-                    jwtService.generateToken(
-                            otpVerificationDto.getEmail(), otpVerificationDto.getRole().toString());
-            response =
-                    LoginResponseDto.builder()
-                            .role(otpVerificationDto.getRole())
-                            .email(otpVerificationDto.getEmail())
-                            .firstName(otpVerificationDto.getFirstName())
-                            .lastName(otpVerificationDto.getLastName())
-                            .token(token)
-                            .build();
-        }
-
-        if (response == null) {
-            kafkaLogProducer.logWarning(
-                    "LOGIN_FAILED", Map.of("email", otpVerificationDto.getEmail()));
+        if (!verifyOtp(otpVerificationDto.getOtp(), otpVerificationDto.getEmail())) {
             throw new InValidOtpException("Invalid OTP");
         }
 
-        kafkaLogProducer.logInfo(
-                "USER_LOGGED_IN", Map.of("email", response.getEmail(), "role", response.getRole()));
+        UserEntity user = userRepository.findByEmail(otpVerificationDto.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + otpVerificationDto.getEmail()));
+
+        // Update last login timestamp only after successful OTP verification
+        userRepository.updateLastLogin(user.getEmail());
+
+        // Secure Role Assignment: Role is derived strictly from DB entity, preventing client-controlled privilege escalation
+        String userRole = user.getRoles() != null ? user.getRoles().name() : "USER";
+        String token = jwtService.generateToken(user.getEmail(), userRole);
+
+        LoginResponseDto response = LoginResponseDto.builder()
+                .role(Role.valueOf(userRole))
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .token(token)
+                .build();
+
+        kafkaLogProducer.logInfo("USER_LOGGED_IN", Map.of("userId", user.getId(), "role", userRole));
         return response;
     }
 
@@ -156,14 +186,12 @@ public class UserServiceImpl implements UserService {
             java.util.Date expiration = jwtService.extractExpiration(token);
             long ttl = expiration.getTime() - System.currentTimeMillis();
 
-            if (ttl > 0) {
+            if (ttl > 0 && jti != null) {
                 redisTemplate.opsForValue().set("blacklist:" + jti, "true", Duration.ofMillis(ttl));
                 return true;
             }
         } catch (Exception e) {
-            kafkaLogProducer.logError(
-                    "LOGOUT_FAILED",
-                    Map.of("token_snippet", token.substring(0, Math.min(token.length(), 10))));
+            kafkaLogProducer.logError("LOGOUT_FAILED", Map.of("error", e.getMessage()));
         }
         return false;
     }
@@ -175,41 +203,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserDetails(String email) {
-        UserEntity user =
-                userRepository
-                        .findByEmail(email)
-                        .orElseThrow(
-                                () -> new UserNotFoundException("User not found with email: " + email));
-        return UserDto.builder()
-                .userId(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .roles(
-                        java.util.List.of(
-                                user.getRoles() != null ? user.getRoles().name() : "USER"))
-                .status(user.getStatus())
-                .build();
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        return buildUserDto(user);
     }
 
     @Override
     public UserDto getByUserId(String userId) {
-        UserEntity user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(
-                                () -> new UserNotFoundException("User not found with ID: " + userId));
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        return buildUserDto(user);
+    }
+
+    private UserDto buildUserDto(UserEntity user) {
         return UserDto.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .roles(
-                        List.of(
-                                user.getRoles() != null ? user.getRoles().name() : "USER"))
+                .roles(List.of(user.getRoles() != null ? user.getRoles().name() : "USER"))
                 .status(user.getStatus())
                 .build();
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "***";
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 2) return "***" + email.substring(atIndex);
+        return email.substring(0, 2) + "***" + email.substring(atIndex);
     }
 }

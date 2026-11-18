@@ -1,6 +1,5 @@
 package org.rbi.userservice.Repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.rbi.userservice.Model.UserEntity;
@@ -8,11 +7,12 @@ import org.rbi.userservice.Model.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, String> {
-    java.util.Optional<UserEntity> findByPhone(String phone);
+    Optional<UserEntity> findByPhone(String phone);
 
     @Modifying
     @Transactional
@@ -21,7 +21,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
 
     Optional<UserEntity> findByEmail(String email);
 
-    UserStatus findUserStatusByEmail(String email);
+    @Query("SELECT u.status FROM UserEntity u WHERE u.email = :email")
+    UserStatus findUserStatusByEmail(@Param("email") String email);
 
     @Modifying
     @Transactional

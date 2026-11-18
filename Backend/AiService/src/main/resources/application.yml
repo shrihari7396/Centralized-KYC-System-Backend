@@ -1,0 +1,50 @@
+server:
+  port: ${SERVER_PORT:8089}
+
+spring:
+  application:
+    name: AISERVICE
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+groq:
+  api:
+    key: ${GROQ_API_KEY:}
+    url: ${GROQ_API_URL:https://api.groq.com/openai/v1/chat/completions}
+    model: ${GROQ_API_MODEL:llama-3.3-70b-versatile}
+    connect-timeout-ms: ${GROQ_CONNECT_TIMEOUT_MS:5000}
+    read-timeout-ms: ${GROQ_READ_TIMEOUT_MS:15000}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: INFO
+    org.workflow.aiservice: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
